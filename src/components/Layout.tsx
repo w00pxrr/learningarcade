@@ -7,8 +7,6 @@ type LayoutProps = {
   showControls?: boolean;
   onToggleTheme?: (nextDark: boolean) => void;
   isDark?: boolean;
-  gamMode?: string;
-  onGamModeChange?: (next: string) => void;
 };
 
 export function Layout({
@@ -18,8 +16,6 @@ export function Layout({
   showControls = true,
   onToggleTheme,
   isDark = false,
-  gamMode,
-  onGamModeChange,
 }: LayoutProps) {
   return (
     <div className="min-h-screen px-4 pb-16 pt-6 text-textSecondary">
@@ -47,22 +43,6 @@ export function Layout({
                 className="h-4 w-4 accent-[var(--gams-link)]"
               />
             </label>
-            {onGamModeChange ? (
-              <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-textSecondary">
-                <span>Mode</span>
-                <select
-                  value={gamMode}
-                  onChange={(event) => onGamModeChange(event.target.value)}
-                  className="rounded-xl border border-panelBorder bg-[var(--gams-bg)] px-3 py-2 text-sm font-semibold text-textPrimary shadow-soft"
-                >
-                  <option value="gam">New Tab</option>
-                  <option value="embed">Embed</option>
-                  <option value="blank">Blank</option>
-                  <option value="direct">Replace</option>
-                  <option value="raw">Raw</option>
-                </select>
-              </label>
-            ) : null}
           </div>
         ) : null}
       </nav>

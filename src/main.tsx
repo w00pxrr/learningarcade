@@ -14,9 +14,11 @@ applyPerformanceMode();
 
 function inferPage(): string {
   const hash = window.location.hash.toLowerCase();
+  if (hash.startsWith("#/search")) return "search";
   if (hash.startsWith("#/settings")) return "settings";
   if (hash.startsWith("#/about")) return "about";
   if (hash.startsWith("#/game-embed")) return "game-embed";
+  if (hash.startsWith("#/category")) return "category";
 
   const lower = window.location.pathname.toLowerCase();
   if (lower.endsWith("settings.html")) return "settings";

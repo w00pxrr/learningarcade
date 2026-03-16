@@ -1,7 +1,34 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  IconButton,
+  Menu,
+  MenuItem,
+  Paper,
+  Slider,
+  Stack,
+  Switch,
+  Typography,
+} from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
+import { GameTypeBadge } from "../components/GameTypeBadge";
+import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
 import { getStoredJSON } from "../utils/storage";
+import { trackGameView } from "../utils/umami";
 import { recommendedGames } from "../data/recommended";
+import { gamesData, GameData } from "../data/games";
 
 type FilterState = {
   brightness: number;
@@ -34,6 +61,19 @@ const defaultFilters: FilterState = {
   opacity: 1,
   dropShadow: 0,
 };
+
+const filterControls: Array<[string, keyof FilterState, number, number, number]> = [
+  ["Brightness", "brightness", 10, 200, 1],
+  ["Contrast", "contrast", 0, 200, 1],
+  ["Hue", "hue", 0, 360, 1],
+  ["Blur", "blur", 0, 10, 0.5],
+  ["Saturate", "saturate", 0, 200, 1],
+  ["Grayscale", "grayscale", 0, 100, 1],
+  ["Sepia", "sepia", 0, 100, 1],
+  ["Invert", "invert", 0, 100, 1],
+  ["Opacity", "opacity", 0, 1, 0.01],
+  ["Drop Shadow", "dropShadow", 0, 12, 0.5],
+];
 
 function resolveUrl(rawUrl?: string | null) {
   if (!rawUrl) return "";
@@ -86,6 +126,7 @@ export default function GameEmbedPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hideSidebar, setHideSidebar] = useState(false);
+  const [controlsAnchor, setControlsAnchor] = useState<null | HTMLElement>(null);
 
   const popoutMode =
     (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top";
@@ -138,16 +179,13 @@ export default function GameEmbedPage() {
     if (!document.fullscreenElement) {
       const request =
         element.requestFullscreen ||
-        (element as HTMLElement & { webkitRequestFullscreen?: () => void })
-          .webkitRequestFullscreen ||
-        (element as HTMLElement & { msRequestFullscreen?: () => void })
-          .msRequestFullscreen;
+        (element as HTMLElement & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen ||
+        (element as HTMLElement & { msRequestFullscreen?: () => void }).msRequestFullscreen;
       request?.call(element);
     } else {
       const exit =
         document.exitFullscreen ||
-        (document as Document & { webkitExitFullscreen?: () => void })
-          .webkitExitFullscreen ||
+        (document as Document & { webkitExitFullscreen?: () => void }).webkitExitFullscreen ||
         (document as Document & { msExitFullscreen?: () => void }).msExitFullscreen;
       exit?.call(document);
     }
@@ -156,6 +194,8 @@ export default function GameEmbedPage() {
   const updateFilter = (key: keyof FilterState, value: number) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
+
+  const isControlsOpen = Boolean(controlsAnchor);
 
   const sendVirtualKey = useCallback((eventType: "keydown" | "keyup", keyValue: string) => {
     const frame = document.getElementById("frame") as HTMLIFrameElement | null;
@@ -208,133 +248,238 @@ export default function GameEmbedPage() {
     }
   }, []);
 
-  const renderRecommended = (game: RecommendedGame) => (
-    <button
-      key={game.name}
-      type="button"
-      className="card-tile card-tile-compact text-left text-xs text-textSecondary transition hover:text-textPrimary"
-      onClick={() => {
-        const href = resolveUrl(game.href);
-        const icon = resolveUrl(game.img);
-        setFrameSrc(href);
-        setCurrentName(game.name);
-        setCurrentIcon(icon);
-      }}
-    >
-      <img
-        src={game.img}
-        alt={game.name}
-        className="aspect-square w-full rounded-lg border border-panelBorder object-cover"
-        width={160}
-        height={160}
-        loading="lazy"
-        decoding="async"
-      />
-      <span className="block text-center text-xs font-semibold">{game.name}</span>
-    </button>
-  );
+  const resolveGameMeta = (game: RecommendedGame): GameData | undefined =>
+    gamesData.find((entry) => entry.name === game.name || entry.href === game.href);
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden text-textSecondary">
-      <aside
-        className={`w-72 border-r border-panelBorder bg-panel p-4 ${
-          isFullscreen || hideSidebar ? "hidden" : ""
-        }`}
-      >
-        <h3 className="section-title">Recommended games</h3>
-        <div className="mt-4 grid grid-cols-2 gap-3">{recommended.map(renderRecommended)}</div>
-      </aside>
-
-      <main className="relative flex-1">
-        <iframe
-          id="frame"
-          title="Game frame"
-          src={frameSrc}
-          className="absolute inset-0 h-full w-full border-0"
-          style={{ filter: filterStyle }}
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", display: "flex", flexDirection: "column" }}>
+      {!isFullscreen ? (
+        <PrimaryNav
+          showHomeLinks={false}
+          extraActions={
+            <>
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ display: { xs: "none", md: "flex" } }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box
+                    component="img"
+                    src={currentIcon}
+                    alt="Game icon"
+                    sx={{ width: 20, height: 20, borderRadius: 1.5, bgcolor: "white", p: 0.25 }}
+                  />
+                  <Typography variant="body2" fontWeight={700} noWrap>
+                    {currentName}
+                  </Typography>
+                </Stack>
+                <Button variant="outlined" color="inherit" onClick={openFullscreen} size="small">
+                  {isFullscreen ? "Exit full" : "Fullscreen"}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => setHideSidebar((prev) => !prev)}
+                  size="small"
+                >
+                  {hideSidebar ? "Show sidebar" : "Hide sidebar"}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => setIsModalOpen(true)}
+                  size="small"
+                >
+                  Settings
+                </Button>
+              </Stack>
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ display: { xs: "flex", md: "none" } }}
+              >
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  size="small"
+                  onClick={(event) => setControlsAnchor(event.currentTarget)}
+                >
+                  Controls
+                </Button>
+                <Menu
+                  anchorEl={controlsAnchor}
+                  open={isControlsOpen}
+                  onClose={() => setControlsAnchor(null)}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      setControlsAnchor(null);
+                      openFullscreen();
+                    }}
+                  >
+                    {isFullscreen ? "Exit full" : "Fullscreen"}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setControlsAnchor(null);
+                      setHideSidebar((prev) => !prev);
+                    }}
+                  >
+                    {hideSidebar ? "Show sidebar" : "Hide sidebar"}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setControlsAnchor(null);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    Settings
+                  </MenuItem>
+                </Menu>
+              </Stack>
+            </>
+          }
         />
-      </main>
+      ) : null}
 
-      <div
-        className="info-menu"
-        data-popout={popoutMode}
-      >
-        <div className="flex items-center gap-3">
-          <img
-            id="icon-img"
-            src={currentIcon}
-            alt="Game icon"
-            className="h-12 w-12 rounded-xl"
+      <Box sx={{ display: "flex", minHeight: 0, flex: 1 }}>
+        <Paper
+          variant="outlined"
+          sx={{
+            width: 280,
+            p: 2,
+            display: hideSidebar || isFullscreen ? "none" : "block",
+            borderRadius: 0,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              Recommended
+            </Typography>
+            <Chip label="Quick" size="small" color="secondary" />
+          </Stack>
+          <Grid container spacing={1.5}>
+            {recommended.map((game) => {
+              const meta = resolveGameMeta(game);
+              return (
+              <Grid item xs={6} key={game.name}>
+                <Card variant="outlined">
+                  <CardActionArea
+                    onClick={() => {
+                      const href = resolveUrl(game.href);
+                      const icon = resolveUrl(game.img);
+                      if (meta) trackGameView(meta);
+                      setFrameSrc(href);
+                      setCurrentName(game.name);
+                      setCurrentIcon(icon);
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      image={game.img}
+                      alt={game.name}
+                      sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
+                    />
+                    <CardContent sx={{ p: 1 }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography
+                          variant="caption"
+                          display="block"
+                          noWrap
+                          sx={{ flex: 1, minWidth: 0 }}
+                        >
+                          {game.name}
+                        </Typography>
+                        {meta ? <GameTypeBadge game={meta} size="xs" /> : null}
+                      </Stack>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+              );
+            })}
+          </Grid>
+        </Paper>
+
+        <Box sx={{ position: "relative", flex: 1, minHeight: 0 }}>
+          <Box
+            component="iframe"
+            id="frame"
+            title="Game frame"
+            src={frameSrc}
+            sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, filter: filterStyle }}
           />
-          <div className="flex-1 overflow-hidden">
-            <h1 className="truncate text-sm font-semibold text-textPrimary">{currentName}</h1>
-          </div>
-          <a
-            href="../../index.html"
-            className="text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
-            title="Back to home"
-          >
-            Home
-          </a>
-        </div>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={openFullscreen}
-            className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
-          >
-            {isFullscreen ? "Exit full" : "Fullscreen"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setHideSidebar((prev) => !prev)}
-            className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
-          >
-            {hideSidebar ? "Show sidebar" : "Hide sidebar"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
-          >
-            Settings
-          </button>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <div className="mobile-controls" aria-label="Mobile game controls">
-        <div className="mobile-dpad" aria-label="Mobile arrow controls">
-          {[
-            ["ArrowUp", "▲"],
-            ["ArrowLeft", "◀"],
-            ["ArrowDown", "▼"],
-            ["ArrowRight", "▶"],
-          ].map(([keyValue, label]) => (
-            <button
-              key={keyValue}
-              type="button"
-              className="arrow-btn"
-              data-key={keyValue}
+      <Box
+        aria-label="Mobile game controls"
+        sx={{
+          position: "fixed",
+          bottom: 16,
+          left: 16,
+          right: 16,
+          zIndex: 1100,
+          display: { xs: "flex", md: "none" },
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          pointerEvents: "none",
+        }}
+      >
+        <Stack spacing={1} sx={{ pointerEvents: "auto" }}>
+          <Stack direction="row" spacing={1} justifyContent="center">
+            <IconButton
+              color="primary"
               onPointerDown={(event) => {
                 event.preventDefault();
-                sendVirtualKey("keydown", keyValue);
+                sendVirtualKey("keydown", "ArrowUp");
               }}
               onPointerUp={(event) => {
                 event.preventDefault();
-                sendVirtualKey("keyup", keyValue);
+                sendVirtualKey("keyup", "ArrowUp");
               }}
               onPointerLeave={(event) => {
                 event.preventDefault();
-                sendVirtualKey("keyup", keyValue);
+                sendVirtualKey("keyup", "ArrowUp");
               }}
             >
-              {label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          className="space-btn"
+              ▲
+            </IconButton>
+          </Stack>
+          <Stack direction="row" spacing={1} justifyContent="center">
+            {[
+              ["ArrowLeft", "◀"],
+              ["ArrowDown", "▼"],
+              ["ArrowRight", "▶"],
+            ].map(([keyValue, label]) => (
+              <IconButton
+                key={keyValue}
+                color="primary"
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  sendVirtualKey("keydown", keyValue);
+                }}
+                onPointerUp={(event) => {
+                  event.preventDefault();
+                  sendVirtualKey("keyup", keyValue);
+                }}
+                onPointerLeave={(event) => {
+                  event.preventDefault();
+                  sendVirtualKey("keyup", keyValue);
+                }}
+              >
+                {label}
+              </IconButton>
+            ))}
+          </Stack>
+        </Stack>
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ pointerEvents: "auto" }}
           onPointerDown={(event) => {
             event.preventDefault();
             sendVirtualKey("keydown", " ");
@@ -349,61 +494,48 @@ export default function GameEmbedPage() {
           }}
         >
           Space
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      {isModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="glass-panel w-[90vw] max-w-2xl px-6 py-5">
-            <div className="flex items-center justify-between">
-              <h2 className="section-title">Settings</h2>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-sm font-semibold text-textSecondary"
-              >
-                Close
-              </button>
-            </div>
-            <div className="mt-4 grid gap-4 text-sm text-textSecondary">
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Game settings</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={
+                <Switch
                   checked={windowLock}
                   onChange={(event) => setWindowLock(event.target.checked)}
                 />
-                Ask before closing window
-              </label>
-              {(
-                [
-                  ["Brightness", "brightness", 10, 200, 100],
-                  ["Contrast", "contrast", 0, 200, 100],
-                  ["Hue", "hue", 0, 360, 0],
-                  ["Blur", "blur", 0, 10, 0],
-                  ["Saturate", "saturate", 0, 200, 100],
-                  ["Grayscale", "grayscale", 0, 100, 0],
-                  ["Sepia", "sepia", 0, 100, 0],
-                  ["Invert", "invert", 0, 100, 0],
-                  ["Opacity", "opacity", 0, 1, 1],
-                  ["Drop Shadow", "dropShadow", 0, 10, 0],
-                ] as Array<[string, keyof FilterState, number, number, number]>
-              ).map(([label, key, min, max, step]) => (
-                <label key={key} className="grid gap-2">
-                  <span>{label}</span>
-                  <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={filters[key]}
-                    onChange={(event) => updateFilter(key, Number(event.target.value))}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+              }
+              label="Ask before closing window"
+            />
+            {filterControls.map(([label, key, min, max, step]) => (
+              <Box key={key}>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" fontWeight={600}>
+                    {label}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {filters[key]}
+                  </Typography>
+                </Stack>
+                <Slider
+                  value={filters[key]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(_, value) => updateFilter(key, Number(value))}
+                  size="small"
+                />
+              </Box>
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsModalOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

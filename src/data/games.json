@@ -84,7 +84,7 @@
   { "name": "Duck Life 5" },
   { "name": "Run", "href": "games/g/Ruffle/player.html?swf=../../flash/run.swf" },
   { "name": "Run 2", "href": "games/g/Ruffle/player.html?swf=../../flash/run-2.swf" },
-  { "name": "Run 3", "href": "games/g/Ruffle/player.html?swf=../../flash/run3.swf" },
+  { "name": "Run 3", "href": "games/g/run3/run3.html" },
   { "name": "doom", "href": "games/g/Ruffle/player.html?swf=../../flash/doom.swf" },
   { "name": "Johnny Upgrade", "href": "games/g/Ruffle/player.html?swf=../../flash/john.swf" },
   { "name": "Papas Burgeria", "href": "games/g/Ruffle/player.html?swf=../../flash/papasburgeria.swf" },

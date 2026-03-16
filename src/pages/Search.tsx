@@ -1,0 +1,192 @@
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Container,
+  MenuItem,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
+import { gamesData, GameData } from "../data/games";
+import { GameTypeBadge } from "../components/GameTypeBadge";
+import { PrimaryNav } from "../components/PrimaryNav";
+import { useDisguise } from "../hooks/useDisguise";
+import { useUmamiViews } from "../hooks/useUmamiViews";
+import { trackGameView } from "../utils/umami";
+
+type SearchProps = {
+  isDark: boolean;
+  onToggleTheme: (nextDark: boolean) => void;
+};
+
+function getQueryFromHash(): string {
+  const hash = window.location.hash;
+  const queryStart = hash.indexOf("?");
+  if (queryStart === -1) return "";
+  const params = new URLSearchParams(hash.slice(queryStart + 1));
+  return params.get("q") ?? "";
+}
+
+function setQueryInHash(next: string) {
+  const trimmed = next.trim();
+  const params = new URLSearchParams();
+  if (trimmed) params.set("q", trimmed);
+  const nextHash = `#/search${params.toString() ? `?${params.toString()}` : ""}`;
+  window.history.replaceState(null, "", nextHash);
+}
+
+export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
+  const [searchTerm, setSearchTerm] = useState(() => getQueryFromHash());
+  const [sortMode, setSortMode] = useState<"relevance" | "views">("relevance");
+  const { counts: viewCounts } = useUmamiViews();
+
+  const baseIcon =
+    (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+    "/img/gams-g.png";
+  useDisguise("Search - LearningArcade", baseIcon);
+
+  useEffect(() => {
+    const handleHashChange = () => setSearchTerm(getQueryFromHash());
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const results = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = !term
+      ? gamesData
+      : gamesData.filter((game) => game.name.toLowerCase().includes(term));
+    if (sortMode === "views") {
+      return [...filtered].sort((a, b) => {
+        const aCount = viewCounts[a.id] ?? 0;
+        const bCount = viewCounts[b.id] ?? 0;
+        if (bCount !== aCount) return bCount - aCount;
+        return b.index - a.index;
+      });
+    }
+    return filtered;
+  }, [searchTerm, sortMode, viewCounts]);
+
+  const openGame = (game: GameData) => {
+    const href = new URL(game.href, window.location.href).href;
+    trackGameView(game);
+    window.location.hash = `#/game-embed?${new URLSearchParams({
+      icon: new URL(game.img, window.location.href).href,
+      name: game.name,
+      src: href,
+    }).toString()}`;
+  };
+
+  return (
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <PrimaryNav isDark={isDark} onToggleTheme={onToggleTheme} showHomeLinks={false} />
+
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
+          <Stack spacing={2}>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center">
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h5" gutterBottom>
+                  Search games
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {results.length} results
+                </Typography>
+              </Box>
+              <TextField
+                placeholder="Search all games"
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setQueryInHash(event.target.value);
+                }}
+                size="small"
+                sx={{ minWidth: { xs: "100%", md: 280 } }}
+              />
+              <TextField
+                select
+                label="Sort by"
+                size="small"
+                value={sortMode}
+                onChange={(event) =>
+                  setSortMode(event.target.value as "relevance" | "views")
+                }
+                sx={{ minWidth: { xs: "100%", md: 180 } }}
+              >
+                <MenuItem value="relevance">Relevance</MenuItem>
+                <MenuItem value="views">Views</MenuItem>
+              </TextField>
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" href="#/category/all">
+                  All games
+                </Button>
+                <Button variant="contained" href="#/">
+                  Back home
+                </Button>
+              </Stack>
+            </Stack>
+          </Stack>
+        </Paper>
+
+        {results.length === 0 ? (
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              No results
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Try a different search term.
+            </Typography>
+          </Paper>
+        ) : (
+          <Grid container spacing={2}>
+            {results.map((game) => (
+              <Grid item xs={4} sm={4} md={3} lg={2} key={game.id}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    position: "relative",
+                    borderRadius: 3,
+                    border: "1px solid",
+                    borderColor: "divider",
+                  }}
+                >
+                  <CardActionArea onClick={() => openGame(game)}>
+                    <CardMedia
+                      component="img"
+                      image={game.img}
+                      alt={game.name}
+                      sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
+                    />
+                    <CardContent sx={{ p: 1.5 }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight={700}
+                          noWrap
+                          sx={{ flex: 1, minWidth: 0 }}
+                        >
+                          {game.name}
+                        </Typography>
+                        <GameTypeBadge game={game} />
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Views: {(viewCounts[game.id] ?? 0).toLocaleString()}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Container>
+    </Box>
+  );
+}

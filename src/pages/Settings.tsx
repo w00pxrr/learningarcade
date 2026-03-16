@@ -1,11 +1,26 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Layout } from "../components/Layout";
-import { useDisguise } from "../hooks/useDisguise";
 import {
-  getStoredJSON,
-  removeJSON,
-  storeJSON,
-} from "../utils/storage";
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Checkbox,
+  Container,
+  FormControl,
+  FormControlLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
+import { PrimaryNav } from "../components/PrimaryNav";
+import { useDisguise } from "../hooks/useDisguise";
+import { getStoredJSON, removeJSON, storeJSON } from "../utils/storage";
 
 type CookieConsent = { settings?: boolean; analytics?: boolean };
 const consentStorageKey = "gams_cookie_consent_v1";
@@ -123,132 +138,145 @@ export default function SettingsPage({ isDark, onToggleTheme }: SettingsProps) {
   };
 
   return (
-    <Layout
-      title="Settings"
-      subtitle="Configure your preferences"
-      showControls
-      isDark={isDark}
-      onToggleTheme={onToggleTheme}
-    >
-      <section className="glass-panel mb-6 px-6 py-5" id="settings">
-        <h2 className="section-title">Popout menu position</h2>
-        <p className="mt-2 text-sm text-textSecondary">
-          Display the game info menu when using the “New Tab” popout.
-        </p>
-        <select
-          className="mt-4 w-full rounded-xl border border-panelBorder bg-[var(--gams-bg)] px-4 py-3 text-sm font-semibold text-textPrimary shadow-soft"
-          value={popoutMode}
-          onChange={(event) => setPopoutMode(event.target.value)}
-        >
-          <option value="top">Top</option>
-          <option value="bottom">Bottom</option>
-          <option value="left">Left</option>
-          <option value="right">Right</option>
-        </select>
-      </section>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <PrimaryNav isDark={isDark} onToggleTheme={onToggleTheme} />
 
-      <section className="glass-panel mb-6 px-6 py-5">
-        <h2 className="section-title">Cookie preferences</h2>
-        <p className="mt-2 text-sm text-textSecondary">
-          Control analytics and settings cookies for LearningArcade.
-        </p>
-        <div className="mt-4 flex flex-col gap-2 text-sm text-textSecondary">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={!!consent?.settings}
-              onChange={(event) =>
-                setConsent((prev) => ({ ...(prev || {}), settings: event.target.checked }))
-              }
-            />
-            Settings cookies (favorites/preferences)
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={!!consent?.analytics}
-              onChange={(event) =>
-                setConsent((prev) => ({ ...(prev || {}), analytics: event.target.checked }))
-              }
-            />
-            Analytics cookies (Umami)
-          </label>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={saveConsent}
-            className="rounded-full bg-[var(--gams-link)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white"
-          >
-            Save cookie preferences
-          </button>
-          <button
-            type="button"
-            onClick={resetConsent}
-            className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
-          >
-            Reset consent
-          </button>
-        </div>
-        <p className="mt-3 text-xs text-textSecondary">{cookieStatus}</p>
-      </section>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Stack spacing={3}>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Settings
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Configure how LearningArcade behaves on this device.
+            </Typography>
+          </Paper>
 
-      <section className="glass-panel px-6 py-5">
-        <h2 className="section-title">Disguise</h2>
-        <p className="mt-2 text-sm text-textSecondary">
-          Change the tab name and icon to blend in.
-        </p>
-        <div className="mt-4 flex flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="text"
-              placeholder="Classes"
-              value={tabName}
-              onChange={(event) => setTabName(event.target.value)}
-              className="flex-1 rounded-xl border border-panelBorder bg-[var(--gams-bg)] px-4 py-3 text-sm font-semibold text-textPrimary shadow-soft"
-            />
-            <button
-              type="button"
-              onClick={applyTitle}
-              className="rounded-full bg-[var(--gams-link)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white"
-            >
-              Apply title
-            </button>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => applyIcon(event.target.files?.[0])}
-              className="flex-1 rounded-xl border border-panelBorder bg-[var(--gams-bg)] px-4 py-3 text-sm text-textSecondary"
-            />
-            <button
-              type="button"
-              onClick={() => removeDisguise()}
-              className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
-            >
-              Remove disguise
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <h3 className="section-title">Presets</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {presetIcons.map((preset) => (
-              <button
-                key={preset.title}
-                type="button"
-                onClick={() => applyPreset(preset.title, preset.src)}
-                className="flex flex-col items-center gap-2 rounded-xl border border-panelBorder bg-[var(--gams-bg)] p-3 text-xs text-textSecondary transition hover:text-textPrimary"
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              Popout menu position
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Display the game info menu when using the “New Tab” popout.
+            </Typography>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <Select
+                value={popoutMode}
+                onChange={(event) => setPopoutMode(event.target.value)}
               >
-                <img src={preset.src} alt={preset.title} className="h-8 w-8" />
-                <span>{preset.title}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-    </Layout>
+                <MenuItem value="top">Top</MenuItem>
+                <MenuItem value="bottom">Bottom</MenuItem>
+                <MenuItem value="left">Left</MenuItem>
+                <MenuItem value="right">Right</MenuItem>
+              </Select>
+            </FormControl>
+          </Paper>
+
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              Cookie preferences
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Control analytics and settings cookies for LearningArcade.
+            </Typography>
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={!!consent?.settings}
+                    onChange={(event) =>
+                      setConsent((prev) => ({ ...(prev || {}), settings: event.target.checked }))
+                    }
+                  />
+                }
+                label="Settings cookies (favorites/preferences)"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={!!consent?.analytics}
+                    onChange={(event) =>
+                      setConsent((prev) => ({ ...(prev || {}), analytics: event.target.checked }))
+                    }
+                  />
+                }
+                label="Analytics cookies (Umami)"
+              />
+            </Stack>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+              <Button variant="contained" onClick={saveConsent}>
+                Save cookie preferences
+              </Button>
+              <Button variant="outlined" onClick={resetConsent}>
+                Reset consent
+              </Button>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: "block" }}>
+              {cookieStatus}
+            </Typography>
+          </Paper>
+
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              Disguise
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Change the tab name and icon to blend in.
+            </Typography>
+
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              <TextField
+                label="Tab name"
+                value={tabName}
+                onChange={(event) => setTabName(event.target.value)}
+                fullWidth
+              />
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <Button variant="contained" onClick={applyTitle}>
+                  Apply tab title
+                </Button>
+                <Button variant="outlined" component="label">
+                  Upload icon
+                  <input
+                    hidden
+                    accept="image/*"
+                    type="file"
+                    onChange={(event) => applyIcon(event.target.files?.[0])}
+                  />
+                </Button>
+                <Button variant="text" color="inherit" onClick={removeDisguise}>
+                  Remove disguise
+                </Button>
+              </Stack>
+            </Stack>
+
+            <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3 }}>
+              Presets
+            </Typography>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              {presetIcons.map((preset) => (
+                <Grid item xs={6} sm={4} md={3} key={preset.title}>
+                  <Card variant="outlined">
+                    <CardActionArea onClick={() => applyPreset(preset.title, preset.src)}>
+                      <CardMedia
+                        component="img"
+                        image={preset.src}
+                        alt={preset.title}
+                        sx={{ height: 45, objectFit: "contain", p: 2 }}
+                      />
+                      <CardContent sx={{ p: 1.5 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {preset.title}
+                        </Typography>
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </Stack>
+      </Container>
+    </Box>
   );
 }

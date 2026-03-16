@@ -1,12 +1,45 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Layout } from "../components/Layout";
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Checkbox,
+  Chip,
+  Container,
+  IconButton,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import { gamesData, GameData } from "../data/games";
+import { GameTypeBadge } from "../components/GameTypeBadge";
+import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
-import { clearCookie, getCookie, getStoredJSON, setCookie, storeJSON } from "../utils/storage";
+import { useUmamiViews } from "../hooks/useUmamiViews";
+import { clearCookie, getCookie, setCookie } from "../utils/storage";
+import { trackGameView } from "../utils/umami";
 
 type CookieConsent = { settings?: boolean; analytics?: boolean };
 
 const consentStorageKey = "gams_cookie_consent_v1";
+
+const categoryOptions: Array<[string, string]> = [
+  ["action", "Action"],
+  ["puzzle", "Puzzle"],
+  ["adventure", "Adventure"],
+  ["horror", "Horror"],
+  ["racing", "Racing"],
+  ["simulation", "Simulation"],
+  ["platformer", "Platformer"],
+  ["sports", "Sports"],
+  ["tools", "Tools"],
+  ["runner", "Runner"],
+];
 
 function loadCookieConsent(): CookieConsent | null {
   const raw = localStorage.getItem(consentStorageKey);
@@ -89,10 +122,10 @@ function getLatestGames(): GameData[] {
   const allowedSections = ["HTML5/unity Webgl", "Flash"];
   const filtered = gamesData.filter((g) => allowedSections.includes(g.section));
   const sorted = [...filtered].sort((a, b) => b.index - a.index);
-  return sorted.slice(0, 4);
+  return sorted.slice(0, 6);
 }
 
-function getTopVisitedGames(limit = 4): GameData[] {
+function getTopVisitedGames(limit = 6): GameData[] {
   const visits = getGameVisits();
   const entries = Object.entries(visits);
   if (entries.length === 0) return getLatestGames();
@@ -126,13 +159,9 @@ type HomeProps = {
 };
 
 export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
-  const [gamMode, setGamMode] = useState(
-    (getStoredJSON<string>("gams", { key: "gamMode" }) as string) || "embed"
-  );
   const [consent, setConsent] = useState<CookieConsent | null>(() => loadCookieConsent());
   const [showConsent, setShowConsent] = useState(() => !loadCookieConsent());
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentCategory, setCurrentCategory] = useState("all");
   const [favorites, setFavorites] = useState<string[]>(() => getFavoriteIds(consent));
 
   const baseIcon =
@@ -141,35 +170,38 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
   useDisguise("LearningArcade", baseIcon);
 
   useEffect(() => {
-    storeJSON("gams", { key: "gamMode", value: gamMode });
-  }, [gamMode]);
-
-  useEffect(() => {
     if (consent?.analytics) enableAnalytics();
     if (consent && !consent.settings) clearCookie("gams_favorites");
     setFavorites(getFavoriteIds(consent));
   }, [consent]);
 
-  const filteredGames = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    const favoriteSet = new Set(favorites);
-    const matchesSearch = (g: GameData) => !term || g.name.toLowerCase().includes(term);
+  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
+  const canFavorite = hasSettingsCookieConsent(consent);
+  const { counts: viewCounts } = useUmamiViews();
 
-    if (currentCategory === "favorites") {
-      return gamesData.filter((g) => favoriteSet.has(g.id) && matchesSearch(g));
-    }
-
-    return gamesData.filter((g) => {
-      const matchesCategory =
-        currentCategory === "all" || g.category === currentCategory;
-      return matchesCategory && matchesSearch(g);
+  const recommended = useMemo(() => {
+    const ids = Object.keys(viewCounts);
+    if (ids.length === 0) return getTopVisitedGames();
+    const ranked = [...gamesData].sort((a, b) => {
+      const aCount = viewCounts[a.id] ?? 0;
+      const bCount = viewCounts[b.id] ?? 0;
+      if (bCount !== aCount) return bCount - aCount;
+      return b.index - a.index;
     });
-  }, [currentCategory, favorites, searchTerm]);
-
-  const recommended = useMemo(() => getTopVisitedGames(), []);
+    return ranked.slice(0, 6);
+  }, [viewCounts]);
+  const latest = useMemo(() => getLatestGames(), []);
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = searchTerm.trim();
+    const params = new URLSearchParams();
+    if (trimmed) params.set("q", trimmed);
+    const next = `#/search${params.toString() ? `?${params.toString()}` : ""}`;
+    window.location.hash = next;
+  };
 
   const toggleFavorite = (gameId: string) => {
-    if (!hasSettingsCookieConsent(consent)) return;
+    if (!canFavorite) return;
     const next = new Set(favorites);
     if (next.has(gameId)) next.delete(gameId);
     else next.add(gameId);
@@ -182,6 +214,7 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
     const href = new URL(game.href, window.location.href).href;
     const pic = new URL(game.img, window.location.href).href;
     recordGameVisit(game.id, game.name);
+    trackGameView(game);
 
     const gameShellQuery = new URLSearchParams({
       icon: pic,
@@ -192,279 +225,290 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
     gameShellUrl.search = "";
     gameShellUrl.hash = `/game-embed?${gameShellQuery}`;
 
-    let mode = gamMode;
-    if (game.type === "raw") mode = "raw";
-
-    if (mode === "raw") {
-      window.open(href);
-      return;
-    }
-    if (mode === "direct") {
-      window.location.href = gameShellUrl.toString();
-      return;
-    }
-    if (mode === "blank") {
-      const w = window.open();
-      if (!w) return;
-      const doc = w.document;
-      const body = doc.body;
-      body.style.margin = "0";
-      const iframe = doc.createElement("iframe");
-      iframe.style.width = "100vw";
-      iframe.style.height = "100vh";
-      iframe.setAttribute("frameborder", "0");
-      iframe.src = gameShellUrl.toString();
-      body.appendChild(iframe);
-
-      const scriptContent = `const BroadcastDisguise = new BroadcastChannel('BroadcastDisguise');
-function setFavicon(href) {
-var existFav = document.querySelectorAll('link[rel*="icon"]');
-existFav.forEach(function(favicon) { favicon.parentNode.removeChild(favicon); });
-var link = document.createElement('link');
-link.type = 'image/x-icon';
-link.rel = 'icon';
-link.href = href;
-document.getElementsByTagName('head')[0].appendChild(link);
-}
-function getStoredJSON(key, data) {
-if (data && data.key && (localStorage[key] !== 'null')) {
-  var inStore = JSON.parse(localStorage[key]);
-  if ((typeof inStore === 'object') && Object.prototype.hasOwnProperty.call(inStore, data.key)) {
-    return inStore[data.key];
-  }
-}
-if (localStorage[key] && !data) { return JSON.parse(localStorage[key]); }
-return null;
-}
-function applyDisguise() {
-var icon = getStoredJSON('gams', {key: 'icon'});
-var title = getStoredJSON('gams', {key: 'title'});
-if (title) { document.title = title; } else { document.title = 'about:blank'; }
-if (icon) { setFavicon(icon); } else { setFavicon('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABRklEQVR42mKgOqjq75ds7510YNL0uV9nAGqniqwKYiCIHIIjcAK22BGQLRdgBWvc3fnWk/FJhrkPO1xPgGvqPfLfJMHhT1yqurvS48bPaJhjD2efgidnVwa2yv59xecvEvi0UWCXq9t0ItfP2MMZ7nwIpkA8F1n8uLxZHM6yrBH7FIl2gFXDHYsErkn2hyKLHtcKrFntk58uVQJ+kSdQnmjhID4cwLLa8+K0BXsfNWCqBOsFdo2Yldv43DBrkxd30cjnNyYBhK0SQGkI9pG4Mu40D5b374DRCAyhHqXVfTmOwivivMkJxBz5wnHCtBfGgNFC+ChWKWRf3hsQIlyEoIv4IYEo5wkgtBLRekY9DE4Uin4Keae6hydGnljPmE8kRcCine6827AMsJ1IuW9ibnlQpXLBCR/WC875m2BP+VSu3c/0m+8V08OBngc0pxcAAAAASUVORK5CYII='); }
-}
-applyDisguise();
-if (BroadcastDisguise) {
-BroadcastDisguise.onmessage = () => { applyDisguise(); };
-}`;
-      const script = doc.createElement("script");
-      script.textContent = scriptContent;
-      doc.head.appendChild(script);
-      return;
-    }
-
-    window.open(gameShellUrl.toString());
+    window.location.href = gameShellUrl.toString();
   };
 
-  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
-
-  const renderTiles = (list: GameData[]) =>
-    list.map((game) => (
-      <article
-        key={game.id}
-        className="card-tile card-tile-compact group text-left"
-      >
-        <button
-          onClick={() => handleOpenGame(game)}
-          className="flex flex-col gap-2 text-left"
-          type="button"
-        >
-          <img
-            src={game.img}
-            alt={game.name}
-            className="aspect-square w-full rounded-lg border border-panelBorder object-cover"
-            width={256}
-            height={256}
-            loading="lazy"
-            decoding="async"
-          />
-          <div className="px-1">
-            <p className="text-sm font-semibold text-textPrimary">{game.name}</p>
-          </div>
-        </button>
-        <button
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-panelBorder bg-[var(--gams-bg)] text-lg text-amber-400 shadow-soft transition group-hover:scale-110"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            toggleFavorite(game.id);
-          }}
-          title="Toggle favorite"
-          aria-label="Toggle favorite"
-          type="button"
-        >
-          {favoriteSet.has(game.id) ? "★" : "☆"}
-        </button>
-      </article>
-    ));
-
-  const favoriteGames = useMemo(
-    () => filteredGames.filter((g) => favoriteSet.has(g.id)),
-    [filteredGames, favoriteSet]
-  );
-  const otherGames = useMemo(
-    () => filteredGames.filter((g) => !favoriteSet.has(g.id)),
-    [filteredGames, favoriteSet]
-  );
-
-  const sortedFavoriteGames = useMemo(
-    () => [...favoriteGames].sort((a, b) => a.name.localeCompare(b.name)),
-    [favoriteGames]
-  );
-  const sortedOtherGames = useMemo(
-    () => [...otherGames].sort((a, b) => a.name.localeCompare(b.name)),
-    [otherGames]
+  const renderTiles = (list: GameData[]) => (
+    <Grid container spacing={2}>
+      {list.map((game) => (
+        <Grid item xs={4} sm={4} md={3} lg={2} key={game.id}>
+          <Card
+            sx={{
+              height: "100%",
+              position: "relative",
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <CardActionArea onClick={() => handleOpenGame(game)}>
+              <CardMedia
+                component="img"
+                image={game.img}
+                alt={game.name}
+                sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
+              />
+              <CardContent sx={{ p: 1.5 }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight={700}
+                    noWrap
+                    sx={{ flex: 1, minWidth: 0 }}
+                  >
+                    {game.name}
+                  </Typography>
+                  <GameTypeBadge game={game} />
+                </Stack>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Views: {(viewCounts[game.id] ?? 0).toLocaleString()}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+            <IconButton
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFavorite(game.id);
+              }}
+              disabled={!canFavorite}
+              size="small"
+              title={
+                canFavorite
+                  ? "Toggle favorite"
+                  : "Enable settings cookies to save favorites"
+              }
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                bgcolor: "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
+                width: 32,
+                height: 32,
+              }}
+            >
+              <span style={{ fontSize: 16 }}>
+                {favoriteSet.has(game.id) ? "★" : "☆"}
+              </span>
+            </IconButton>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
   );
 
   return (
-    <Layout
-      title="LearningArcade"
-      subtitle="Fun educational games for schools"
-      showControls
-      isDark={isDark}
-      onToggleTheme={onToggleTheme}
-      gamMode={gamMode}
-      onGamModeChange={setGamMode}
-    >
-      <section className="glass-panel mb-6 px-6 py-5">
-        <div className="flex flex-col gap-3">
-          <label className="section-title">Search games</label>
-          <input
-            className="rounded-2xl border border-panelBorder bg-[var(--gams-bg)] px-4 py-3 text-base font-semibold text-textPrimary shadow-soft"
-            placeholder="Search games..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-        </div>
-      </section>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <PrimaryNav
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+        showHomeLinks={false}
+      />
 
-      <section className="glass-panel mb-6 px-6 py-5" id="categories">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="section-title">Categories</p>
-            <p className="mt-2 text-sm text-textSecondary">
-              Filter the library by genre or focus.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              ["all", "All"],
-              ["favorites", "Favorites"],
-              ["action", "Action"],
-              ["puzzle", "Puzzle"],
-              ["adventure", "Adventure"],
-              ["horror", "Horror"],
-              ["racing", "Racing"],
-              ["simulation", "Simulation"],
-              ["platformer", "Platformer"],
-              ["sports", "Sports"],
-              ["tools", "Tools"],
-              ["runner", "Runner"],
-            ].map(([value, label]) => (
-              <button
+      <Box sx={{ bgcolor: "background.paper", borderBottom: "1px solid", borderColor: "divider" }}>
+        <Container maxWidth="lg" sx={{ py: 1.5 }}>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+            {categoryOptions.map(([value, label]) => (
+              <Chip
                 key={value}
-                type="button"
-                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
-                  currentCategory === value
-                    ? "border-transparent bg-[var(--gams-link)] text-white"
-                    : "border-panelBorder bg-[var(--gams-bg)] text-textSecondary hover:text-textPrimary"
-                }`}
-                onClick={() => setCurrentCategory(value)}
-              >
-                {label}
-              </button>
+                label={label}
+                component="a"
+                href={`#/category/${value}`}
+                clickable
+                color="secondary"
+                variant="outlined"
+                sx={{ textDecoration: "none" }}
+              />
             ))}
-          </div>
-        </div>
-      </section>
+          </Stack>
+        </Container>
+      </Box>
 
-      {recommended.length > 0 ? (
-        <section className="glass-panel mb-6 px-6 py-5" id="recommended-section">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="section-title">Recommended for you</p>
-              <p className="mt-2 text-sm text-textSecondary">
-                Based on your recent plays and favorites.
-              </p>
-            </div>
-          </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-4 lg:grid-cols-8">
-            {renderTiles(recommended)}
-          </div>
-        </section>
-      ) : null}
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} lg={3}>
+            <Stack spacing={2}>
+              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                  Search
+                </Typography>
+                <Box component="form" onSubmit={handleSearchSubmit}>
+                  <Stack spacing={1.5}>
+                    <TextField
+                      placeholder="Search games"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      fullWidth
+                      size="small"
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <Button type="submit" variant="contained">
+                        Search
+                      </Button>
+                      <Button variant="outlined" href="#/category/all">
+                        All games
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              </Paper>
+              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                  Quick stats
+                </Typography>
+                <Stack spacing={1}>
+                  <Chip label={`${gamesData.length} games`} color="primary" />
+                  <Chip label={`${favorites.length} favorites`} color="secondary" />
+                  <Chip label="School friendly" variant="outlined" />
+                </Stack>
+              </Paper>
+              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                  Latest drops
+                </Typography>
+                <Stack spacing={1.5}>
+                  {latest.slice(0, 3).map((game) => (
+                    <Button
+                      key={game.id}
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleOpenGame(game)}
+                      sx={{ justifyContent: "space-between" }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        sx={{ flex: 1, justifyContent: "space-between" }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          sx={{ minWidth: 0 }}
+                        >
+                          <Typography component="span" noWrap>
+                            {game.name}
+                          </Typography>
+                          <GameTypeBadge game={game} size="xs" />
+                        </Stack>
+                        <span>Play</span>
+                      </Stack>
+                    </Button>
+                  ))}
+                </Stack>
+              </Paper>
+            </Stack>
+          </Grid>
 
-      <section className="glass-panel px-6 py-5" id="games">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="section-title">Games</p>
-            <p className="mt-2 text-sm text-textSecondary">
-              Total Games:{" "}
-              <span className="font-semibold text-textPrimary">{filteredGames.length}</span>
-            </p>
-          </div>
-          <a
-            className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary transition hover:text-textPrimary"
-            href="https://github.com/w00pxrr/w00pxrr.github.io"
-          >
-            Report a bug
-          </a>
-        </div>
+          <Grid item xs={12} lg={6}>
+            <Stack spacing={3}>
+              <Paper
+                sx={(theme) => ({
+                  p: { xs: 3, md: 4 },
+                  borderRadius: 4,
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(120deg, #0f2f1c 0%, #143f24 65%, #0f2f1c 100%)"
+                      : "linear-gradient(120deg, #e8fff2 0%, #f4ffe6 55%, #fff7d1 100%)",
+                  border: "1px solid",
+                  borderColor: theme.palette.mode === "dark" ? "#1c2d23" : "#dfe8d9",
+                })}
+              >
+                <Typography variant="h4" gutterBottom>
+                  Trending picks
+                </Typography>
+                <Typography variant="body1" sx={{ color: "text.secondary", mb: 3 }}>
+                  Only the top games right now. Jump in fast.
+                </Typography>
+                {recommended.length > 0 ? renderTiles(recommended) : null}
+              </Paper>
+            </Stack>
+          </Grid>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {currentCategory === "favorites" ? (
-            favoriteGames.length > 0 ? (
-              renderTiles(sortedFavoriteGames)
-            ) : (
-              <div className="sm:col-span-4 lg:col-span-8 text-sm text-textSecondary">
-                No favorites yet.
-              </div>
-            )
-          ) : (
-            <>
-              {favoriteGames.length > 0 ? (
-                <div className="sm:col-span-4 lg:col-span-8">
-                  <p className="section-title">Favorites</p>
-                </div>
-              ) : null}
-              {favoriteGames.length > 0 ? renderTiles(sortedFavoriteGames) : null}
-              {renderTiles(sortedOtherGames)}
-            </>
-          )}
-        </div>
-      </section>
+          <Grid item xs={12} lg={3}>
+            <Stack spacing={2}>
+              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                  How to play
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Choose a game, select a launch mode, and start playing. Use Embed mode for the
+                  cleanest experience.
+                </Typography>
+              </Paper>
+              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                  Report issues
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Find a broken game or bug? Let me know.
+                </Typography>
+                <Button
+                  variant="outlined"
+                  href="https://github.com/w00pxrr/w00pxrr.github.io"
+                >
+                  Report a bug
+                </Button>
+              </Paper>
+            </Stack>
+          </Grid>
+        </Grid>
+      </Container>
 
       {showConsent ? (
-        <div className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border border-panelBorder bg-panel p-4 shadow-glass backdrop-blur-xl">
-          <p className="text-sm font-semibold text-textPrimary">Cookie Preferences</p>
-          <p className="mt-1 text-xs text-textSecondary">
+        <Paper
+          elevation={8}
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            left: 16,
+            right: 16,
+            maxWidth: 880,
+            mx: "auto",
+            p: 2.5,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            zIndex: 1200,
+          }}
+        >
+          <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+            Cookie preferences
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
             Choose whether to allow analytics cookies and settings cookies.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-3 text-xs text-textSecondary">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
+          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+            <Box>
+              <Checkbox
                 checked={!!consent?.settings}
                 onChange={(event) =>
                   setConsent((prev) => ({ ...(prev || {}), settings: event.target.checked }))
                 }
               />
-              Settings cookies
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
+              <Typography variant="body2" component="span">
+                Settings cookies
+              </Typography>
+            </Box>
+            <Box>
+              <Checkbox
                 checked={!!consent?.analytics}
                 onChange={(event) =>
                   setConsent((prev) => ({ ...(prev || {}), analytics: event.target.checked }))
                 }
               />
-              Analytics cookies
-            </label>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="rounded-full bg-[var(--gams-link)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white"
+              <Typography variant="body2" component="span">
+                Analytics cookies
+              </Typography>
+            </Box>
+          </Stack>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
               onClick={() => {
                 const next = { settings: true, analytics: true };
                 saveCookieConsent(next);
@@ -473,20 +517,18 @@ BroadcastDisguise.onmessage = () => { applyDisguise(); };
               }}
             >
               Accept all
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
+            </Button>
+            <Button
+              variant="outlined"
               onClick={() => {
                 if (consent) saveCookieConsent(consent);
                 setShowConsent(false);
               }}
             >
               Save choices
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-panelBorder bg-[var(--gams-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-textSecondary"
+            </Button>
+            <Button
+              variant="text"
               onClick={() => {
                 const next = { settings: false, analytics: false };
                 saveCookieConsent(next);
@@ -495,10 +537,10 @@ BroadcastDisguise.onmessage = () => { applyDisguise(); };
               }}
             >
               Reject all
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Stack>
+        </Paper>
       ) : null}
-    </Layout>
+    </Box>
   );
 }

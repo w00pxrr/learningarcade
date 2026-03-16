@@ -2,15 +2,16 @@
   "name": "w00pxrr-github-io",
   "private": true,
   "scripts": {
+    "prebuild": "node -e \"require('fs').rmSync('public/vendor/ruffle', { recursive: true, force: true });\" && mkdir -p public/vendor && cp -R node_modules/@ruffle-rs/ruffle public/vendor/ruffle",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.7",
@@ -18,7 +19,11 @@
     "vite": "^8.0.0"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/material": "^7.3.9",
+    "@ruffle-rs/ruffle": "^0.2.0-nightly.2026.3.15",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   }
 }
