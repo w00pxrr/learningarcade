@@ -1,4 +1,5 @@
 import gamesListRaw from "./games.json";
+import { normalizeSearchText } from "../utils/search";
 
 export type GamListSection = { title: string; type: "section" };
 export type GamListItem =
@@ -21,6 +22,8 @@ export interface GameData {
   section: string;
   category: string;
   index: number;
+  searchName: string;
+  searchTokens: string[];
 }
 
 function isSectionEntry(entry: GamListItem): entry is GamListSection {
@@ -272,6 +275,8 @@ const gamsList = gamesListRaw as GamListItem[];
 
 export const sectionOrder: string[] = [];
 export const gamesData: GameData[] = [];
+export const gamesById: Record<string, GameData> = {};
+export const gamesByCategory: Record<string, GameData[]> = {};
 
 let currentSection = "";
 for (let j = 0; j < gamsList.length; j++) {
@@ -285,6 +290,8 @@ for (let j = 0; j < gamsList.length; j++) {
 
   const imgName = gam.name.toLowerCase().replace(/\s/g, "");
   const gameId = gam.id ?? imgName;
+  const searchName = normalizeSearchText(gam.name);
+  const searchTokens = searchName ? searchName.split(" ").filter(Boolean) : [];
   gamesData.push({
     id: gameId,
     name: gam.name,
@@ -294,5 +301,13 @@ for (let j = 0; j < gamsList.length; j++) {
     section: currentSection || "Other",
     category: getCategory(gam.name),
     index: gamesData.length,
+    searchName,
+    searchTokens,
   });
+}
+
+for (const game of gamesData) {
+  gamesById[game.id] = game;
+  if (!gamesByCategory[game.category]) gamesByCategory[game.category] = [];
+  gamesByCategory[game.category].push(game);
 }

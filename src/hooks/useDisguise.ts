@@ -1,11 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { applyDisguise, getBroadcastDisguise } from "../utils/disguise";
 
 export function useDisguise(baseTitle: string, baseIcon: string) {
   const channel = useMemo(() => getBroadcastDisguise(), []);
 
+  const apply = useCallback(() => applyDisguise(baseTitle, baseIcon), [baseTitle, baseIcon]);
+
   useEffect(() => {
-    const apply = () => applyDisguise(baseTitle, baseIcon);
     apply();
 
     const handleStorage = (event: StorageEvent) => {
@@ -20,9 +21,7 @@ export function useDisguise(baseTitle: string, baseIcon: string) {
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
 
-    if (channel) {
-      channel.onmessage = () => apply();
-    }
+    if (channel) channel.onmessage = () => apply();
 
     return () => {
       window.removeEventListener("storage", handleStorage);
@@ -30,11 +29,11 @@ export function useDisguise(baseTitle: string, baseIcon: string) {
       document.removeEventListener("visibilitychange", handleVisibility);
       if (channel) channel.close();
     };
-  }, [baseTitle, baseIcon, channel]);
+  }, [apply, channel]);
 
-  const broadcast = () => {
+  const broadcast = useCallback(() => {
     if (channel) channel.postMessage("update");
-  };
+  }, [channel]);
 
-  return { broadcast, apply: () => applyDisguise(baseTitle, baseIcon) };
+  return { broadcast, apply };
 }

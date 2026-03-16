@@ -34,11 +34,14 @@ export function useUmamiViews(): UmamiViewCounts {
     if (!shareId) return;
 
     let active = true;
+    const controller = new AbortController();
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     const load = async () => {
       try {
-        const shareRes = await fetch(`${UMAMI_BASE}/share/${shareId}`);
+        const shareRes = await fetch(`${UMAMI_BASE}/share/${shareId}`, {
+          signal: controller.signal,
+        });
         if (!shareRes.ok) throw new Error(`Umami share error: ${shareRes.status}`);
         const sharePayload = (await shareRes.json()) as {
           websiteId?: string;
@@ -62,6 +65,7 @@ export function useUmamiViews(): UmamiViewCounts {
             "x-umami-share-token": sharePayload.token,
             Accept: "application/json",
           },
+          signal: controller.signal,
         });
         if (!statsRes.ok) throw new Error(`Umami stats error: ${statsRes.status}`);
         const data = (await statsRes.json()) as Array<{ value: string; total: number }>;
@@ -72,6 +76,7 @@ export function useUmamiViews(): UmamiViewCounts {
         if (!active) return;
         setState({ counts, updatedAt: now, loading: false, error: null });
       } catch (err) {
+        if ((err as Error).name === "AbortError") return;
         if (!active) return;
         setState((prev) => ({
           ...prev,
@@ -85,6 +90,7 @@ export function useUmamiViews(): UmamiViewCounts {
 
     return () => {
       active = false;
+      controller.abort();
     };
   }, []);
 

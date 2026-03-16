@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
-import { gamesData, GameData } from "../data/games";
+import { gamesById, gamesData, GameData } from "../data/games";
 import { GameTypeBadge } from "../components/GameTypeBadge";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
@@ -129,7 +129,7 @@ function getTopVisitedGames(limit = 6): GameData[] {
   const recommended: GameData[] = [];
   for (const [gameId] of entries) {
     if (recommended.length >= limit) break;
-    const game = gamesData.find((g) => g.id === gameId);
+    const game = gamesById[gameId];
     if (game) recommended.push(game);
   }
 

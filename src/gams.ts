@@ -32,6 +32,7 @@ interface GameData {
   section: string;
   category: string;
   index: number;
+  searchName: string;
 }
 
 function isSectionEntry(entry: GamListItem): entry is GamListSection {
@@ -205,8 +206,11 @@ function bindSearchInput(): void {
   const input = l("searchInput") as HTMLInputElement | null;
   if (!input) return;
   input.oninput = () => {
-    searchTerm = input.value.toLowerCase();
-    renderGames();
+    if (searchRaf) cancelAnimationFrame(searchRaf);
+    searchRaf = requestAnimationFrame(() => {
+      searchTerm = input.value.toLowerCase();
+      renderGames();
+    });
   };
 }
 
@@ -594,10 +598,6 @@ function saveFavoriteIds(ids: string[]): void {
   setCookie("gams_favorites", JSON.stringify(ids), 3650);
 }
 
-function isFavorite(gameId: string): boolean {
-  return getFavoriteIds().indexOf(gameId) !== -1;
-}
-
 function toggleFavorite(gameId: string): void {
   const ids = getFavoriteIds();
   const idx = ids.indexOf(gameId);
@@ -612,6 +612,8 @@ const gamesData: GameData[] = [];
 let currentSection: string = "";
 let searchTerm = "";
 let currentCategory = "all";
+const nameCollator = new Intl.Collator(undefined, { sensitivity: "base" });
+let searchRaf = 0;
 
 for (let j = 0; j < gamsList.length; j++) {
   const gam = gamsList[j];
@@ -633,6 +635,7 @@ for (let j = 0; j < gamsList.length; j++) {
     section: currentSection || "Other",
     category: getCategory(gam.name),
     index: gamesData.length,
+    searchName: gam.name.toLowerCase(),
   });
 }
 
@@ -643,6 +646,21 @@ if (totalGamesEl) totalGamesEl.innerText = String(totalGames);
 const container = createElement("div", { id: "container" });
 const containEl = l("contain");
 if (containEl) containEl.appendChild(container);
+container.onclick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null;
+  if (!target) return;
+  const favoriteButton = target.closest(".favorite-btn");
+  if (favoriteButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    const tile = favoriteButton.closest(".tile") as HTMLElement | null;
+    const gameId = tile?.getAttribute("data-game-id");
+    if (gameId) toggleFavorite(gameId);
+    return;
+  }
+  const tile = target.closest(".tile") as HTMLElement | null;
+  if (tile) handleTileOpen(tile);
+};
 
 function makeSectionTitle(titleText: string): HTMLElement {
   const title = createElement("h2", { class: "section-title" });
@@ -650,7 +668,7 @@ function makeSectionTitle(titleText: string): HTMLElement {
   return title;
 }
 
-function makeTile(game: GameData): HTMLDivElement {
+function makeTile(game: GameData, favorite: boolean): HTMLDivElement {
   const tile = createElement("div", {
     class: "tile card",
     "data-game-id": game.id,
@@ -666,12 +684,7 @@ function makeTile(game: GameData): HTMLDivElement {
     title: "Toggle favorite",
     "aria-label": "Toggle favorite",
   });
-  favoriteButton.textContent = isFavorite(game.id) ? "\u2605" : "\u2606";
-  favoriteButton.onclick = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFavorite(game.id);
-  };
+  favoriteButton.textContent = favorite ? "\u2605" : "\u2606";
   tile.appendChild(favoriteButton);
 
   const img = createElement("img", {
@@ -890,62 +903,52 @@ function getLatestGames(): GameData[] {
 function renderGames(): void {
   container.innerHTML = "";
   const fragment = document.createDocumentFragment();
-  const favoriteIds = getFavoriteIds();
-  const favoriteMap: Record<string, boolean> = {};
-  for (let i = 0; i < favoriteIds.length; i++) {
-    favoriteMap[favoriteIds[i]] = true;
+  const favoriteSet = new Set(getFavoriteIds());
+  const hasSearch = searchTerm.length > 0;
+  const favoriteGames: GameData[] = [];
+  const otherGames: GameData[] = [];
+  let totalCount = 0;
+
+  for (const game of gamesData) {
+    const matchesCategory = currentCategory === "all" || game.category === currentCategory;
+    const matchesSearch = !hasSearch || game.searchName.includes(searchTerm);
+    if (currentCategory === "favorites") {
+      if (favoriteSet.has(game.id) && matchesSearch) {
+        favoriteGames.push(game);
+        totalCount++;
+      }
+      continue;
+    }
+    if (!matchesCategory || !matchesSearch) continue;
+    totalCount++;
+    if (favoriteSet.has(game.id)) favoriteGames.push(game);
+    else otherGames.push(game);
   }
 
-  let filteredGames: GameData[];
-  if (currentCategory === 'favorites') {
-    filteredGames = gamesData.filter(g => favoriteMap[g.id] && (!searchTerm || g.name.toLowerCase().includes(searchTerm)));
-  } else {
-    filteredGames = gamesData.filter(g => {
-      const matchesCategory = currentCategory === 'all' || g.category === currentCategory;
-      const matchesSearch = !searchTerm || g.name.toLowerCase().includes(searchTerm);
-      return matchesCategory && matchesSearch;
-    });
-  }
-
-  if (currentCategory === 'favorites') {
-    // When in favorites category, show all filtered games without separation
-    const sortedGames = filteredGames.sort((a, b) => a.name.localeCompare(b.name));
-    for (const game of sortedGames) {
-      fragment.appendChild(makeTile(game));
+  if (currentCategory === "favorites") {
+    favoriteGames.sort((a, b) => nameCollator.compare(a.name, b.name));
+    for (const game of favoriteGames) {
+      fragment.appendChild(makeTile(game, true));
     }
   } else {
-    // For other categories, separate favorites from others
-    const favoriteGames = filteredGames.filter(g => favoriteMap[g.id]);
-    const otherGames = filteredGames.filter(g => !favoriteMap[g.id]);
-
     if (favoriteGames.length > 0) {
       fragment.appendChild(makeSectionTitle("Favorites"));
-      favoriteGames.sort((a, b) => a.name.localeCompare(b.name));
+      favoriteGames.sort((a, b) => nameCollator.compare(a.name, b.name));
       for (const game of favoriteGames) {
-        fragment.appendChild(makeTile(game));
+        fragment.appendChild(makeTile(game, true));
       }
     }
 
-    otherGames.sort((a, b) => a.name.localeCompare(b.name));
+    otherGames.sort((a, b) => nameCollator.compare(a.name, b.name));
     for (const game of otherGames) {
-      fragment.appendChild(makeTile(game));
+      fragment.appendChild(makeTile(game, false));
     }
   }
 
   container.appendChild(fragment);
 
   const totalGamesEl = l("totalGames");
-  if (totalGamesEl) totalGamesEl.innerText = String(filteredGames.length);
-
-  const tiles = container.getElementsByClassName("tile");
-  for (let n = 0; n < tiles.length; n++) {
-    const tile = tiles[n] as HTMLElement;
-    tile.onclick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target?.classList?.contains("favorite-btn")) return;
-      handleTileOpen(tile);
-    };
-  }
+  if (totalGamesEl) totalGamesEl.innerText = String(totalCount);
 }
 
 renderGames();

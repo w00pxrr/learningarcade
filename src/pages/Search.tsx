@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { gamesData, GameData } from "../data/games";
+import { normalizeSearchText } from "../utils/search";
 import { GameTypeBadge } from "../components/GameTypeBadge";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
@@ -25,10 +26,6 @@ type SearchProps = {
   isDark: boolean;
   onToggleTheme: (nextDark: boolean) => void;
 };
-
-function normalizeText(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-}
 
 function levenshteinDistance(a: string, b: string): number {
   if (a === b) return 0;
@@ -66,20 +63,19 @@ function scoreFuzzy(term: string, candidate: string): number {
   return maxLen === 0 ? 0 : 1 - distance / maxLen;
 }
 
-function matchGame(term: string, name: string): { match: boolean; score: number } {
-  const normalizedTerm = normalizeText(term);
+function matchGame(
+  normalizedTerm: string,
+  game: GameData
+): { match: boolean; score: number } {
   if (!normalizedTerm) return { match: true, score: 1 };
-
-  const normalizedName = normalizeText(name);
+  const normalizedName = game.searchName;
   if (!normalizedName) return { match: false, score: 0 };
-
   if (normalizedName.includes(normalizedTerm)) {
     return { match: true, score: 1 };
   }
 
-  const tokens = normalizedName.split(" ").filter(Boolean);
   let bestScore = scoreFuzzy(normalizedTerm, normalizedName);
-  for (const token of tokens) {
+  for (const token of game.searchTokens) {
     bestScore = Math.max(bestScore, scoreFuzzy(normalizedTerm, token));
   }
 
@@ -126,6 +122,7 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
 
   const results = useMemo(() => {
     const term = searchTerm.trim();
+    const normalizedTerm = normalizeSearchText(term);
     if (!term) {
       if (sortMode !== "views") return gamesData;
       return [...gamesData].sort((a, b) => {
@@ -138,7 +135,7 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
 
     const matches = gamesData
       .map((game) => {
-        const { match, score } = matchGame(term, game.name);
+        const { match, score } = matchGame(normalizedTerm, game);
         return match ? { game, score } : null;
       })
       .filter((entry): entry is { game: GameData; score: number } => !!entry);

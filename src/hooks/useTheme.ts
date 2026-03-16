@@ -32,8 +32,11 @@ export function useTheme() {
         document.documentElement.classList.toggle("dark", isDark);
       };
       applyAutoTheme(media.matches);
-      media.addEventListener("change", (e) => applyAutoTheme(e.matches));
-      return;
+      const handler = (event: MediaQueryListEvent) => applyAutoTheme(event.matches);
+      media.addEventListener("change", handler);
+      return () => {
+        media.removeEventListener("change", handler);
+      };
     }
 
     document.documentElement.classList.remove("dark");

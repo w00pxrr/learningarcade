@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
-import { gamesData, GameData } from "../data/games";
+import { gamesByCategory, gamesData, GameData } from "../data/games";
 import { GameTypeBadge } from "../components/GameTypeBadge";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
@@ -105,7 +105,7 @@ export default function CategoryPage() {
       return gamesData.filter((g) => favoriteIds.has(g.id));
     }
     if (category === "all") return gamesData;
-    return gamesData.filter((g) => g.category === category);
+    return gamesByCategory[category] ?? [];
   }, [category]);
 
   const openGame = (game: GameData) => {
