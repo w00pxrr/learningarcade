@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { enableAnalyticsFromConsent, trackPageView } from "./utils/umami";
 
 function applyPerformanceMode() {
   const cores = typeof navigator !== "undefined" ? navigator.hardwareConcurrency : undefined;
@@ -32,7 +33,19 @@ function Root() {
   const [page, setPage] = useState(() => inferPage());
 
   useEffect(() => {
-    const handleChange = () => setPage(inferPage());
+    let lastUrl = window.location.href;
+    enableAnalyticsFromConsent();
+    trackPageView();
+    const handleChange = () => {
+      const nextPage = inferPage();
+      const nextUrl = window.location.href;
+      setPage(nextPage);
+      enableAnalyticsFromConsent();
+      if (nextUrl !== lastUrl) {
+        lastUrl = nextUrl;
+        trackPageView();
+      }
+    };
     window.addEventListener("hashchange", handleChange);
     window.addEventListener("popstate", handleChange);
     return () => {

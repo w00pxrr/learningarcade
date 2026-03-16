@@ -22,7 +22,7 @@ import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { clearCookie, getCookie, setCookie } from "../utils/storage";
-import { trackGameView } from "../utils/umami";
+import { ensureUmamiLoaded, trackGameView } from "../utils/umami";
 
 type CookieConsent = { settings?: boolean; analytics?: boolean };
 
@@ -55,16 +55,6 @@ function loadCookieConsent(): CookieConsent | null {
 
 function saveCookieConsent(consent: CookieConsent): void {
   localStorage.setItem(consentStorageKey, JSON.stringify(consent));
-}
-
-function enableAnalytics(): void {
-  if (document.querySelector('script[data-umami="true"]')) return;
-  const script = document.createElement("script");
-  script.defer = true;
-  script.src = "https://cloud.umami.is/script.js";
-  script.dataset.websiteId = "ac0c3422-a178-4ef1-92f3-8d6f875896d0";
-  script.dataset.umami = "true";
-  document.head.appendChild(script);
 }
 
 function hasSettingsCookieConsent(consent: CookieConsent | null): boolean {
@@ -170,7 +160,7 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
   useDisguise("LearningArcade", baseIcon);
 
   useEffect(() => {
-    if (consent?.analytics) enableAnalytics();
+    if (consent?.analytics) ensureUmamiLoaded();
     if (consent && !consent.settings) clearCookie("gams_favorites");
     setFavorites(getFavoriteIds(consent));
   }, [consent]);

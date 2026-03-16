@@ -6,6 +6,7 @@ import {
   CardActionArea,
   CardContent,
   CardMedia,
+  Chip,
   Container,
   Paper,
   Stack,
@@ -17,6 +18,7 @@ import { GameTypeBadge } from "../components/GameTypeBadge";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
 import { trackGameView } from "../utils/umami";
+import { getCookie } from "../utils/storage";
 
 const categoryLabels: Record<string, string> = {
   action: "Action",
@@ -33,12 +35,53 @@ const categoryLabels: Record<string, string> = {
   all: "All",
 };
 
+const consentStorageKey = "gams_cookie_consent_v1";
+
+const categoryOptions: Array<[string, string]> = [
+  ["all", "All"],
+  ["favorites", "Favorites"],
+  ["action", "Action"],
+  ["puzzle", "Puzzle"],
+  ["adventure", "Adventure"],
+  ["horror", "Horror"],
+  ["racing", "Racing"],
+  ["simulation", "Simulation"],
+  ["platformer", "Platformer"],
+  ["sports", "Sports"],
+  ["tools", "Tools"],
+  ["runner", "Runner"],
+];
+
 function resolveCategoryFromHash(): string {
   const hash = window.location.hash.toLowerCase();
   const match = hash.match(/#\/category\/?([^?]+)/);
   if (!match) return "all";
   const raw = match[1].replace(/\//g, "").trim();
   return raw || "all";
+}
+
+function hasSettingsCookieConsent(): boolean {
+  const raw = localStorage.getItem(consentStorageKey);
+  if (!raw) return false;
+  try {
+    const parsed = JSON.parse(raw) as { settings?: boolean };
+    return parsed?.settings === true;
+  } catch {
+    return false;
+  }
+}
+
+function getFavoriteIds(): string[] {
+  if (!hasSettingsCookieConsent()) return [];
+  const raw = getCookie("gams_favorites");
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) return parsed as string[];
+  } catch {
+    return [];
+  }
+  return [];
 }
 
 export default function CategoryPage() {
@@ -51,6 +94,10 @@ export default function CategoryPage() {
   useDisguise(`${label} - LearningArcade`, baseIcon);
 
   const filtered = useMemo(() => {
+    if (category === "favorites") {
+      const favoriteIds = new Set(getFavoriteIds());
+      return gamesData.filter((g) => favoriteIds.has(g.id));
+    }
     if (category === "all") return gamesData;
     return gamesData.filter((g) => g.category === category);
   }, [category]);
@@ -82,6 +129,26 @@ export default function CategoryPage() {
             <Button variant="outlined" href="#/">
               Back to home
             </Button>
+          </Stack>
+        </Paper>
+
+        <Paper sx={{ p: 2.5, borderRadius: 3, mb: 3 }}>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+            {categoryOptions.map(([value, text]) => {
+              const selected = value === category;
+              return (
+                <Chip
+                  key={value}
+                  label={text}
+                  component="a"
+                  href={`#/category/${value}`}
+                  clickable
+                  color={selected ? "secondary" : "default"}
+                  variant={selected ? "filled" : "outlined"}
+                  sx={{ textDecoration: "none" }}
+                />
+              );
+            })}
           </Stack>
         </Paper>
 
