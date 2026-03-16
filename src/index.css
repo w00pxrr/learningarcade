@@ -36,6 +36,34 @@ html.dark {
   --gams-panel-border: rgba(110, 160, 255, 0.3);
 }
 
+html[data-contrast="high"] {
+  --gams-title-color: #000000;
+  --gams-tx-1: #000000;
+  --gams-tx-2: #111111;
+  --gams-bg: #ffffff;
+  --gams-bg-2: #ffffff;
+  --gams-bg-3: #ffffff;
+  --gams-link: #0000ee;
+  --gams-link-2: #0000aa;
+  --gams-accent: #000000;
+  --gams-panel: rgba(255, 255, 255, 1);
+  --gams-panel-border: #000000;
+}
+
+html.dark[data-contrast="high"] {
+  --gams-title-color: #ffffff;
+  --gams-tx-1: #ffffff;
+  --gams-tx-2: #e6e6e6;
+  --gams-bg: #000000;
+  --gams-bg-2: #000000;
+  --gams-bg-3: #000000;
+  --gams-link: #00e5ff;
+  --gams-link-2: #00bcd4;
+  --gams-accent: #ffd400;
+  --gams-panel: rgba(0, 0, 0, 1);
+  --gams-panel-border: #ffffff;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -49,6 +77,12 @@ body {
     radial-gradient(circle at 85% 12%, rgba(125, 235, 206, 0.2), transparent 33%),
     linear-gradient(145deg, var(--gams-bg) 0%, var(--gams-bg-2) 54%, #eaf2ff 100%);
   background-attachment: fixed;
+}
+
+html[data-contrast="high"] body {
+  background-image: none;
+  background-color: var(--gams-bg);
+  background-attachment: scroll;
 }
 
 body::before,
@@ -88,6 +122,11 @@ body::after {
     transparent 74%
   );
   animation-delay: 1.8s;
+}
+
+html[data-contrast="high"] body::before,
+html[data-contrast="high"] body::after {
+  display: none;
 }
 
 html[data-reduced-motion="true"] body::before,

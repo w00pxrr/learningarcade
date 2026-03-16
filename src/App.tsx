@@ -14,28 +14,51 @@ type AppProps = {
 };
 
 export default function App({ page }: AppProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, contrast, toggleContrast } = useTheme();
+  const isDark = theme === "dark";
+  const isHighContrast = contrast === "high";
   const muiTheme = useMemo(
     () =>
       createTheme({
         palette: {
-          mode: theme === "dark" ? "dark" : "light",
-          primary: {
-            main: theme === "dark" ? "#22c55e" : "#14b047",
-            contrastText: "#ffffff",
-          },
-          secondary: {
-            main: "#f7b500",
-            contrastText: "#1f1400",
-          },
-          background: {
-            default: theme === "dark" ? "#0c1410" : "#f6f7fb",
-            paper: theme === "dark" ? "#101b14" : "#ffffff",
-          },
-          text: {
-            primary: theme === "dark" ? "#eef5f0" : "#0f172a",
-            secondary: theme === "dark" ? "#b7c4bc" : "#52607a",
-          },
+          mode: isDark ? "dark" : "light",
+          primary: isHighContrast
+            ? {
+                main: isDark ? "#00e5ff" : "#0057ff",
+                contrastText: isDark ? "#000000" : "#ffffff",
+              }
+            : {
+                main: isDark ? "#22c55e" : "#14b047",
+                contrastText: "#ffffff",
+              },
+          secondary: isHighContrast
+            ? {
+                main: isDark ? "#ffd400" : "#111111",
+                contrastText: isDark ? "#000000" : "#ffffff",
+              }
+            : {
+                main: "#f7b500",
+                contrastText: "#1f1400",
+              },
+          background: isHighContrast
+            ? {
+                default: isDark ? "#000000" : "#ffffff",
+                paper: isDark ? "#0b0b0b" : "#ffffff",
+              }
+            : {
+                default: isDark ? "#0c1410" : "#f6f7fb",
+                paper: isDark ? "#101b14" : "#ffffff",
+              },
+          text: isHighContrast
+            ? {
+                primary: isDark ? "#ffffff" : "#000000",
+                secondary: isDark ? "#e6e6e6" : "#111111",
+              }
+            : {
+                primary: isDark ? "#eef5f0" : "#0f172a",
+                secondary: isDark ? "#b7c4bc" : "#52607a",
+              },
+          divider: isHighContrast ? (isDark ? "#ffffff" : "#000000") : undefined,
         },
         shape: {
           borderRadius: 18,
@@ -58,7 +81,18 @@ export default function App({ page }: AppProps) {
           MuiAppBar: {
             styleOverrides: {
               root: {
-                backgroundImage: "linear-gradient(90deg, #1db954, #15994a)",
+                backgroundImage: isHighContrast
+                  ? "none"
+                  : "linear-gradient(90deg, #1db954, #15994a)",
+                backgroundColor: isHighContrast
+                  ? isDark
+                    ? "#000000"
+                    : "#ffffff"
+                  : undefined,
+                color: isHighContrast ? (isDark ? "#ffffff" : "#000000") : undefined,
+                borderBottom: isHighContrast
+                  ? `1px solid ${isDark ? "#ffffff" : "#000000"}`
+                  : "none",
                 boxShadow: "none",
               },
             },
@@ -79,24 +113,40 @@ export default function App({ page }: AppProps) {
               },
             },
           },
+          MuiPaper: {
+            styleOverrides: {
+              root: {
+                border: isHighContrast
+                  ? `1px solid ${isDark ? "#ffffff" : "#000000"}`
+                  : "none",
+              },
+            },
+          },
         },
       }),
-    [theme]
+    [isDark, isHighContrast]
   );
 
   let content: React.ReactNode;
   if (page === "settings") {
-    content = <SettingsPage isDark={theme === "dark"} onToggleTheme={toggleTheme} />;
+    content = (
+      <SettingsPage
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        isHighContrast={isHighContrast}
+        onToggleContrast={toggleContrast}
+      />
+    );
   } else if (page === "search") {
-    content = <SearchPage isDark={theme === "dark"} onToggleTheme={toggleTheme} />;
+    content = <SearchPage isDark={isDark} onToggleTheme={toggleTheme} />;
   } else if (page === "about") {
-    content = <AboutPage isDark={theme === "dark"} onToggleTheme={toggleTheme} />;
+    content = <AboutPage isDark={isDark} onToggleTheme={toggleTheme} />;
   } else if (page === "game-embed") {
     content = <GameEmbedPage />;
   } else if (page === "category") {
     content = <CategoryPage />;
   } else {
-    content = <HomePage isDark={theme === "dark"} onToggleTheme={toggleTheme} />;
+    content = <HomePage isDark={isDark} onToggleTheme={toggleTheme} />;
   }
 
   return (

@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { getStoredJSON, storeJSON } from "../utils/storage";
 
 type ThemeMode = "light" | "dark";
+type ContrastMode = "normal" | "high";
 
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>("light");
+  const [contrast, setContrast] = useState<ContrastMode>("normal");
 
   useEffect(() => {
     document.documentElement.setAttribute("data-reduced-motion", "true");
+    const savedContrast = getStoredJSON<string>("gams", { key: "contrast" });
+    if (savedContrast === "high") {
+      setContrast("high");
+      document.documentElement.setAttribute("data-contrast", "high");
+    }
     const savedTheme = getStoredJSON<string>("gams", { key: "theme" });
     if (savedTheme === "light" || savedTheme === "dark") {
       setTheme(savedTheme);
@@ -39,5 +46,16 @@ export function useTheme() {
     storeJSON("gams", { key: "theme", value: nextTheme });
   };
 
-  return { theme, toggleTheme };
+  const toggleContrast = (nextHigh: boolean) => {
+    const nextContrast: ContrastMode = nextHigh ? "high" : "normal";
+    setContrast(nextContrast);
+    if (nextContrast === "high") {
+      document.documentElement.setAttribute("data-contrast", "high");
+    } else {
+      document.documentElement.removeAttribute("data-contrast");
+    }
+    storeJSON("gams", { key: "contrast", value: nextContrast });
+  };
+
+  return { theme, toggleTheme, contrast, toggleContrast };
 }

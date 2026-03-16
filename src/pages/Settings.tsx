@@ -44,9 +44,16 @@ function saveCookieConsent(consent: CookieConsent): void {
 type SettingsProps = {
   isDark: boolean;
   onToggleTheme: (nextDark: boolean) => void;
+  isHighContrast: boolean;
+  onToggleContrast: (nextHigh: boolean) => void;
 };
 
-export default function SettingsPage({ isDark, onToggleTheme }: SettingsProps) {
+export default function SettingsPage({
+  isDark,
+  onToggleTheme,
+  isHighContrast,
+  onToggleContrast,
+}: SettingsProps) {
   const baseIcon =
     (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
     "/img/gams-g.png";
@@ -170,6 +177,26 @@ export default function SettingsPage({ isDark, onToggleTheme }: SettingsProps) {
                 <MenuItem value="right">Right</MenuItem>
               </Select>
             </FormControl>
+          </Paper>
+
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              Accessibility
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Increase contrast for text, surfaces, and controls.
+            </Typography>
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isHighContrast}
+                    onChange={(event) => onToggleContrast(event.target.checked)}
+                  />
+                }
+                label="High contrast mode"
+              />
+            </Stack>
           </Paper>
 
           <Paper sx={{ p: 3, borderRadius: 3 }}>
