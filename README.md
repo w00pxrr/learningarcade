@@ -4,6 +4,10 @@
 
 [![GitHub forks](https://img.shields.io/github/forks/Gams-Offline/Gams.svg)](https://github.com/Gams-Offline/Gams/network/members)
 
+[![Repo size](https://img.shields.io/github/repo-size/w00pxrr/w00pxrr.github.io)](https://github.com/w00pxrr/w00pxrr.github.io)
+
+[![Last commit](https://img.shields.io/github/last-commit/w00pxrr/w00pxrr.github.io)](https://github.com/w00pxrr/w00pxrr.github.io/commits)
+
 This repository contains a collection of offline games that can be played when you have limited or no internet connection. The games are tested to 100% work with Chromebook and Windows platforms. To get started, follow the instructions below:
 
 ### Quick Start

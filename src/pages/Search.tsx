@@ -26,6 +26,72 @@ type SearchProps = {
   onToggleTheme: (nextDark: boolean) => void;
 };
 
+function normalizeText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  const aLen = a.length;
+  const bLen = b.length;
+  if (aLen === 0) return bLen;
+  if (bLen === 0) return aLen;
+
+  const prev = new Array(bLen + 1);
+  const curr = new Array(bLen + 1);
+  for (let j = 0; j <= bLen; j++) prev[j] = j;
+
+  for (let i = 1; i <= aLen; i++) {
+    curr[0] = i;
+    const aChar = a.charCodeAt(i - 1);
+    for (let j = 1; j <= bLen; j++) {
+      const cost = aChar === b.charCodeAt(j - 1) ? 0 : 1;
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + cost
+      );
+    }
+    for (let j = 0; j <= bLen; j++) prev[j] = curr[j];
+  }
+
+  return prev[bLen];
+}
+
+function scoreFuzzy(term: string, candidate: string): number {
+  if (!term || !candidate) return 0;
+  if (candidate.includes(term)) return 1;
+  const distance = levenshteinDistance(term, candidate);
+  const maxLen = Math.max(term.length, candidate.length);
+  return maxLen === 0 ? 0 : 1 - distance / maxLen;
+}
+
+function matchGame(term: string, name: string): { match: boolean; score: number } {
+  const normalizedTerm = normalizeText(term);
+  if (!normalizedTerm) return { match: true, score: 1 };
+
+  const normalizedName = normalizeText(name);
+  if (!normalizedName) return { match: false, score: 0 };
+
+  if (normalizedName.includes(normalizedTerm)) {
+    return { match: true, score: 1 };
+  }
+
+  const tokens = normalizedName.split(" ").filter(Boolean);
+  let bestScore = scoreFuzzy(normalizedTerm, normalizedName);
+  for (const token of tokens) {
+    bestScore = Math.max(bestScore, scoreFuzzy(normalizedTerm, token));
+  }
+
+  const len = normalizedTerm.length;
+  let threshold = 0.55;
+  if (len <= 3) threshold = 0.85;
+  else if (len <= 5) threshold = 0.72;
+  else if (len <= 8) threshold = 0.65;
+
+  return { match: bestScore >= threshold, score: bestScore };
+}
+
 function getQueryFromHash(): string {
   const hash = window.location.hash;
   const queryStart = hash.indexOf("?");
@@ -59,19 +125,42 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
   }, []);
 
   const results = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    const filtered = !term
-      ? gamesData
-      : gamesData.filter((game) => game.name.toLowerCase().includes(term));
-    if (sortMode === "views") {
-      return [...filtered].sort((a, b) => {
+    const term = searchTerm.trim();
+    if (!term) {
+      if (sortMode !== "views") return gamesData;
+      return [...gamesData].sort((a, b) => {
         const aCount = viewCounts[a.id] ?? 0;
         const bCount = viewCounts[b.id] ?? 0;
         if (bCount !== aCount) return bCount - aCount;
         return b.index - a.index;
       });
     }
-    return filtered;
+
+    const matches = gamesData
+      .map((game) => {
+        const { match, score } = matchGame(term, game.name);
+        return match ? { game, score } : null;
+      })
+      .filter((entry): entry is { game: GameData; score: number } => !!entry);
+
+    if (sortMode === "views") {
+      return matches
+        .sort((a, b) => {
+          const aCount = viewCounts[a.game.id] ?? 0;
+          const bCount = viewCounts[b.game.id] ?? 0;
+          if (bCount !== aCount) return bCount - aCount;
+          if (b.score !== a.score) return b.score - a.score;
+          return b.game.index - a.game.index;
+        })
+        .map((entry) => entry.game);
+    }
+
+    return matches
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.game.index - a.game.index;
+      })
+      .map((entry) => entry.game);
   }, [searchTerm, sortMode, viewCounts]);
 
   const openGame = (game: GameData) => {
