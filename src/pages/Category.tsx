@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -85,13 +85,19 @@ function getFavoriteIds(): string[] {
 }
 
 export default function CategoryPage() {
-  const category = resolveCategoryFromHash();
+  const [category, setCategory] = useState(() => resolveCategoryFromHash());
   const label = categoryLabels[category] || category;
 
   const baseIcon =
     (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
     "/img/gams-g.png";
   useDisguise(`${label} - LearningArcade`, baseIcon);
+
+  useEffect(() => {
+    const handleHashChange = () => setCategory(resolveCategoryFromHash());
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const filtered = useMemo(() => {
     if (category === "favorites") {

@@ -7,14 +7,15 @@ type UmamiViewCounts = {
   error: string | null;
 };
 
-const OBFUSCATED_SHARE_ID = "Y1BVRGRpTGJXMDRJNE5U";
+const OBFUSCATED_SHARE_ID = "TN14I08WbLiddUPc";
 const UMAMI_REGION = "us";
 const UMAMI_BASE = `https://cloud.umami.is/analytics/${UMAMI_REGION}/api`;
 
 function decodeShareId(value: string): string {
   try {
-    const reversed = value.split("").reverse().join("");
-    return atob(reversed);
+    const decoded = atob(value);
+    if (/^[A-Za-z0-9_-]{8,}$/.test(decoded)) return decoded;
+    return value;
   } catch {
     return value;
   }
