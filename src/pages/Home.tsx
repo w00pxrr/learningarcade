@@ -181,6 +181,10 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
     return ranked.slice(0, 6);
   }, [viewCounts]);
   const latest = useMemo(() => getLatestGames(), []);
+  const favoriteGames = useMemo(
+    () => favorites.map((id) => gamesById[id]).filter(Boolean) as GameData[],
+    [favorites]
+  );
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const trimmed = searchTerm.trim();
@@ -395,6 +399,54 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
 
           <Grid item xs={12} lg={6}>
             <Stack spacing={3}>
+              <Paper
+                sx={(theme) => ({
+                  p: { xs: 3, md: 4 },
+                  borderRadius: 4,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(120deg, #1c1c2b 0%, #2c2034 55%, #1b1b25 100%)"
+                      : "linear-gradient(120deg, #f6f3ff 0%, #fff0f7 55%, #f6fff2 100%)",
+                })}
+              >
+                <Typography variant="h4" gutterBottom>
+                  Your favorites
+                </Typography>
+                {!canFavorite ? (
+                  <Stack spacing={2}>
+                    <Typography variant="body1" color="text.secondary">
+                      Enable settings cookies to save and show favorites here.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setShowConsent(true)}
+                      sx={{ alignSelf: "flex-start" }}
+                    >
+                      Update preferences
+                    </Button>
+                  </Stack>
+                ) : favoriteGames.length === 0 ? (
+                  <Stack spacing={2}>
+                    <Typography variant="body1" color="text.secondary">
+                      Star games you love to pin them here.
+                    </Typography>
+                    <Button variant="outlined" href="#/category/all" sx={{ alignSelf: "flex-start" }}>
+                      Browse all games
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Stack spacing={2.5}>
+                    {renderTiles(favoriteGames.slice(0, 8))}
+                    {favoriteGames.length > 8 ? (
+                      <Button variant="outlined" href="#/category/favorites" sx={{ alignSelf: "flex-start" }}>
+                        View all favorites
+                      </Button>
+                    ) : null}
+                  </Stack>
+                )}
+              </Paper>
               <Paper
                 sx={(theme) => ({
                   p: { xs: 3, md: 4 },

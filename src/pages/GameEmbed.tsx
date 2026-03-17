@@ -1,12 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,20 +10,14 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Paper,
   Slider,
   Stack,
   Switch,
   Typography,
 } from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
-import { GameTypeBadge } from "../components/GameTypeBadge";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
 import { getStoredJSON } from "../utils/storage";
-import { trackGameView } from "../utils/umami";
-import { recommendedGames } from "../data/recommended";
-import { gamesData, GameData } from "../data/games";
 
 type FilterState = {
   brightness: number;
@@ -41,12 +30,6 @@ type FilterState = {
   invert: number;
   opacity: number;
   dropShadow: number;
-};
-
-type RecommendedGame = {
-  name: string;
-  href: string;
-  img: string;
 };
 
 const defaultFilters: FilterState = {
@@ -84,29 +67,6 @@ function resolveUrl(rawUrl?: string | null) {
   }
 }
 
-function getGameVisits(): Record<string, { count: number }> {
-  const raw = localStorage.getItem("gams_game_visits");
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return {};
-  }
-}
-
-function getSortedRecommendedGames(): RecommendedGame[] {
-  const visits = getGameVisits();
-  if (Object.keys(visits).length === 0) return recommendedGames.slice(0, 6);
-
-  return [...recommendedGames]
-    .sort((a, b) => {
-      const aCount = visits[a.name.toLowerCase().replace(/\s/g, "")]?.count || 0;
-      const bCount = visits[b.name.toLowerCase().replace(/\s/g, "")]?.count || 0;
-      return bCount - aCount;
-    })
-    .slice(0, 6);
-}
-
 export default function GameEmbedPage() {
   const params = useMemo(() => {
     const hash = window.location.hash;
@@ -125,13 +85,11 @@ export default function GameEmbedPage() {
   const [windowLock, setWindowLock] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [hideSidebar, setHideSidebar] = useState(false);
   const [controlsAnchor, setControlsAnchor] = useState<null | HTMLElement>(null);
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
 
   const popoutMode =
     (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top";
-
-  const recommended = useMemo(() => getSortedRecommendedGames(), []);
 
   useDisguise(currentName, currentIcon);
 
@@ -169,6 +127,13 @@ export default function GameEmbedPage() {
       document.removeEventListener("msfullscreenchange", updateFullscreenState);
     };
   }, []);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      frameRef.current?.focus();
+    }, 50);
+    return () => window.clearTimeout(handle);
+  }, [frameSrc]);
 
   const filterStyle = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) hue-rotate(${filters.hue}deg) blur(${filters.blur}px) saturate(${filters.saturate}%) grayscale(${filters.grayscale}%) sepia(${filters.sepia}%) invert(${filters.invert}%) opacity(${filters.opacity}) drop-shadow(0 0 ${filters.dropShadow}px rgba(0,0,0,0.4))`;
 
@@ -248,9 +213,6 @@ export default function GameEmbedPage() {
     }
   }, []);
 
-  const resolveGameMeta = (game: RecommendedGame): GameData | undefined =>
-    gamesData.find((entry) => entry.name === game.name || entry.href === game.href);
-
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", display: "flex", flexDirection: "column" }}>
       {!isFullscreen ? (
@@ -277,14 +239,6 @@ export default function GameEmbedPage() {
                 </Stack>
                 <Button variant="outlined" color="inherit" onClick={openFullscreen} size="small">
                   {isFullscreen ? "Exit full" : "Fullscreen"}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => setHideSidebar((prev) => !prev)}
-                  size="small"
-                >
-                  {hideSidebar ? "Show sidebar" : "Hide sidebar"}
                 </Button>
                 <Button
                   variant="contained"
@@ -325,14 +279,6 @@ export default function GameEmbedPage() {
                   <MenuItem
                     onClick={() => {
                       setControlsAnchor(null);
-                      setHideSidebar((prev) => !prev);
-                    }}
-                  >
-                    {hideSidebar ? "Show sidebar" : "Hide sidebar"}
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      setControlsAnchor(null);
                       setIsModalOpen(true);
                     }}
                   >
@@ -346,70 +292,14 @@ export default function GameEmbedPage() {
       ) : null}
 
       <Box sx={{ display: "flex", minHeight: 0, flex: 1 }}>
-        <Paper
-          variant="outlined"
-          sx={{
-            width: 280,
-            p: 2,
-            display: hideSidebar || isFullscreen ? "none" : "block",
-            borderRadius: 0,
-          }}
-        >
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" fontWeight={700}>
-              Recommended
-            </Typography>
-            <Chip label="Quick" size="small" color="secondary" />
-          </Stack>
-          <Grid container spacing={1.5}>
-            {recommended.map((game) => {
-              const meta = resolveGameMeta(game);
-              return (
-              <Grid item xs={6} key={game.name}>
-                <Card variant="outlined">
-                  <CardActionArea
-                    onClick={() => {
-                      const href = resolveUrl(game.href);
-                      const icon = resolveUrl(game.img);
-                      if (meta) trackGameView(meta);
-                      setFrameSrc(href);
-                      setCurrentName(game.name);
-                      setCurrentIcon(icon);
-                    }}
-                  >
-                    <CardMedia
-                      component="img"
-                      image={game.img}
-                      alt={game.name}
-                      sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
-                    />
-                    <CardContent sx={{ p: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography
-                          variant="caption"
-                          display="block"
-                          noWrap
-                          sx={{ flex: 1, minWidth: 0 }}
-                        >
-                          {game.name}
-                        </Typography>
-                        {meta ? <GameTypeBadge game={meta} size="xs" /> : null}
-                      </Stack>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-              );
-            })}
-          </Grid>
-        </Paper>
-
         <Box sx={{ position: "relative", flex: 1, minHeight: 0 }}>
           <Box
             component="iframe"
             id="frame"
             title="Game frame"
             src={frameSrc}
+            ref={frameRef}
+            onLoad={() => frameRef.current?.focus()}
             sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, filter: filterStyle }}
           />
         </Box>
