@@ -11,6 +11,9 @@ export type GamListItem =
       img?: string;
       src?: string;
       type?: string;
+      categories?: string[];
+      mobileFriendly?: boolean;
+      desktopOnly?: boolean;
     };
 
 export interface GameData {
@@ -21,6 +24,9 @@ export interface GameData {
   type: string;
   section: string;
   category: string;
+  categories: string[];
+  mobileFriendly: boolean;
+  desktopOnly: boolean;
   index: number;
   searchName: string;
   searchTokens: string[];
@@ -30,8 +36,12 @@ function isSectionEntry(entry: GamListItem): entry is GamListSection {
   return "title" in entry && entry.title !== undefined;
 }
 
-export function getCategory(name: string): string {
+function getAutoCategories(name: string, section: string): string[] {
   const lower = name.toLowerCase();
+  const categories = new Set<string>();
+
+  if (section === "Retro") categories.add("retro");
+  if (section === "Flash") categories.add("flash");
   if (
     lower.includes("soccer") ||
     lower.includes("football") ||
@@ -60,7 +70,7 @@ export function getCategory(name: string): string {
     lower.includes("nfl") ||
     lower.includes("mlb")
   )
-    return "sports";
+    categories.add("sports");
   if (
     lower.includes("horror") ||
     lower.includes("five nights") ||
@@ -68,7 +78,7 @@ export function getCategory(name: string): string {
     lower.includes("fnae") ||
     lower.includes("fnaf")
   )
-    return "horror";
+    categories.add("horror");
   if (
     lower.includes("racing") ||
     lower.includes("race") ||
@@ -82,7 +92,7 @@ export function getCategory(name: string): string {
     lower.includes("track") ||
     lower.includes("duck life")
   )
-    return "racing";
+    categories.add("racing");
   if (
     lower.includes("puzzle") ||
     lower.includes("quiz") ||
@@ -110,7 +120,7 @@ export function getCategory(name: string): string {
     lower.includes("riddle") ||
     lower.includes("tiles")
   )
-    return "puzzle";
+    categories.add("puzzle");
   if (
     lower.includes("code editor") ||
     lower.includes("web retro") ||
@@ -131,7 +141,7 @@ export function getCategory(name: string): string {
     lower.includes("sandbox") ||
     lower.includes("lab")
   )
-    return "tools";
+    categories.add("tools");
   if (
     lower.includes("run") ||
     lower.includes("slope") ||
@@ -150,7 +160,7 @@ export function getCategory(name: string): string {
     lower.includes("sprint") ||
     lower.includes("parkour")
   )
-    return "runner";
+    categories.add("runner");
   if (
     lower.includes("simulation") ||
     lower.includes("simulator") ||
@@ -165,7 +175,7 @@ export function getCategory(name: string): string {
     lower.includes("grey box") ||
     lower.includes("greybox")
   )
-    return "simulation";
+    categories.add("simulation");
   if (
     lower.includes("mario") ||
     lower.includes("platformer") ||
@@ -173,7 +183,36 @@ export function getCategory(name: string): string {
     lower.includes("side-scroller") ||
     lower.includes("side scroller")
   )
-    return "platformer";
+    categories.add("platformer");
+  if (
+    lower.includes("rpg") ||
+    lower.includes("role-playing") ||
+    lower.includes("role playing") ||
+    lower.includes("jrpg")
+  )
+    categories.add("role-playing");
+  if (
+    lower.includes("strategy") ||
+    lower.includes("tower defense") ||
+    lower.includes("tactics") ||
+    lower.includes("turn-based") ||
+    lower.includes("chess")
+  )
+    categories.add("strategy");
+  if (
+    lower.includes("idle") ||
+    lower.includes("incremental") ||
+    lower.includes("clicker")
+  )
+    categories.add("idle");
+  if (
+    lower.includes("action-adventure") ||
+    lower.includes("action adventure")
+  ) {
+    categories.add("action-adventure");
+    categories.add("action");
+    categories.add("adventure");
+  }
   if (
     lower.includes("mario") ||
     lower.includes("sonic") ||
@@ -226,7 +265,7 @@ export function getCategory(name: string): string {
     lower.includes("physics") ||
     lower.includes("ragdoll")
   )
-    return "action";
+    categories.add("action");
   if (
     lower.includes("adventure") ||
     lower.includes("retro") ||
@@ -267,8 +306,18 @@ export function getCategory(name: string): string {
     lower.includes("crafting") ||
     lower.includes("sandbox")
   )
-    return "adventure";
-  return "action";
+    categories.add("adventure");
+
+  if (categories.size === 0) categories.add("action");
+  return Array.from(categories);
+}
+
+function resolveCategories(entry: GamListItem, section: string): string[] {
+  if (!("name" in entry) || !entry.name) return ["action"];
+  if (Array.isArray(entry.categories) && entry.categories.length > 0) {
+    return entry.categories;
+  }
+  return getAutoCategories(entry.name, section);
 }
 
 const gamsList = gamesListRaw as GamListItem[];
@@ -292,6 +341,13 @@ for (let j = 0; j < gamsList.length; j++) {
   const gameId = gam.id ?? imgName;
   const searchName = normalizeSearchText(gam.name);
   const searchTokens = searchName ? searchName.split(" ").filter(Boolean) : [];
+  const categories = resolveCategories(gam, currentSection || "Other");
+  const desktopOnly =
+    typeof gam.desktopOnly === "boolean"
+      ? gam.desktopOnly
+      : (currentSection || "Other") === "Flash";
+  const mobileFriendly =
+    typeof gam.mobileFriendly === "boolean" ? gam.mobileFriendly : !desktopOnly;
   gamesData.push({
     id: gameId,
     name: gam.name,
@@ -299,7 +355,10 @@ for (let j = 0; j < gamsList.length; j++) {
     img: gam.img ?? (gam.src ? "img/" + gam.src : "img/" + imgName + ".jpeg"),
     type: gam.type ?? "",
     section: currentSection || "Other",
-    category: getCategory(gam.name),
+    categories,
+    category: categories[0] || "action",
+    mobileFriendly,
+    desktopOnly,
     index: gamesData.length,
     searchName,
     searchTokens,
@@ -308,6 +367,8 @@ for (let j = 0; j < gamsList.length; j++) {
 
 for (const game of gamesData) {
   gamesById[game.id] = game;
-  if (!gamesByCategory[game.category]) gamesByCategory[game.category] = [];
-  gamesByCategory[game.category].push(game);
+  for (const category of game.categories) {
+    if (!gamesByCategory[category]) gamesByCategory[category] = [];
+    gamesByCategory[category].push(game);
+  }
 }

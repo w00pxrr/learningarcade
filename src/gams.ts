@@ -23,6 +23,9 @@ type GamListItem =
       img?: string;
       src?: string;
       type?: string;
+      categories?: string[];
+      mobileFriendly?: boolean;
+      desktopOnly?: boolean;
     };
 
 interface GameData {
@@ -33,6 +36,9 @@ interface GameData {
   type: string;
   section: string;
   category: string;
+  categories: string[];
+  mobileFriendly: boolean;
+  desktopOnly: boolean;
   index: number;
   searchName: string;
 }
@@ -41,16 +47,40 @@ function isSectionEntry(entry: GamListItem): entry is GamListSection {
   return "title" in entry && entry.title !== undefined;
 }
 
-function getCategory(name: string): string {
+function getAutoCategories(name: string, section: string): string[] {
   const lower = name.toLowerCase();
-  if (lower.includes('soccer') || lower.includes('football') || lower.includes('sports')) return 'sports';
-  if (lower.includes('puzzle') || lower.includes('quiz') || lower.includes('bloxorz') || lower.includes('tetris') || lower.includes('2048') || lower.includes('wordle') || lower.includes('impossible')) return 'puzzle';
-  if (lower.includes('code editor') || lower.includes('web retro') || lower.includes('proxy browser') || lower.includes('calculator') || lower.includes('ruffle flash player')) return 'tools';
-  if (lower.includes('run') || lower.includes('slope') || lower.includes('tunnel rush') || lower.includes('drift boss') || lower.includes('subway surfers')) return 'runner';
-  if (lower.includes('mario') || lower.includes('sonic') || lower.includes('geometry dash') || lower.includes('drift') || lower.includes('drive') || lower.includes('tunnel') || lower.includes('madalin') || lower.includes('stickman') || lower.includes('qwop') || lower.includes('aim') || lower.includes('snake') || lower.includes('pacman') || lower.includes('cat ninja') || lower.includes('burrito bison') || lower.includes('hole io') || lower.includes('tube jumpers') || lower.includes('agario') || lower.includes('paper io') || lower.includes('cell machine') || lower.includes('evil glitch') || lower.includes('game inside') || lower.includes('grey box') || lower.includes('ai creatures') || lower.includes('fluid simulator') || lower.includes('mountain maze') || lower.includes('radius raid') || lower.includes('rolling forests') || lower.includes('stack') || lower.includes('its raining boxes') || lower.includes('sand game') || lower.includes('offline paradise') || lower.includes('spacebar clicker') || lower.includes('cube field') || lower.includes('cookie clicker')) return 'action';
+  const categories = new Set<string>();
+
+  if (section === "Retro") categories.add("retro");
+  if (section === "Flash") categories.add("flash");
+  if (lower.includes('soccer') || lower.includes('football') || lower.includes('sports')) categories.add('sports');
+  if (lower.includes('puzzle') || lower.includes('quiz') || lower.includes('bloxorz') || lower.includes('tetris') || lower.includes('2048') || lower.includes('wordle') || lower.includes('impossible')) categories.add('puzzle');
+  if (lower.includes('code editor') || lower.includes('web retro') || lower.includes('proxy browser') || lower.includes('calculator') || lower.includes('ruffle flash player')) categories.add('tools');
+  if (lower.includes('run') || lower.includes('slope') || lower.includes('tunnel rush') || lower.includes('drift boss') || lower.includes('subway surfers')) categories.add('runner');
+  if (lower.includes('platformer') || lower.includes('platform') || lower.includes('mario') || lower.includes('sonic') || lower.includes('celeste')) categories.add('platformer');
+  if (lower.includes('rpg') || lower.includes('role-playing') || lower.includes('role playing') || lower.includes('jrpg')) categories.add('role-playing');
+  if (lower.includes('strategy') || lower.includes('tower defense') || lower.includes('tactics') || lower.includes('turn-based') || lower.includes('chess')) categories.add('strategy');
+  if (lower.includes('idle') || lower.includes('incremental') || lower.includes('clicker')) categories.add('idle');
+  if (lower.includes('simulation') || lower.includes('simulator') || lower.includes('sim') || lower.includes('tycoon')) categories.add('simulation');
+  if (lower.includes('action-adventure') || lower.includes('action adventure')) {
+    categories.add('action-adventure');
+    categories.add('action');
+    categories.add('adventure');
+  }
+  if (lower.includes('mario') || lower.includes('sonic') || lower.includes('geometry dash') || lower.includes('drift') || lower.includes('drive') || lower.includes('tunnel') || lower.includes('madalin') || lower.includes('stickman') || lower.includes('qwop') || lower.includes('aim') || lower.includes('snake') || lower.includes('pacman') || lower.includes('cat ninja') || lower.includes('burrito bison') || lower.includes('hole io') || lower.includes('tube jumpers') || lower.includes('agario') || lower.includes('paper io') || lower.includes('cell machine') || lower.includes('evil glitch') || lower.includes('game inside') || lower.includes('grey box') || lower.includes('ai creatures') || lower.includes('fluid simulator') || lower.includes('mountain maze') || lower.includes('radius raid') || lower.includes('rolling forests') || lower.includes('stack') || lower.includes('its raining boxes') || lower.includes('sand game') || lower.includes('offline paradise') || lower.includes('spacebar clicker') || lower.includes('cube field') || lower.includes('cookie clicker')) categories.add('action');
   if (lower.includes('adventure') || lower.includes('retro') || lower.includes('celeste') || lower.includes('portal') || lower.includes('fireboy') || lower.includes('watergirl') || lower.includes('raft') || lower.includes('worlds hardest') || lower.includes('escaping') || lower.includes('infiltrating') || lower.includes('fleeing') || lower.includes('breaking') || lower.includes('stealing') || lower.includes('bloons tower defense') || lower.includes('learn to fly') || lower.includes('papas') || lower.includes('just one boss') || lower.includes('40x escape') || lower.includes('duck life') || lower.includes('use boxmen') || lower.includes('doom') || lower.includes('johnny upgrade') || lower.includes('ruffle'))
-    return 'adventure';
-  return 'action'; // default
+    categories.add('adventure');
+
+  if (categories.size === 0) categories.add('action');
+  return Array.from(categories);
+}
+
+function resolveCategories(entry: GamListItem, section: string): string[] {
+  if (!("name" in entry) || !entry.name) return ["action"];
+  if (Array.isArray(entry.categories) && entry.categories.length > 0) {
+    return entry.categories;
+  }
+  return getAutoCategories(entry.name, section);
 }
 
 // --- Bootstrap: ensure stored gam mode exists (runs before init) ---
@@ -520,6 +550,13 @@ for (let j = 0; j < gamsList.length; j++) {
 
   const imgName = gam.name.toLowerCase().replace(/\s/g, "");
   const gameId = gam.id ?? imgName;
+  const categories = resolveCategories(gam, currentSection || "Other");
+  const desktopOnly =
+    typeof gam.desktopOnly === "boolean"
+      ? gam.desktopOnly
+      : (currentSection || "Other") === "Flash";
+  const mobileFriendly =
+    typeof gam.mobileFriendly === "boolean" ? gam.mobileFriendly : !desktopOnly;
   gamesData.push({
     id: gameId,
     name: gam.name,
@@ -527,7 +564,10 @@ for (let j = 0; j < gamsList.length; j++) {
     img: gam.img ?? (gam.src ? "img/" + gam.src : "img/" + imgName + ".jpeg"),
     type: gam.type ?? "",
     section: currentSection || "Other",
-    category: getCategory(gam.name),
+    categories,
+    category: categories[0] || "action",
+    mobileFriendly,
+    desktopOnly,
     index: gamesData.length,
     searchName: gam.name.toLowerCase(),
   });
@@ -741,50 +781,6 @@ function getGameVisits(): Record<string, {count: number; lastVisit: number; name
   }
 }
 
-function getTopVisitedGames(limit: number = 4): GameData[] {
-  const visits = getGameVisits();
-  const entries = Object.entries(visits);
-  
-  if (entries.length === 0) {
-    // Fallback to latest games
-    return getLatestGames();
-  }
-  
-  // Sort by count (descending), then by lastVisit (descending) for tiebreakers
-  entries.sort((a, b) => {
-    if (b[1].count !== a[1].count) {
-      return b[1].count - a[1].count;
-    }
-    return b[1].lastVisit - a[1].lastVisit;
-  });
-  
-  // Get game data for top entries
-  const topGameIds = new Set(entries.slice(0, limit).map(e => e[0]));
-  const recommended: GameData[] = [];
-  
-  // Maintain order from entries
-  for (const [gameId] of entries) {
-    if (recommended.length >= limit) break;
-    const game = gamesData.find(g => g.id === gameId);
-    if (game) {
-      recommended.push(game);
-    }
-  }
-  
-  // If we don't have enough, fill with latest games
-  if (recommended.length < limit) {
-    const latest = getLatestGames();
-    for (const game of latest) {
-      if (recommended.length >= limit) break;
-      if (!topGameIds.has(game.id)) {
-        recommended.push(game);
-      }
-    }
-  }
-  
-  return recommended.slice(0, limit);
-}
-
 function getLatestGames(): GameData[] {
   const allowedSections = ["HTML5/unity Webgl", "Flash"];
   const filtered = gamesData.filter((g) =>
@@ -804,7 +800,8 @@ function renderGames(): void {
   let totalCount = 0;
 
   for (const game of gamesData) {
-    const matchesCategory = currentCategory === "all" || game.category === currentCategory;
+    const matchesCategory =
+      currentCategory === "all" || game.categories.includes(currentCategory);
     const matchesSearch = !hasSearch || game.searchName.includes(searchTerm);
     if (currentCategory === "favorites") {
       if (favoriteSet.has(game.id) && matchesSearch) {

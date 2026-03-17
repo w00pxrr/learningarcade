@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
+import aboutContent from "../data/aboutContent.json";
 
 type AboutProps = {
   isDark: boolean;
@@ -81,12 +82,7 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
               Why choose LearningArcade?
             </Typography>
             <List dense>
-              {[
-                "Simple design: focus on games, not clutter.",
-                "Unique selection: a mix you won't find in every collection.",
-                "Easy to use: fast loading and clear categories.",
-                "Dark mode: easier on the eyes for long sessions.",
-              ].map((item) => (
+              {aboutContent.reasons.map((item) => (
                 <ListItem key={item} sx={{ pl: 0 }}>
                   <ListItemText primary={item} />
                 </ListItem>
@@ -110,13 +106,7 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
               Additional notes
             </Typography>
             <List dense>
-              {[
-                "Recommended game: Drive Mad is a must-try.",
-                "Updates land regularly with fresh picks.",
-                "Quality matters: every game here is handpicked for fun and stability.",
-                "Ruffle makes Flash classics playable in modern browsers.",
-                "Mine, all mine: LearningArcade is mine, the project, not the games.",
-              ].map((item) => (
+              {aboutContent.notes.map((item) => (
                 <ListItem key={item} sx={{ pl: 0 }}>
                   <ListItemText primary={item} />
                 </ListItem>
@@ -129,11 +119,7 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
               Credits
             </Typography>
             <List dense>
-              {[
-                "Forked by w00pxrr",
-                "Original creator: mountain658",
-                "Thanks to Jacob Kern and Alec Ponce for contributions.",
-              ].map((item) => (
+              {aboutContent.credits.map((item) => (
                 <ListItem key={item} sx={{ pl: 0 }}>
                   <ListItemText primary={item} />
                 </ListItem>

@@ -13,7 +13,10 @@ function isFlashGame(game: GameData): boolean {
   return section.includes("flash") || type.includes("flash");
 }
 
-export function GameTypeBadge({ game, size = "sm" }: GameTypeBadgeProps) {
+export const GameTypeBadge = React.memo(function GameTypeBadge({
+  game,
+  size = "sm",
+}: GameTypeBadgeProps) {
   const flash = isFlashGame(game);
   const label = flash ? "Flash" : "HTML5";
   const fontSize = size === "xs" ? 10 : 11;
@@ -45,4 +48,4 @@ export function GameTypeBadge({ game, size = "sm" }: GameTypeBadgeProps) {
       {label}
     </Box>
   );
-}
+});

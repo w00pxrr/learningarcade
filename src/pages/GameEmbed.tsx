@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
-import { getStoredJSON } from "../utils/storage";
+import filterControls from "../data/gameEmbedFilters.json";
 
 type FilterState = {
   brightness: number;
@@ -45,18 +45,13 @@ const defaultFilters: FilterState = {
   dropShadow: 0,
 };
 
-const filterControls: Array<[string, keyof FilterState, number, number, number]> = [
-  ["Brightness", "brightness", 10, 200, 1],
-  ["Contrast", "contrast", 0, 200, 1],
-  ["Hue", "hue", 0, 360, 1],
-  ["Blur", "blur", 0, 10, 0.5],
-  ["Saturate", "saturate", 0, 200, 1],
-  ["Grayscale", "grayscale", 0, 100, 1],
-  ["Sepia", "sepia", 0, 100, 1],
-  ["Invert", "invert", 0, 100, 1],
-  ["Opacity", "opacity", 0, 1, 0.01],
-  ["Drop Shadow", "dropShadow", 0, 12, 0.5],
-];
+const typedFilterControls = filterControls as Array<{
+  label: string;
+  key: keyof FilterState;
+  min: number;
+  max: number;
+  step: number;
+}>;
 
 function resolveUrl(rawUrl?: string | null) {
   if (!rawUrl) return "";
@@ -87,9 +82,12 @@ export default function GameEmbedPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsAnchor, setControlsAnchor] = useState<null | HTMLElement>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
-
-  const popoutMode =
-    (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top";
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 900px)").matches
+      : false
+  );
+  const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
 
   useDisguise(currentName, currentIcon);
 
@@ -129,11 +127,42 @@ export default function GameEmbedPage() {
   }, []);
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 900px)");
+    const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handler);
+      return () => media.removeEventListener("change", handler);
+    }
+    media.addListener(handler);
+    return () => media.removeListener(handler);
+  }, []);
+
+  useEffect(() => {
     const handle = window.setTimeout(() => {
       frameRef.current?.focus();
     }, 50);
     return () => window.clearTimeout(handle);
   }, [frameSrc]);
+
+  useEffect(() => {
+    if (!isMobile || isFullscreen) return;
+    setShowFullscreenPrompt(true);
+    const handle = window.setTimeout(() => {
+      setShowFullscreenPrompt(false);
+    }, 3500);
+    return () => window.clearTimeout(handle);
+  }, [isMobile, isFullscreen]);
+
+  useEffect(() => {
+    const attemptFullscreen = () => {
+      if (isFullscreen) return;
+      if (!window.matchMedia("(max-width: 900px)").matches) return;
+      openFullscreen();
+    };
+    const handler = () => attemptFullscreen();
+    window.addEventListener("pointerdown", handler, { once: true });
+    return () => window.removeEventListener("pointerdown", handler);
+  }, [isFullscreen]);
 
   const filterStyle = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) hue-rotate(${filters.hue}deg) blur(${filters.blur}px) saturate(${filters.saturate}%) grayscale(${filters.grayscale}%) sepia(${filters.sepia}%) invert(${filters.invert}%) opacity(${filters.opacity}) drop-shadow(0 0 ${filters.dropShadow}px rgba(0,0,0,0.4))`;
 
@@ -291,8 +320,16 @@ export default function GameEmbedPage() {
         />
       ) : null}
 
-      <Box sx={{ display: "flex", minHeight: 0, flex: 1 }}>
-        <Box sx={{ position: "relative", flex: 1, minHeight: 0 }}>
+      <Box sx={{ display: "flex", minHeight: 0, flex: 1, position: "relative" }}>
+        <Box
+          sx={{ position: "relative", flex: 1, minHeight: 0 }}
+          onPointerDown={() => {
+            if (isFullscreen) return;
+            if (window.matchMedia("(max-width: 900px)").matches) {
+              openFullscreen();
+            }
+          }}
+        >
           <Box
             component="iframe"
             id="frame"
@@ -304,6 +341,35 @@ export default function GameEmbedPage() {
           />
         </Box>
       </Box>
+
+      {isMobile && !isFullscreen && showFullscreenPrompt ? (
+        <Box
+          sx={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+            zIndex: 1050,
+          }}
+        >
+          <Box
+            sx={{
+              bgcolor: "rgba(0, 0, 0, 0.65)",
+              color: "white",
+              px: 2.5,
+              py: 1.5,
+              borderRadius: 999,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+            }}
+          >
+            Tap to go fullscreen
+          </Box>
+        </Box>
+      ) : null}
 
       <Box
         aria-label="Mobile game controls"
@@ -400,7 +466,7 @@ export default function GameEmbedPage() {
               }
               label="Ask before closing window"
             />
-            {filterControls.map(([label, key, min, max, step]) => (
+            {typedFilterControls.map(({ label, key, min, max, step }) => (
               <Box key={key}>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" fontWeight={600}>

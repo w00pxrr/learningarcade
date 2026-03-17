@@ -15,11 +15,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
+import Grid from "@mui/material/Grid";
 import { gamesById, gamesData, GameData } from "../data/games";
 import { GameTypeBadge } from "../components/GameTypeBadge";
+import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
+import { useIsMobile } from "../hooks/useIsMobile";
+import categoryMeta from "../data/categoryMeta.json";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { clearCookie, getCookie, setCookie } from "../utils/storage";
 import { ensureUmamiLoaded, trackGameView } from "../utils/umami";
@@ -28,18 +31,9 @@ type CookieConsent = { settings?: boolean; analytics?: boolean };
 
 const consentStorageKey = "gams_cookie_consent_v1";
 
-const categoryOptions: Array<[string, string]> = [
-  ["action", "Action"],
-  ["puzzle", "Puzzle"],
-  ["adventure", "Adventure"],
-  ["horror", "Horror"],
-  ["racing", "Racing"],
-  ["simulation", "Simulation"],
-  ["platformer", "Platformer"],
-  ["sports", "Sports"],
-  ["tools", "Tools"],
-  ["runner", "Runner"],
-];
+const categoryOptions = categoryMeta.items
+  .filter((item) => item.showOnHome)
+  .map((item) => [item.value, item.label] as const);
 
 function loadCookieConsent(): CookieConsent | null {
   const raw = localStorage.getItem(consentStorageKey);
@@ -115,8 +109,10 @@ function getLatestGames(): GameData[] {
   return sorted.slice(0, 6);
 }
 
-function getTopVisitedGames(limit = 6): GameData[] {
-  const visits = getGameVisits();
+function getTopVisitedGamesFromVisits(
+  visits: Record<string, { count: number; lastVisit: number; name: string }>,
+  limit = 6
+): GameData[] {
   const entries = Object.entries(visits);
   if (entries.length === 0) return getLatestGames();
 
@@ -153,6 +149,8 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
   const [showConsent, setShowConsent] = useState(() => !loadCookieConsent());
   const [searchTerm, setSearchTerm] = useState("");
   const [favorites, setFavorites] = useState<string[]>(() => getFavoriteIds(consent));
+  const [localVisits, setLocalVisits] = useState(() => getGameVisits());
+  const isMobile = useIsMobile();
 
   const baseIcon =
     (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
@@ -169,17 +167,10 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
   const canFavorite = hasSettingsCookieConsent(consent);
   const { counts: viewCounts } = useUmamiViews();
 
-  const recommended = useMemo(() => {
-    const ids = Object.keys(viewCounts);
-    if (ids.length === 0) return getTopVisitedGames();
-    const ranked = [...gamesData].sort((a, b) => {
-      const aCount = viewCounts[a.id] ?? 0;
-      const bCount = viewCounts[b.id] ?? 0;
-      if (bCount !== aCount) return bCount - aCount;
-      return b.index - a.index;
-    });
-    return ranked.slice(0, 6);
-  }, [viewCounts]);
+  const recommended = useMemo(
+    () => getTopVisitedGamesFromVisits(localVisits),
+    [localVisits]
+  );
   const latest = useMemo(() => getLatestGames(), []);
   const favoriteGames = useMemo(
     () => favorites.map((id) => gamesById[id]).filter(Boolean) as GameData[],
@@ -208,6 +199,7 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
     const href = new URL(game.href, window.location.href).href;
     const pic = new URL(game.img, window.location.href).href;
     recordGameVisit(game.id, game.name);
+    setLocalVisits(getGameVisits());
     trackGameView(game);
 
     const gameShellQuery = new URLSearchParams({
@@ -224,8 +216,10 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
 
   const renderTiles = (list: GameData[]) => (
     <Grid container spacing={2}>
-      {list.map((game) => (
-        <Grid item xs={4} sm={4} md={3} lg={2} key={game.id}>
+      {list.map((game) => {
+        const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
+        return (
+        <Grid size={{ xs: 4, sm: 4, md: 3, lg: 2 }} key={game.id}>
           <Card
             sx={{
               height: "100%",
@@ -233,9 +227,15 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
               borderRadius: 3,
               border: "1px solid",
               borderColor: "divider",
+              opacity: desktopOnly ? 0.5 : 1,
             }}
           >
-            <CardActionArea onClick={() => handleOpenGame(game)}>
+            <CardActionArea
+              onClick={() => {
+                if (!desktopOnly) handleOpenGame(game);
+              }}
+              disabled={desktopOnly}
+            >
               <CardMedia
                 component="img"
                 image={game.img}
@@ -255,10 +255,11 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
                   <GameTypeBadge game={game} />
                 </Stack>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  Views: {(viewCounts[game.id] ?? 0).toLocaleString()}
+                  Views: {(localVisits[game.id]?.count ?? viewCounts[game.id] ?? 0).toLocaleString()}
                 </Typography>
               </CardContent>
             </CardActionArea>
+            <DesktopOnlyOverlay visible={desktopOnly} />
             <IconButton
               onClick={(event) => {
                 event.preventDefault();
@@ -289,7 +290,8 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
             </IconButton>
           </Card>
         </Grid>
-      ))}
+        );
+      })}
     </Grid>
   );
 
@@ -322,7 +324,7 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} lg={3}>
+          <Grid size={{ xs: 12, lg: 3 }}>
             <Stack spacing={2}>
               <Paper sx={{ p: 2.5, borderRadius: 3 }}>
                 <Typography variant="subtitle1" fontWeight={700} gutterBottom>
@@ -397,7 +399,7 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
             </Stack>
           </Grid>
 
-          <Grid item xs={12} lg={6}>
+          <Grid size={{ xs: 12, lg: 6 }}>
             <Stack spacing={3}>
               <Paper
                 sx={(theme) => ({
@@ -460,17 +462,17 @@ export default function HomePage({ isDark, onToggleTheme }: HomeProps) {
                 })}
               >
                 <Typography variant="h4" gutterBottom>
-                  Trending picks
+                  Based on your plays
                 </Typography>
                 <Typography variant="body1" sx={{ color: "text.secondary", mb: 3 }}>
-                  Only the top games right now. Jump in fast.
+                  Your most-played games, plus a few fresh picks.
                 </Typography>
                 {recommended.length > 0 ? renderTiles(recommended) : null}
               </Paper>
             </Stack>
           </Grid>
 
-          <Grid item xs={12} lg={3}>
+          <Grid size={{ xs: 12, lg: 3 }}>
             <Stack spacing={2}>
               <Paper sx={{ p: 2.5, borderRadius: 3 }}>
                 <Typography variant="subtitle1" fontWeight={700} gutterBottom>

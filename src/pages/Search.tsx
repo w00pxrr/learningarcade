@@ -13,12 +13,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
+import Grid from "@mui/material/Grid";
 import { gamesData, GameData } from "../data/games";
 import { normalizeSearchText } from "../utils/search";
 import { GameTypeBadge } from "../components/GameTypeBadge";
+import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { trackGameView } from "../utils/umami";
 
@@ -108,6 +110,7 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
   const [searchTerm, setSearchTerm] = useState(() => getQueryFromHash());
   const [sortMode, setSortMode] = useState<"relevance" | "views">("relevance");
   const { counts: viewCounts } = useUmamiViews();
+  const isMobile = useIsMobile();
 
   const baseIcon =
     (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
@@ -232,8 +235,10 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
           </Paper>
         ) : (
           <Grid container spacing={2}>
-            {results.map((game) => (
-              <Grid item xs={4} sm={4} md={3} lg={2} key={game.id}>
+            {results.map((game) => {
+              const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
+              return (
+              <Grid size={{ xs: 4, sm: 4, md: 3, lg: 2 }} key={game.id}>
                 <Card
                   sx={{
                     height: "100%",
@@ -241,9 +246,15 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
                     borderRadius: 3,
                     border: "1px solid",
                     borderColor: "divider",
+                    opacity: desktopOnly ? 0.5 : 1,
                   }}
                 >
-                  <CardActionArea onClick={() => openGame(game)}>
+                  <CardActionArea
+                    onClick={() => {
+                      if (!desktopOnly) openGame(game);
+                    }}
+                    disabled={desktopOnly}
+                  >
                     <CardMedia
                       component="img"
                       image={game.img}
@@ -267,9 +278,11 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
                       </Typography>
                     </CardContent>
                   </CardActionArea>
+                  <DesktopOnlyOverlay visible={desktopOnly} />
                 </Card>
               </Grid>
-            ))}
+              );
+            })}
           </Grid>
         )}
       </Container>

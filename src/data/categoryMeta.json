@@ -1,0 +1,22 @@
+{
+  "items": [
+    { "value": "all", "label": "All", "showOnCategory": true, "showOnHome": false },
+    { "value": "favorites", "label": "Favorites", "showOnCategory": true, "showOnHome": false },
+    { "value": "action", "label": "Action", "showOnCategory": true, "showOnHome": true },
+    { "value": "action-adventure", "label": "Action Adventure", "showOnCategory": true, "showOnHome": true },
+    { "value": "puzzle", "label": "Puzzle", "showOnCategory": true, "showOnHome": true },
+    { "value": "adventure", "label": "Adventure", "showOnCategory": true, "showOnHome": true },
+    { "value": "role-playing", "label": "Role-playing", "showOnCategory": true, "showOnHome": true },
+    { "value": "horror", "label": "Horror", "showOnCategory": true, "showOnHome": true },
+    { "value": "simulation", "label": "Simulation", "showOnCategory": true, "showOnHome": true },
+    { "value": "strategy", "label": "Strategy", "showOnCategory": true, "showOnHome": true },
+    { "value": "idle", "label": "Idle", "showOnCategory": true, "showOnHome": true },
+    { "value": "retro", "label": "Retro", "showOnCategory": true, "showOnHome": true },
+    { "value": "racing", "label": "Racing", "showOnCategory": true, "showOnHome": true },
+    { "value": "platformer", "label": "Platformer", "showOnCategory": true, "showOnHome": true },
+    { "value": "sports", "label": "Sports", "showOnCategory": true, "showOnHome": true },
+    { "value": "flash", "label": "Flash", "showOnCategory": true, "showOnHome": true },
+    { "value": "tools", "label": "Tools", "showOnCategory": true, "showOnHome": true },
+    { "value": "runner", "label": "Runner", "showOnCategory": true, "showOnHome": true }
+  ]
+}

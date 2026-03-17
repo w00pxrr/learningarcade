@@ -12,45 +12,26 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
+import Grid from "@mui/material/Grid";
 import { gamesByCategory, gamesData, GameData } from "../data/games";
 import { GameTypeBadge } from "../components/GameTypeBadge";
+import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { trackGameView } from "../utils/umami";
 import { getCookie } from "../utils/storage";
+import categoryMeta from "../data/categoryMeta.json";
 
-const categoryLabels: Record<string, string> = {
-  action: "Action",
-  puzzle: "Puzzle",
-  adventure: "Adventure",
-  horror: "Horror",
-  racing: "Racing",
-  simulation: "Simulation",
-  platformer: "Platformer",
-  sports: "Sports",
-  tools: "Tools",
-  runner: "Runner",
-  favorites: "Favorites",
-  all: "All",
-};
+const categoryLabels = Object.fromEntries(
+  categoryMeta.items.map((item) => [item.value, item.label])
+) as Record<string, string>;
 
 const consentStorageKey = "gams_cookie_consent_v1";
 
-const categoryOptions: Array<[string, string]> = [
-  ["all", "All"],
-  ["favorites", "Favorites"],
-  ["action", "Action"],
-  ["puzzle", "Puzzle"],
-  ["adventure", "Adventure"],
-  ["horror", "Horror"],
-  ["racing", "Racing"],
-  ["simulation", "Simulation"],
-  ["platformer", "Platformer"],
-  ["sports", "Sports"],
-  ["tools", "Tools"],
-  ["runner", "Runner"],
-];
+const categoryOptions = categoryMeta.items
+  .filter((item) => item.showOnCategory)
+  .map((item) => [item.value, item.label] as const);
 
 function resolveCategoryFromHash(): string {
   const hash = window.location.hash.toLowerCase();
@@ -87,6 +68,7 @@ function getFavoriteIds(): string[] {
 export default function CategoryPage() {
   const [category, setCategory] = useState(() => resolveCategoryFromHash());
   const label = categoryLabels[category] || category;
+  const isMobile = useIsMobile();
 
   const baseIcon =
     (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
@@ -159,8 +141,10 @@ export default function CategoryPage() {
         </Paper>
 
         <Grid container spacing={2}>
-          {filtered.map((game) => (
-            <Grid item xs={6} sm={4} md={3} lg={2} key={game.id}>
+          {filtered.map((game) => {
+            const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
+            return (
+            <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={game.id}>
               <Card
                 sx={{
                   height: "100%",
@@ -168,9 +152,15 @@ export default function CategoryPage() {
                   borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
+                  opacity: desktopOnly ? 0.5 : 1,
                 }}
               >
-                <CardActionArea onClick={() => openGame(game)}>
+                <CardActionArea
+                  onClick={() => {
+                    if (!desktopOnly) openGame(game);
+                  }}
+                  disabled={desktopOnly}
+                >
                   <CardMedia
                     component="img"
                     image={game.img}
@@ -191,9 +181,11 @@ export default function CategoryPage() {
                     </Stack>
                   </CardContent>
                 </CardActionArea>
+                <DesktopOnlyOverlay visible={desktopOnly} />
               </Card>
             </Grid>
-          ))}
+            );
+          })}
         </Grid>
       </Container>
     </Box>
