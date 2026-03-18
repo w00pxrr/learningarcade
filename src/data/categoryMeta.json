@@ -1,6 +1,7 @@
 {
   "items": [
     { "value": "all", "label": "All", "showOnCategory": true, "showOnHome": false },
+    { "value": "popular", "label": "Most Popular", "showOnCategory": true, "showOnHome": false },
     { "value": "favorites", "label": "Favorites", "showOnCategory": true, "showOnHome": false },
     { "value": "action", "label": "Action", "showOnCategory": true, "showOnHome": true },
     { "value": "action-adventure", "label": "Action Adventure", "showOnCategory": true, "showOnHome": true },

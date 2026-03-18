@@ -352,7 +352,7 @@ for (let j = 0; j < gamsList.length; j++) {
     id: gameId,
     name: gam.name,
     href: gam.href ?? "games/" + imgName + ".html",
-    img: gam.img ?? (gam.src ? "img/" + gam.src : "img/" + imgName + ".jpeg"),
+    img: gam.img ?? (gam.src ? "/img/" + gam.src : "/img/" + imgName + ".jpeg"),
     type: gam.type ?? "",
     section: currentSection || "Other",
     categories,

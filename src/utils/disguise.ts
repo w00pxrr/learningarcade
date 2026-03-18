@@ -1,17 +1,18 @@
 import { getStoredJSON } from "./storage";
 
 export function setFavicon(href: string): void {
-  if (!href) return;
+  if (typeof document === "undefined" || !href) return;
   const existing = document.querySelectorAll('link[rel*="icon"]');
-  existing.forEach((favicon) => favicon.parentNode?.removeChild(favicon));
+  existing.forEach((favicon) => favicon.remove());
   const link = document.createElement("link");
   link.type = "image/x-icon";
   link.rel = "icon";
   link.href = href;
-  document.getElementsByTagName("head")[0].appendChild(link);
+  document.getElementsByTagName("head")[0]?.appendChild(link);
 }
 
 export function applyDisguise(baseTitle: string, baseIcon: string): void {
+  if (typeof document === "undefined") return;
   const icon = getStoredJSON<string>("gams", { key: "icon" });
   const title = getStoredJSON<string>("gams", { key: "title" });
   const nextTitle = title ?? baseTitle;
@@ -22,7 +23,10 @@ export function applyDisguise(baseTitle: string, baseIcon: string): void {
 }
 
 export function getBroadcastDisguise(): BroadcastChannel | null {
-  return typeof BroadcastChannel !== "undefined"
-    ? new BroadcastChannel("BroadcastDisguise")
-    : null;
+  if (typeof BroadcastChannel === "undefined") return null;
+  try {
+    return new BroadcastChannel("BroadcastDisguise");
+  } catch {
+    return null;
+  }
 }

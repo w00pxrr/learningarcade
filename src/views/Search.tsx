@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -16,18 +18,19 @@ import {
 import Grid from "@mui/material/Grid";
 import { gamesData, GameData } from "../data/games";
 import { normalizeSearchText } from "../utils/search";
-import { GameTypeBadge } from "../components/GameTypeBadge";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
+import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { trackGameView } from "../utils/umami";
-
-type SearchProps = {
-  isDark: boolean;
-  onToggleTheme: (nextDark: boolean) => void;
-};
+import {
+  getCombinedCount,
+  getGameVisits,
+  recordGameVisit,
+} from "../utils/visits";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function levenshteinDistance(a: string, b: string): number {
   if (a === b) return 0;
@@ -45,11 +48,7 @@ function levenshteinDistance(a: string, b: string): number {
     const aChar = a.charCodeAt(i - 1);
     for (let j = 1; j <= bLen; j++) {
       const cost = aChar === b.charCodeAt(j - 1) ? 0 : 1;
-      curr[j] = Math.min(
-        prev[j] + 1,
-        curr[j - 1] + 1,
-        prev[j - 1] + cost
-      );
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
     }
     for (let j = 0; j <= bLen; j++) prev[j] = curr[j];
   }
@@ -67,7 +66,7 @@ function scoreFuzzy(term: string, candidate: string): number {
 
 function matchGame(
   normalizedTerm: string,
-  game: GameData
+  game: GameData,
 ): { match: boolean; score: number } {
   if (!normalizedTerm) return { match: true, score: 1 };
   const normalizedName = game.searchName;
@@ -90,38 +89,28 @@ function matchGame(
   return { match: bestScore >= threshold, score: bestScore };
 }
 
-function getQueryFromHash(): string {
-  const hash = window.location.hash;
-  const queryStart = hash.indexOf("?");
-  if (queryStart === -1) return "";
-  const params = new URLSearchParams(hash.slice(queryStart + 1));
-  return params.get("q") ?? "";
-}
-
-function setQueryInHash(next: string) {
-  const trimmed = next.trim();
-  const params = new URLSearchParams();
-  if (trimmed) params.set("q", trimmed);
-  const nextHash = `#/search${params.toString() ? `?${params.toString()}` : ""}`;
-  window.history.replaceState(null, "", nextHash);
-}
-
-export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
-  const [searchTerm, setSearchTerm] = useState(() => getQueryFromHash());
+export default function SearchPage() {
+  const { isDark, toggleTheme } = useThemeContext();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortMode, setSortMode] = useState<"relevance" | "views">("relevance");
+  const [localVisits, setLocalVisits] = useState({});
+  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
   const { counts: viewCounts } = useUmamiViews();
   const isMobile = useIsMobile();
 
-  const baseIcon =
-    (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-    "/img/gams-g.png";
   useDisguise("Search - LearningArcade", baseIcon);
 
   useEffect(() => {
-    const handleHashChange = () => setSearchTerm(getQueryFromHash());
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+    setSearchTerm(searchParams?.get("q") ?? "");
+    setLocalVisits(getGameVisits());
+    setBaseIcon(
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
+        ?.href || "/img/gams-g.png",
+    );
+  }, [searchParams]);
 
   const results = useMemo(() => {
     const term = searchTerm.trim();
@@ -129,8 +118,8 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
     if (!term) {
       if (sortMode !== "views") return gamesData;
       return [...gamesData].sort((a, b) => {
-        const aCount = viewCounts[a.id] ?? 0;
-        const bCount = viewCounts[b.id] ?? 0;
+        const aCount = getCombinedCount(localVisits, a.id, viewCounts);
+        const bCount = getCombinedCount(localVisits, b.id, viewCounts);
         if (bCount !== aCount) return bCount - aCount;
         return b.index - a.index;
       });
@@ -146,8 +135,8 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
     if (sortMode === "views") {
       return matches
         .sort((a, b) => {
-          const aCount = viewCounts[a.game.id] ?? 0;
-          const bCount = viewCounts[b.game.id] ?? 0;
+          const aCount = getCombinedCount(localVisits, a.game.id, viewCounts);
+          const bCount = getCombinedCount(localVisits, b.game.id, viewCounts);
           if (bCount !== aCount) return bCount - aCount;
           if (b.score !== a.score) return b.score - a.score;
           return b.game.index - a.game.index;
@@ -161,26 +150,38 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
         return b.game.index - a.game.index;
       })
       .map((entry) => entry.game);
-  }, [searchTerm, sortMode, viewCounts]);
+  }, [localVisits, searchTerm, sortMode, viewCounts]);
 
   const openGame = (game: GameData) => {
     const href = new URL(game.href, window.location.href).href;
+    recordGameVisit(game.id, game.name);
+    setLocalVisits(getGameVisits());
     trackGameView(game);
-    window.location.hash = `#/game-embed?${new URLSearchParams({
-      icon: new URL(game.img, window.location.href).href,
-      name: game.name,
-      src: href,
-    }).toString()}`;
+    router.push(
+      `/game-embed?${new URLSearchParams({
+        icon: new URL(game.img, window.location.href).href,
+        name: game.name,
+        src: href,
+      }).toString()}`,
+    );
   };
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <PrimaryNav isDark={isDark} onToggleTheme={onToggleTheme} showHomeLinks={false} />
+      <PrimaryNav
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        showHomeLinks={false}
+      />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
           <Stack spacing={2}>
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center">
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              alignItems="center"
+            >
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" gutterBottom>
                   Search games
@@ -194,7 +195,6 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
                 value={searchTerm}
                 onChange={(event) => {
                   setSearchTerm(event.target.value);
-                  setQueryInHash(event.target.value);
                 }}
                 size="small"
                 sx={{ minWidth: { xs: "100%", md: 280 } }}
@@ -213,10 +213,10 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
                 <MenuItem value="views">Views</MenuItem>
               </TextField>
               <Stack direction="row" spacing={1}>
-                <Button variant="outlined" href="#/category/all">
+                <Button variant="outlined" href="/category/all">
                   All games
                 </Button>
-                <Button variant="contained" href="#/">
+                <Button variant="contained" href="/">
                   Back home
                 </Button>
               </Stack>
@@ -236,51 +236,46 @@ export default function SearchPage({ isDark, onToggleTheme }: SearchProps) {
         ) : (
           <Grid container spacing={2}>
             {results.map((game) => {
-              const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
+              const desktopOnly =
+                isMobile && (game.desktopOnly || !game.mobileFriendly);
               return (
-              <Grid size={{ xs: 4, sm: 4, md: 3, lg: 2 }} key={game.id}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    position: "relative",
-                    borderRadius: 3,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    opacity: desktopOnly ? 0.5 : 1,
-                  }}
-                >
-                  <CardActionArea
-                    onClick={() => {
-                      if (!desktopOnly) openGame(game);
+                <Grid size={{ xs: 4, sm: 4, md: 3, lg: 2 }} key={game.id}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      position: "relative",
+                      borderRadius: 3,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      opacity: desktopOnly ? 0.5 : 1,
                     }}
-                    disabled={desktopOnly}
                   >
-                    <CardMedia
-                      component="img"
-                      image={game.img}
-                      alt={game.name}
-                      sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
-                    />
-                    <CardContent sx={{ p: 1.5 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
+                    <CardActionArea
+                      onClick={() => {
+                        if (!desktopOnly) openGame(game);
+                      }}
+                      disabled={desktopOnly}
+                    >
+                      <CardMedia
+                        component="img"
+                        image={game.img}
+                        alt={game.name}
+                        sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
+                      />
+                      <CardContent sx={{ p: 1.5 }}>
                         <Typography
                           variant="subtitle2"
                           fontWeight={700}
                           noWrap
-                          sx={{ flex: 1, minWidth: 0 }}
+                          sx={{ width: "100%" }}
                         >
                           {game.name}
                         </Typography>
-                        <GameTypeBadge game={game} />
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Views: {(viewCounts[game.id] ?? 0).toLocaleString()}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                  <DesktopOnlyOverlay visible={desktopOnly} />
-                </Card>
-              </Grid>
+                      </CardContent>
+                    </CardActionArea>
+                    <DesktopOnlyOverlay visible={desktopOnly} />
+                  </Card>
+                </Grid>
               );
             })}
           </Grid>

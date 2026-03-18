@@ -1,1 +1,3 @@
-[Click here for new site](learningarcade.vercel.app)
+[We moved - click here for new url](https://learningarcade.vercel.app)
+
+

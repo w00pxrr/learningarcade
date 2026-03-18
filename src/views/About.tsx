@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -11,26 +13,32 @@ import {
   Typography,
 } from "@mui/material";
 import { PrimaryNav } from "../components/PrimaryNav";
+import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
 import aboutContent from "../data/aboutContent.json";
+export default function AboutPage() {
+  const { isDark, toggleTheme } = useThemeContext();
+  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
 
-type AboutProps = {
-  isDark: boolean;
-  onToggleTheme: (nextDark: boolean) => void;
-};
+  useEffect(() => {
+    setBaseIcon(
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
+        ?.href || "/img/gams-g.png",
+    );
+  }, []);
 
-export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
-  const baseIcon =
-    (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-    "/img/gams-g.png";
   useDisguise("About - LearningArcade", baseIcon);
 
   useEffect(() => {
-    const existing = document.querySelector("script[data-about-secrets='true']");
+    const existing = document.querySelector(
+      "script[data-about-secrets='true']",
+    );
     if (existing) return;
 
     const loadSecrets = () => {
-      const present = document.querySelector("script[data-about-secrets='true']");
+      const present = document.querySelector(
+        "script[data-about-secrets='true']",
+      );
       if (present) return;
       const script = document.createElement("script");
       script.src = "/assets/about-secrets.js";
@@ -49,7 +57,7 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <PrimaryNav isDark={isDark} onToggleTheme={onToggleTheme} />
+      <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Stack spacing={3}>
@@ -72,8 +80,9 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
               navigation, and a mix of educational and classic titles.
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Instead of chasing the most heavyweight, internet-dependent setups,
-              the goal is to keep the experience smooth, even when connectivity is limited.
+              Instead of chasing the most heavyweight, internet-dependent
+              setups, the goal is to keep the experience smooth, even when
+              connectivity is limited.
             </Typography>
           </Paper>
 
@@ -95,9 +104,9 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
               How does it work?
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Games usually rely on online resources, which can be blocked or slow in school
-              networks. LearningArcade keeps things lightweight by bundling assets and
-              streamlining how games are loaded.
+              Games usually rely on online resources, which can be blocked or
+              slow in school networks. LearningArcade keeps things lightweight
+              by bundling assets and streamlining how games are loaded.
             </Typography>
           </Paper>
 
@@ -137,8 +146,11 @@ export default function AboutPage({ isDark, onToggleTheme }: AboutProps) {
                 const target = event.currentTarget as HTMLInputElement;
                 const value = target.value;
                 target.value = "";
-                const fn = (window as unknown as { keyComboActive?: (key: string) => void })
-                  .keyComboActive;
+                const fn = (
+                  window as unknown as {
+                    keyComboActive?: (key: string) => void;
+                  }
+                ).keyComboActive;
                 if (fn) fn(value);
               }}
             />

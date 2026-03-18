@@ -1,22 +1,45 @@
-import React, { useMemo } from "react";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
-import { useTheme } from "./hooks/useTheme";
+import { useTheme } from "../hooks/useTheme";
 
-const HomePage = React.lazy(() => import("./pages/Home"));
-const SearchPage = React.lazy(() => import("./pages/Search"));
-const SettingsPage = React.lazy(() => import("./pages/Settings"));
-const AboutPage = React.lazy(() => import("./pages/About"));
-const GameEmbedPage = React.lazy(() => import("./pages/GameEmbed"));
-const CategoryPage = React.lazy(() => import("./pages/Category"));
-
-type AppProps = {
-  page: string;
+type ThemeContextValue = {
+  isDark: boolean;
+  toggleTheme: (nextDark: boolean) => void;
+  isHighContrast: boolean;
+  toggleContrast: (nextHigh: boolean) => void;
 };
 
-export default function App({ page }: AppProps) {
+const ThemeContext = React.createContext<ThemeContextValue | null>(null);
+
+export function useThemeContext(): ThemeContextValue {
+  const context = React.useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useThemeContext must be used within ThemeRoot");
+  }
+  return context;
+}
+
+export function ThemeRoot({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
   const { theme, toggleTheme, contrast, toggleContrast } = useTheme();
   const isDark = theme === "dark";
   const isHighContrast = contrast === "high";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const cores =
+      typeof navigator !== "undefined"
+        ? navigator.hardwareConcurrency
+        : undefined;
+    if (typeof cores === "number" && cores > 0 && cores < 4) {
+      document.documentElement.setAttribute("data-fancy", "off");
+    }
+  }, []);
   const muiTheme = useMemo(
     () =>
       createTheme({
@@ -58,7 +81,11 @@ export default function App({ page }: AppProps) {
                 primary: isDark ? "#eef5f0" : "#0f172a",
                 secondary: isDark ? "#b7c4bc" : "#52607a",
               },
-          divider: isHighContrast ? (isDark ? "#ffffff" : "#000000") : undefined,
+          divider: isHighContrast
+            ? isDark
+              ? "#ffffff"
+              : "#000000"
+            : undefined,
         },
         shape: {
           borderRadius: 18,
@@ -89,7 +116,11 @@ export default function App({ page }: AppProps) {
                     ? "#000000"
                     : "#ffffff"
                   : undefined,
-                color: isHighContrast ? (isDark ? "#ffffff" : "#000000") : undefined,
+                color: isHighContrast
+                  ? isDark
+                    ? "#ffffff"
+                    : "#000000"
+                  : undefined,
                 borderBottom: isHighContrast
                   ? `1px solid ${isDark ? "#ffffff" : "#000000"}`
                   : "none",
@@ -124,37 +155,34 @@ export default function App({ page }: AppProps) {
           },
         },
       }),
-    [isDark, isHighContrast]
+    [isDark, isHighContrast],
   );
 
-  let content: React.ReactNode;
-  if (page === "settings") {
-    content = (
-      <SettingsPage
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        isHighContrast={isHighContrast}
-        onToggleContrast={toggleContrast}
-      />
+  if (!mounted) {
+    return (
+      <ThemeContext.Provider
+        value={{
+          isDark: false,
+          toggleTheme: () => {},
+          isHighContrast: false,
+          toggleContrast: () => {},
+        }}
+      >
+        <ThemeProvider theme={muiTheme}>
+          <CssBaseline />
+        </ThemeProvider>
+      </ThemeContext.Provider>
     );
-  } else if (page === "search") {
-    content = <SearchPage isDark={isDark} onToggleTheme={toggleTheme} />;
-  } else if (page === "about") {
-    content = <AboutPage isDark={isDark} onToggleTheme={toggleTheme} />;
-  } else if (page === "game-embed") {
-    content = <GameEmbedPage />;
-  } else if (page === "category") {
-    content = <CategoryPage />;
-  } else {
-    content = <HomePage isDark={isDark} onToggleTheme={toggleTheme} />;
   }
 
   return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
-      <React.Suspense fallback={<div style={{ padding: 24 }}>Loading...</div>}>
-        {content}
-      </React.Suspense>
-    </ThemeProvider>
+    <ThemeContext.Provider
+      value={{ isDark, toggleTheme, isHighContrast, toggleContrast }}
+    >
+      <ThemeProvider theme={muiTheme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </ThemeContext.Provider>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -19,6 +21,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { PrimaryNav } from "../components/PrimaryNav";
+import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
 import { getStoredJSON, removeJSON, storeJSON } from "../utils/storage";
 
@@ -41,30 +44,30 @@ function saveCookieConsent(consent: CookieConsent): void {
   localStorage.setItem(consentStorageKey, JSON.stringify(consent));
 }
 
-type SettingsProps = {
-  isDark: boolean;
-  onToggleTheme: (nextDark: boolean) => void;
-  isHighContrast: boolean;
-  onToggleContrast: (nextHigh: boolean) => void;
-};
-
-export default function SettingsPage({
-  isDark,
-  onToggleTheme,
-  isHighContrast,
-  onToggleContrast,
-}: SettingsProps) {
-  const baseIcon =
-    (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-    "/img/gams-g.png";
-  const { broadcast, apply } = useDisguise("Settings - LearningArcade", baseIcon);
-
-  const [popoutMode, setPopoutMode] = useState(
-    (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top"
+export default function SettingsPage() {
+  const { isDark, toggleTheme, isHighContrast, toggleContrast } =
+    useThemeContext();
+  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
+  const { broadcast, apply } = useDisguise(
+    "Settings - LearningArcade",
+    baseIcon,
   );
-  const [consent, setConsent] = useState<CookieConsent | null>(() => loadCookieConsent());
+
+  const [popoutMode, setPopoutMode] = useState("top");
+  const [consent, setConsent] = useState<CookieConsent | null>(null);
   const [cookieStatus, setCookieStatus] = useState("Not saved yet.");
   const [tabName, setTabName] = useState("");
+
+  useEffect(() => {
+    setBaseIcon(
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
+        ?.href || "/img/gams-g.png",
+    );
+    setPopoutMode(
+      (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top",
+    );
+    setConsent(loadCookieConsent());
+  }, []);
 
   useEffect(() => {
     storeJSON("gams", { key: "popoutMode", value: popoutMode });
@@ -93,7 +96,7 @@ export default function SettingsPage({
         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACEUlEQVQ4jcWSP0jUYRjHP8/7/t7z/JelHAhJEN2QUmKFp1DkkIVubVK0NCSI0ODWdksNQRQJQhq0NQQ1ZYM5aIiY1iZEdIKQQ/BT01S8636/92nIjgyusb7Ld/n+4fnywP+GAMw2NdW7hO3cNW7hfC4X/s2gr0jFB2z7znY8V9fDusmC0YQddcaMO1+c+nDqeFc589adxq6oIpiyVsargmBUsxiTSaediQsn86pYkZbqZMX42sXMkGYxpdYsJjzXOaTLdeOBo4U8BBq3ksEFd699kitvbsRtyxNE6sFItRO5tzrTnvlyyd0EWJ0pPnQJ+rw3+MhjRJj43hS9XLpMAPD0wjBLuRf0zN7G+oiCT1Ahpi8ffW8FqLC2Oe89VXi21DG808rzrSNsp3OYynrUasxcy1Ue9z7RsOZwmMST957AmObAmOa89ySN8FmT4eDGWX22e4xg78A9UlxUYKXxNPczDwYo5kecCAoo4ESQOBq51XZ0YDFqIClxadjSUABOI/lYk16rnV4cjNB+gU2BzQjtr51+P5hrDNYSovK7Z18AQKUvWIDU5MJYLHTHQndqcmEMoDLC/qkPfrGIART1cakh9Xr+3T6194KzIILGP72mY52iIvMeH3r1obW2UO6RxJgCsQ9RH+J1PtfbUQyyWfFnHun1hm8cAljZYaNcwLaVtweD+ARAYSv1Fcn6ctp/hx+qpdgPE5JfygAAAABJRU5ErkJggg==",
       },
     ],
-    []
+    [],
   );
 
   const applyTitle = () => {
@@ -146,7 +149,7 @@ export default function SettingsPage({
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <PrimaryNav isDark={isDark} onToggleTheme={onToggleTheme} />
+      <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Stack spacing={3}>
@@ -191,7 +194,7 @@ export default function SettingsPage({
                 control={
                   <Checkbox
                     checked={isHighContrast}
-                    onChange={(event) => onToggleContrast(event.target.checked)}
+                    onChange={(event) => toggleContrast(event.target.checked)}
                   />
                 }
                 label="High contrast mode"
@@ -212,7 +215,10 @@ export default function SettingsPage({
                   <Checkbox
                     checked={!!consent?.settings}
                     onChange={(event) =>
-                      setConsent((prev) => ({ ...(prev || {}), settings: event.target.checked }))
+                      setConsent((prev) => ({
+                        ...(prev || {}),
+                        settings: event.target.checked,
+                      }))
                     }
                   />
                 }
@@ -223,14 +229,21 @@ export default function SettingsPage({
                   <Checkbox
                     checked={!!consent?.analytics}
                     onChange={(event) =>
-                      setConsent((prev) => ({ ...(prev || {}), analytics: event.target.checked }))
+                      setConsent((prev) => ({
+                        ...(prev || {}),
+                        analytics: event.target.checked,
+                      }))
                     }
                   />
                 }
                 label="Analytics cookies (Umami)"
               />
             </Stack>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              sx={{ mt: 2 }}
+            >
               <Button variant="contained" onClick={saveConsent}>
                 Save cookie preferences
               </Button>
@@ -238,7 +251,11 @@ export default function SettingsPage({
                 Reset consent
               </Button>
             </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: "block" }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 2, display: "block" }}
+            >
               {cookieStatus}
             </Typography>
           </Paper>
@@ -284,7 +301,9 @@ export default function SettingsPage({
               {presetIcons.map((preset) => (
                 <Grid item xs={6} sm={4} md={3} key={preset.title}>
                   <Card variant="outlined">
-                    <CardActionArea onClick={() => applyPreset(preset.title, preset.src)}>
+                    <CardActionArea
+                      onClick={() => applyPreset(preset.title, preset.src)}
+                    >
                       <CardMedia
                         component="img"
                         image={preset.src}

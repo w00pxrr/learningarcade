@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
@@ -18,6 +20,7 @@ import {
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
 import filterControls from "../data/gameEmbedFilters.json";
+import { useSearchParams } from "next/navigation";
 
 type FilterState = {
   brightness: number;
@@ -63,12 +66,11 @@ function resolveUrl(rawUrl?: string | null) {
 }
 
 export default function GameEmbedPage() {
-  const params = useMemo(() => {
-    const hash = window.location.hash;
-    const queryIndex = hash.indexOf("?");
-    if (queryIndex === -1) return new URLSearchParams(window.location.search);
-    return new URLSearchParams(hash.slice(queryIndex + 1));
-  }, []);
+  const searchParams = useSearchParams();
+  const params = useMemo(
+    () => new URLSearchParams(searchParams?.toString()),
+    [searchParams]
+  );
   const initialName = params.get("name") || "Gam";
   const initialIcon = resolveUrl(params.get("icon")) || "/img/gams-g.png";
   const initialSrc = resolveUrl(params.get("src"));

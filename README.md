@@ -41,7 +41,7 @@ Here are some of the most fun games available in this repository:
 4. Super Mario 64
 ...and more!
 
-[Games](https://w00pxrr.github.io./offlinegames/Gams.html)   
+[Games](https://learningarcade.vercel.app/offlinegames/Gams.html)   
 ### For Coders :)
 
 Making games available offline can be a challenging task due to security restrictions. When running games locally using the `file://` protocol, fetching external resources is not allowed for security reasons. However, there is a workaround that enables loading JavaScript files locally.
