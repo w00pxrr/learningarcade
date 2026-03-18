@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { ThemeRoot } from "../components/ThemeRoot";
 import RouteAnalytics from "./route-analytics";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
@@ -48,6 +49,7 @@ export default function RootLayout({
             <RouteAnalytics />
           </Suspense>
         </ThemeRoot>
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>
