@@ -80,29 +80,60 @@ export function PrimaryNav({
           onClose={() => setMenuAnchor(null)}
           keepMounted
         >
-          <MenuItem component={Link} href="/" onClick={() => setMenuAnchor(null)}>
+          <MenuItem
+            component={Link}
+            href="/"
+            onClick={() => setMenuAnchor(null)}
+          >
             Home
           </MenuItem>
-          <MenuItem component={Link} href="/category/all" onClick={() => setMenuAnchor(null)}>
+          <MenuItem
+            component={Link}
+            href="/category/all"
+            onClick={() => setMenuAnchor(null)}
+          >
             All Games
           </MenuItem>
-          {showHomeLinks ? (
-            [
-              <MenuItem key="categories" component="a" href="/#categories" onClick={() => setMenuAnchor(null)}>
-                Categories
-              </MenuItem>,
-              <MenuItem key="recommended" component="a" href="/#recommended-section" onClick={() => setMenuAnchor(null)}>
-                Top Picks
-              </MenuItem>,
-              <MenuItem key="games" component="a" href="/#games" onClick={() => setMenuAnchor(null)}>
-                All Games
-              </MenuItem>,
-            ]
-          ) : null}
-          <MenuItem component={Link} href="/about" onClick={() => setMenuAnchor(null)}>
+          {showHomeLinks
+            ? [
+                <MenuItem
+                  key="categories"
+                  component={Link}
+                  href="/#categories"
+                  onClick={() => setMenuAnchor(null)}
+                >
+                  Categories
+                </MenuItem>,
+                <MenuItem
+                  key="recommended"
+                  component={Link}
+                  href="/#recommended-section"
+                  onClick={() => setMenuAnchor(null)}
+                >
+                  Top Picks
+                </MenuItem>,
+                <MenuItem
+                  key="games"
+                  component={Link}
+                  href="/#games"
+                  onClick={() => setMenuAnchor(null)}
+                >
+                  All Games
+                </MenuItem>,
+              ]
+            : null}
+          <MenuItem
+            component={Link}
+            href="/about"
+            onClick={() => setMenuAnchor(null)}
+          >
             About
           </MenuItem>
-          <MenuItem component={Link} href="/settings" onClick={() => setMenuAnchor(null)}>
+          <MenuItem
+            component={Link}
+            href="/settings"
+            onClick={() => setMenuAnchor(null)}
+          >
             Settings
           </MenuItem>
           {onToggleTheme ? (
@@ -121,14 +152,29 @@ export function PrimaryNav({
           ) : null}
         </Menu>
 
-        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1 }}>
+        <Box
+          sx={{
+            display: { xs: "none", md: "flex" },
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
           <Box
             component="img"
             src="/img/gams-g.png"
             alt="LearningArcade"
-            sx={{ width: 18, height: 18, borderRadius: 1.5, bgcolor: "white", p: 0.25 }}
+            sx={{
+              width: 18,
+              height: 18,
+              borderRadius: 1.5,
+              bgcolor: "white",
+              p: 0.25,
+            }}
           />
-          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: "0.08em" }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 800, letterSpacing: "0.08em" }}
+          >
             LearningArcade
           </Typography>
           <Chip label="Arcade" size="small" color="secondary" />
@@ -137,33 +183,100 @@ export function PrimaryNav({
         <Stack
           direction="row"
           spacing={1}
-          sx={{ flexGrow: 1, flexWrap: "wrap", display: { xs: "none", md: "flex" } }}
+          sx={{
+            flexGrow: 1,
+            flexWrap: "wrap",
+            display: { xs: "none", md: "flex" },
+          }}
         >
-          <Button color="inherit" component={Link} href="/">
+          <Link
+            href="/"
+            style={{
+              color: "inherit",
+              textDecoration: "none",
+              padding: "6px 16px",
+              borderRadius: "999px",
+              fontWeight: 700,
+            }}
+          >
             Home
-          </Button>
-          <Button color="inherit" component={Link} href="/category/all">
+          </Link>
+          <Link
+            href="/category/all"
+            style={{
+              color: "inherit",
+              textDecoration: "none",
+              padding: "6px 16px",
+              borderRadius: "999px",
+              fontWeight: 700,
+            }}
+          >
             All Games
-          </Button>
+          </Link>
           {showHomeLinks ? (
             <>
-              <Button color="inherit" href="/#categories">
+              <Link
+                href="/#categories"
+                style={{
+                  color: "inherit",
+                  textDecoration: "none",
+                  padding: "6px 16px",
+                  borderRadius: "999px",
+                  fontWeight: 700,
+                }}
+              >
                 Categories
-              </Button>
-              <Button color="inherit" href="/#recommended-section">
+              </Link>
+              <Link
+                href="/#recommended-section"
+                style={{
+                  color: "inherit",
+                  textDecoration: "none",
+                  padding: "6px 16px",
+                  borderRadius: "999px",
+                  fontWeight: 700,
+                }}
+              >
                 Top Picks
-              </Button>
-              <Button color="inherit" href="/#games">
+              </Link>
+              <Link
+                href="/#games"
+                style={{
+                  color: "inherit",
+                  textDecoration: "none",
+                  padding: "6px 16px",
+                  borderRadius: "999px",
+                  fontWeight: 700,
+                }}
+              >
                 All Games
-              </Button>
+              </Link>
             </>
           ) : null}
-          <Button color="inherit" component={Link} href="/about">
+          <Link
+            href="/about"
+            style={{
+              color: "inherit",
+              textDecoration: "none",
+              padding: "6px 16px",
+              borderRadius: "999px",
+              fontWeight: 700,
+            }}
+          >
             About
-          </Button>
-          <Button color="inherit" component={Link} href="/settings">
+          </Link>
+          <Link
+            href="/settings"
+            style={{
+              color: "inherit",
+              textDecoration: "none",
+              padding: "6px 16px",
+              borderRadius: "999px",
+              fontWeight: 700,
+            }}
+          >
             Settings
-          </Button>
+          </Link>
         </Stack>
 
         <Stack
@@ -184,11 +297,19 @@ export function PrimaryNav({
               }
             />
           ) : null}
-          {extraActions ? <Box sx={{ display: "flex", gap: 1 }}>{extraActions}</Box> : null}
+          {extraActions ? (
+            <Box sx={{ display: "flex", gap: 1 }}>{extraActions}</Box>
+          ) : null}
         </Stack>
       </Toolbar>
       {showCategories ? (
-        <Box sx={{ borderTop: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+        <Box
+          sx={{
+            borderTop: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+          }}
+        >
           <Container maxWidth="xl" sx={{ py: 1 }}>
             <Stack
               direction="row"

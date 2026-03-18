@@ -158,26 +158,14 @@ export function ThemeRoot({ children }: { children: React.ReactNode }) {
     [isDark, isHighContrast],
   );
 
-  if (!mounted) {
-    return (
-      <ThemeContext.Provider
-        value={{
-          isDark: false,
-          toggleTheme: () => {},
-          isHighContrast: false,
-          toggleContrast: () => {},
-        }}
-      >
-        <ThemeProvider theme={muiTheme}>
-          <CssBaseline />
-        </ThemeProvider>
-      </ThemeContext.Provider>
-    );
-  }
-
   return (
     <ThemeContext.Provider
-      value={{ isDark, toggleTheme, isHighContrast, toggleContrast }}
+      value={{
+        isDark,
+        toggleTheme,
+        isHighContrast,
+        toggleContrast,
+      }}
     >
       <ThemeProvider theme={muiTheme}>
         <CssBaseline />
