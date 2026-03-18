@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ThemeRoot } from "../components/ThemeRoot";
 import RouteAnalytics from "./route-analytics";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://learningarcade.vercel.app"),
@@ -49,6 +50,7 @@ export default function RootLayout({
           </Suspense>
         </ThemeRoot>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
