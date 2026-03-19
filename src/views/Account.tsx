@@ -80,6 +80,7 @@ export default function AccountPage() {
           <p className="muted">
             Create a username and password to sync preferences across devices.
           </p>
+          <p className="muted">Log in if you do not have account.</p>
         </section>
 
         <section className="panel">

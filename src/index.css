@@ -278,6 +278,8 @@ textarea {
 .ui-page-embed {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
 }
 
 .ui-container {
@@ -1014,15 +1016,17 @@ html.dark .select-trigger {
 }
 
 .embed-shell {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   position: relative;
+  display: flex;
 }
 
 .embed-frame {
   position: relative;
   min-height: 0;
   height: 100%;
+  flex: 1 1 auto;
 }
 
 .embed-iframe {
