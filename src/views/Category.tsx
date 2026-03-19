@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Container,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+import Link from "next/link";
 import { gamesByCategory, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
@@ -21,7 +9,7 @@ import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { trackGameView } from "../utils/umami";
-import { getCookie } from "../utils/storage";
+import { getCookie, getStoredItem } from "../utils/storage";
 import categoryMeta from "../data/categoryMeta.json";
 import {
   getCombinedCount,
@@ -48,7 +36,7 @@ const categoryLinks = categoryMeta.items
   }));
 
 function hasSettingsCookieConsent(): boolean {
-  const raw = localStorage.getItem(consentStorageKey);
+  const raw = getStoredItem(consentStorageKey);
   if (!raw) return false;
   try {
     const parsed = JSON.parse(raw) as { settings?: boolean };
@@ -93,7 +81,7 @@ export default function CategoryPage() {
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
         ?.href || "/img/gams-g.png",
     );
-    const raw = localStorage.getItem(consentStorageKey);
+    const raw = getStoredItem(consentStorageKey);
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as { settings?: boolean };
@@ -143,79 +131,50 @@ export default function CategoryPage() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <div className="ui-page">
       <PrimaryNav
         categoryLinks={categoryLinks}
         activeCategory={category}
         showCategoryBar
       />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            alignItems="center"
-          >
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" gutterBottom>
-                {label} Games
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {filtered.length} games available.
-              </Typography>
-            </Box>
-            <Button variant="outlined" href="/">
-              Back to home
-            </Button>
-          </Stack>
-        </Paper>
+      <main className="ui-container">
+        <section className="panel panel-header">
+          <div>
+            <h2 className="panel-heading">{label} Games</h2>
+            <p className="muted">{filtered.length} games available.</p>
+          </div>
+          <Link className="btn btn-outline" href="/">
+            Back to home
+          </Link>
+        </section>
 
-        <Grid container spacing={2}>
+        <div className="tile-grid">
           {filtered.map((game) => {
             const desktopOnly =
               isMobile && (game.desktopOnly || !game.mobileFriendly);
             return (
-              <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={game.id}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    position: "relative",
-                    borderRadius: 3,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    opacity: desktopOnly ? 0.5 : 1,
+              <div className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
+                <button
+                  className="tile-action"
+                  type="button"
+                  onClick={() => {
+                    if (!desktopOnly) openGame(game);
                   }}
+                  disabled={desktopOnly}
                 >
-                  <CardActionArea
-                    onClick={() => {
-                      if (!desktopOnly) openGame(game);
-                    }}
-                    disabled={desktopOnly}
-                  >
-                    <CardMedia
-                      component="img"
-                      image={game.img}
-                      alt={game.name}
-                      sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
-                    />
-                    <CardContent sx={{ p: 1.5 }}>
-                      <Typography
-                        variant="subtitle2"
-                        fontWeight={700}
-                        noWrap
-                        sx={{ width: "100%" }}
-                      >
-                        {game.name}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                  <DesktopOnlyOverlay visible={desktopOnly} />
-                </Card>
-              </Grid>
+                  <img className="tile-image" src={game.img} alt={game.name} />
+                  <div className="tile-content">
+                    <div className="tile-title" title={game.name}>
+                      {game.name}
+                    </div>
+                  </div>
+                </button>
+                <DesktopOnlyOverlay visible={desktopOnly} />
+              </div>
             );
           })}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </main>
+    </div>
   );
 }

@@ -1,22 +1,10 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
-  IconButton,
-  Menu,
-  MenuItem,
-  Slider,
-  Stack,
-  Switch,
-  Typography,
-} from "@mui/material";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as Slider from "@radix-ui/react-slider";
+import * as Switch from "@radix-ui/react-switch";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useDisguise } from "../hooks/useDisguise";
 import filterControls from "../data/gameEmbedFilters.json";
@@ -67,31 +55,28 @@ function resolveUrl(rawUrl?: string | null) {
 
 export default function GameEmbedPage() {
   const searchParams = useSearchParams();
-  const params = useMemo(
-    () => new URLSearchParams(searchParams?.toString()),
-    [searchParams]
-  );
-  const initialName = params.get("name") || "Gam";
-  const initialIcon = resolveUrl(params.get("icon")) || "/img/gams-g.png";
-  const initialSrc = resolveUrl(params.get("src"));
-
-  const [currentName, setCurrentName] = useState(initialName);
-  const [currentIcon, setCurrentIcon] = useState(initialIcon);
-  const [frameSrc, setFrameSrc] = useState(initialSrc);
+  const [currentName, setCurrentName] = useState("Game");
+  const [currentIcon, setCurrentIcon] = useState("/img/gams-g.png");
+  const [frameSrc, setFrameSrc] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [windowLock, setWindowLock] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [controlsAnchor, setControlsAnchor] = useState<null | HTMLElement>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(max-width: 900px)").matches
-      : false
-  );
+  const [isMobile, setIsMobile] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
 
   useDisguise(currentName, currentIcon);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString());
+    const nextName = params.get("name") || "Game";
+    const nextIcon = resolveUrl(params.get("icon")) || "/img/gams-g.png";
+    const nextSrc = resolveUrl(params.get("src"));
+    setCurrentName(nextName);
+    setCurrentIcon(nextIcon);
+    setFrameSrc(nextSrc || null);
+  }, [searchParams]);
 
   useEffect(() => {
     document.title = currentName;
@@ -131,6 +116,7 @@ export default function GameEmbedPage() {
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
     const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    setIsMobile(media.matches);
     if (typeof media.addEventListener === "function") {
       media.addEventListener("change", handler);
       return () => media.removeEventListener("change", handler);
@@ -191,8 +177,6 @@ export default function GameEmbedPage() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const isControlsOpen = Boolean(controlsAnchor);
-
   const sendVirtualKey = useCallback((eventType: "keydown" | "keyup", keyValue: string) => {
     const frame = document.getElementById("frame") as HTMLIFrameElement | null;
     if (!frame) return;
@@ -245,86 +229,57 @@ export default function GameEmbedPage() {
   }, []);
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", display: "flex", flexDirection: "column" }}>
+    <div className="ui-page ui-page-embed">
       {!isFullscreen ? (
         <PrimaryNav
           showHomeLinks={false}
           extraActions={
             <>
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{ display: { xs: "none", md: "flex" } }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Box
-                    component="img"
-                    src={currentIcon}
-                    alt="Game icon"
-                    sx={{ width: 20, height: 20, borderRadius: 1.5, bgcolor: "white", p: 0.25 }}
-                  />
-                  <Typography variant="body2" fontWeight={700} noWrap>
+              <div className="nav-game-actions">
+                <div className="game-identity">
+                  <img src={currentIcon} alt="Game icon" className="game-icon" />
+                  <span className="game-name" title={currentName}>
                     {currentName}
-                  </Typography>
-                </Stack>
-                <Button variant="outlined" color="inherit" onClick={openFullscreen} size="small">
+                  </span>
+                </div>
+                <button className="btn btn-outline btn-sm" onClick={openFullscreen}>
                   {isFullscreen ? "Exit full" : "Fullscreen"}
-                </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => setIsModalOpen(true)}
-                  size="small"
-                >
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={() => setIsModalOpen(true)}>
                   Settings
-                </Button>
-              </Stack>
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{ display: { xs: "flex", md: "none" } }}
-              >
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  size="small"
-                  onClick={(event) => setControlsAnchor(event.currentTarget)}
-                >
-                  Controls
-                </Button>
-                <Menu
-                  anchorEl={controlsAnchor}
-                  open={isControlsOpen}
-                  onClose={() => setControlsAnchor(null)}
-                >
-                  <MenuItem
-                    onClick={() => {
-                      setControlsAnchor(null);
-                      openFullscreen();
-                    }}
-                  >
-                    {isFullscreen ? "Exit full" : "Fullscreen"}
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      setControlsAnchor(null);
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    Settings
-                  </MenuItem>
-                </Menu>
-              </Stack>
+                </button>
+              </div>
+              <div className="nav-game-mobile">
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <button className="btn btn-outline btn-sm">Controls</button>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content className="dropdown-content" sideOffset={8} align="end">
+                      <DropdownMenu.Item
+                        className="dropdown-item"
+                        onSelect={() => openFullscreen()}
+                      >
+                        {isFullscreen ? "Exit full" : "Fullscreen"}
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item
+                        className="dropdown-item"
+                        onSelect={() => setIsModalOpen(true)}
+                      >
+                        Settings
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              </div>
             </>
           }
         />
       ) : null}
 
-      <Box sx={{ display: "flex", minHeight: 0, flex: 1, position: "relative" }}>
-        <Box
-          sx={{ position: "relative", flex: 1, minHeight: 0 }}
+      <div className="embed-shell">
+        <div
+          className="embed-frame"
           onPointerDown={() => {
             if (isFullscreen) return;
             if (window.matchMedia("(max-width: 900px)").matches) {
@@ -332,90 +287,56 @@ export default function GameEmbedPage() {
             }
           }}
         >
-          <Box
-            component="iframe"
-            id="frame"
-            title="Game frame"
-            src={frameSrc}
-            ref={frameRef}
-            onLoad={() => frameRef.current?.focus()}
-            sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, filter: filterStyle }}
-          />
-        </Box>
-      </Box>
+          {frameSrc ? (
+            <iframe
+              id="frame"
+              title="Game frame"
+              src={frameSrc}
+              ref={frameRef}
+              onLoad={() => frameRef.current?.focus()}
+              className="embed-iframe"
+              style={{ filter: filterStyle }}
+            />
+          ) : null}
+        </div>
+      </div>
 
       {isMobile && !isFullscreen && showFullscreenPrompt ? (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-            zIndex: 1050,
-          }}
-        >
-          <Box
-            sx={{
-              bgcolor: "rgba(0, 0, 0, 0.65)",
-              color: "white",
-              px: 2.5,
-              py: 1.5,
-              borderRadius: 999,
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-            }}
-          >
-            Tap to go fullscreen
-          </Box>
-        </Box>
+        <div className="fullscreen-prompt">
+          <div className="fullscreen-pill">Tap to go fullscreen</div>
+        </div>
       ) : null}
 
-      <Box
-        aria-label="Mobile game controls"
-        sx={{
-          position: "fixed",
-          bottom: 16,
-          left: 16,
-          right: 16,
-          zIndex: 1100,
-          display: { xs: "flex", md: "none" },
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          pointerEvents: "none",
-        }}
-      >
-        <Stack spacing={1} sx={{ pointerEvents: "auto" }}>
-          <Stack direction="row" spacing={1} justifyContent="center">
-            <IconButton
-              color="primary"
-              onPointerDown={(event) => {
-                event.preventDefault();
-                sendVirtualKey("keydown", "ArrowUp");
-              }}
-              onPointerUp={(event) => {
-                event.preventDefault();
-                sendVirtualKey("keyup", "ArrowUp");
-              }}
-              onPointerLeave={(event) => {
-                event.preventDefault();
-                sendVirtualKey("keyup", "ArrowUp");
-              }}
-            >
-              ▲
-            </IconButton>
-          </Stack>
-          <Stack direction="row" spacing={1} justifyContent="center">
-            {[
-              ["ArrowLeft", "◀"],
-              ["ArrowDown", "▼"],
-              ["ArrowRight", "▶"],
-            ].map(([keyValue, label]) => (
-              <IconButton
+      <div className="mobile-controls" aria-label="Mobile game controls">
+        <div className="mobile-dpad">
+          <button
+            className="arrow-btn"
+            style={{ gridColumn: 2, gridRow: 1 }}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              sendVirtualKey("keydown", "ArrowUp");
+            }}
+            onPointerUp={(event) => {
+              event.preventDefault();
+              sendVirtualKey("keyup", "ArrowUp");
+            }}
+            onPointerLeave={(event) => {
+              event.preventDefault();
+              sendVirtualKey("keyup", "ArrowUp");
+            }}
+          >
+            ▲
+          </button>
+          {([
+            ["ArrowLeft", "◀", 1, 2],
+            ["ArrowDown", "▼", 2, 2],
+            ["ArrowRight", "▶", 3, 2],
+          ] as Array<[string, string, number, number]>).map(
+            ([keyValue, label, col, row]) => (
+              <button
                 key={keyValue}
-                color="primary"
+                className="arrow-btn"
+                style={{ gridColumn: col, gridRow: row }}
                 onPointerDown={(event) => {
                   event.preventDefault();
                   sendVirtualKey("keydown", keyValue);
@@ -430,14 +351,12 @@ export default function GameEmbedPage() {
                 }}
               >
                 {label}
-              </IconButton>
-            ))}
-          </Stack>
-        </Stack>
-        <Button
-          variant="contained"
-          color="secondary"
-          sx={{ pointerEvents: "auto" }}
+              </button>
+            ),
+          )}
+        </div>
+        <button
+          className="space-btn"
           onPointerDown={(event) => {
             event.preventDefault();
             sendVirtualKey("keydown", " ");
@@ -452,48 +371,55 @@ export default function GameEmbedPage() {
           }}
         >
           Space
-        </Button>
-      </Box>
+        </button>
+      </div>
 
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Game settings</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2}>
-            <FormControlLabel
-              control={
-                <Switch
+      <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content">
+            <div className="dialog-header">
+              <Dialog.Title className="dialog-title">Game settings</Dialog.Title>
+              <Dialog.Close asChild>
+                <button className="btn btn-ghost btn-sm">Close</button>
+              </Dialog.Close>
+            </div>
+            <div className="ui-stack">
+              <label className="switch-row">
+                <Switch.Root
+                  className="switch-root"
                   checked={windowLock}
-                  onChange={(event) => setWindowLock(event.target.checked)}
-                />
-              }
-              label="Ask before closing window"
-            />
-            {typedFilterControls.map(({ label, key, min, max, step }) => (
-              <Box key={key}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" fontWeight={600}>
-                    {label}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {filters[key]}
-                  </Typography>
-                </Stack>
-                <Slider
-                  value={filters[key]}
-                  min={min}
-                  max={max}
-                  step={step}
-                  onChange={(_, value) => updateFilter(key, Number(value))}
-                  size="small"
-                />
-              </Box>
-            ))}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+                  onCheckedChange={setWindowLock}
+                >
+                  <Switch.Thumb className="switch-thumb" />
+                </Switch.Root>
+                <span>Ask before closing window</span>
+              </label>
+              {typedFilterControls.map(({ label, key, min, max, step }) => (
+                <div key={key} className="slider-block">
+                  <div className="slider-row">
+                    <span className="slider-label">{label}</span>
+                    <span className="slider-value">{filters[key]}</span>
+                  </div>
+                  <Slider.Root
+                    className="slider-root"
+                    value={[filters[key]]}
+                    min={min}
+                    max={max}
+                    step={step}
+                    onValueChange={(value) => updateFilter(key, value[0] ?? min)}
+                  >
+                    <Slider.Track className="slider-track">
+                      <Slider.Range className="slider-range" />
+                    </Slider.Track>
+                    <Slider.Thumb className="slider-thumb" />
+                  </Slider.Root>
+                </div>
+              ))}
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </div>
   );
 }

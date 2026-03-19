@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
     <script src="index.wasm.js"></script>
     <script src="index.data.js"></script>
     <title>Drive Mad</title>
@@ -545,7 +544,7 @@ event.preventDefault();break;case "focus":SDL.events.push(event);event.preventDe
 return;case "resize":SDL.events.push(event);if(event.preventDefault){event.preventDefault()}
 break}
 if(SDL.events.length>=1e4){err("SDL event queue full, dropping events");SDL.events=SDL.events.slice(0,1e4)}
-SDL.flushEventsToHandler();return},lookupKeyCodeForEvent:function(event){var code=event.keyCode;if(code>=65&&code<=90){code+=32}else{code=SDL.keyCodes[event.keyCode]||event.keyCode;if(event.location===2&&code>=(224|1<<10)&&code<=(227|1<<10)){code+=4}}
+SDL.flushEventsToHandler();},lookupKeyCodeForEvent:function(event){var code=event.keyCode;if(code>=65&&code<=90){code+=32}else{code=SDL.keyCodes[event.keyCode]||event.keyCode;if(event.location===2&&code>=(224|1<<10)&&code<=(227|1<<10)){code+=4}}
 return code},handleEvent:function(event){if(event.handled)return;event.handled=true;switch(event.type){case "touchstart":case "touchend":case "touchmove":{Browser.calculateMouseEvent(event);break}
 case "keydown":case "keyup":{var down=event.type==="keydown";var code=SDL.lookupKeyCodeForEvent(event);HEAP8[SDL.keyboardState+code>>0]=down;SDL.modState=(HEAP8[SDL.keyboardState+1248>>0]?64:0)|(HEAP8[SDL.keyboardState+1249>>0]?1:0)|(HEAP8[SDL.keyboardState+1250>>0]?256:0)|(HEAP8[SDL.keyboardState+1252>>0]?128:0)|(HEAP8[SDL.keyboardState+1253>>0]?2:0)|(HEAP8[SDL.keyboardState+1254>>0]?512:0);if(down){SDL.keyboardMap[code]=event.keyCode}else{delete SDL.keyboardMap[code]}
 break}

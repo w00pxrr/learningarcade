@@ -168,3 +168,5 @@ fabric.properties
 /.idea/
 /dist/
 /.next/
+.vercel
+.env*.local

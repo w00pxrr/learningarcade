@@ -1,4 +1,5 @@
 import { GameData } from "../data/games";
+import { getStoredItem } from "./storage";
 
 type UmamiTracker = {
   track?: (event?: string, data?: Record<string, unknown>) => void;
@@ -21,7 +22,7 @@ const UMAMI_SCRIPT_SRC = "https://cloud.umami.is/script.js";
 const UMAMI_WEBSITE_ID = "ac0c3422-a178-4ef1-92f3-8d6f875896d0";
 
 function loadCookieConsent(): CookieConsent | null {
-  const raw = localStorage.getItem(CONSENT_STORAGE_KEY);
+  const raw = getStoredItem(CONSENT_STORAGE_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as CookieConsent;

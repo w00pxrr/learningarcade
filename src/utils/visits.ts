@@ -1,10 +1,12 @@
+import { getStoredItem, setStoredItem } from "./storage";
+
 export type GameVisitEntry = { count: number; lastVisit: number; name: string };
 export type GameVisits = Record<string, GameVisitEntry>;
 
 const visitsStorageKey = "gams_game_visits";
 
 export function getGameVisits(): GameVisits {
-  const raw = localStorage.getItem(visitsStorageKey);
+  const raw = getStoredItem(visitsStorageKey);
   if (!raw) return {};
   try {
     return JSON.parse(raw) as GameVisits;
@@ -27,9 +29,9 @@ export function recordGameVisit(gameId: string, gameName: string): void {
   if (allEntries.length > 100) {
     allEntries.sort((a, b) => b[1].lastVisit - a[1].lastVisit);
     const trimmed = Object.fromEntries(allEntries.slice(0, 100));
-    localStorage.setItem(visitsStorageKey, JSON.stringify(trimmed));
+    setStoredItem(visitsStorageKey, JSON.stringify(trimmed));
   } else {
-    localStorage.setItem(visitsStorageKey, JSON.stringify(visits));
+    setStoredItem(visitsStorageKey, JSON.stringify(visits));
   }
 }
 

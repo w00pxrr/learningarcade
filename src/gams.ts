@@ -1,12 +1,18 @@
 "use strict";
 
 import gamesListRaw from "./data/games.json";
+import {
+  clearCookie,
+  getCookie,
+  getStoredItem,
+  getStoredJSON,
+  hydrateServerStorage,
+  removeStoredItem,
+  setCookie,
+  setStoredItem,
+  storeJSON,
+} from "./utils/storage";
 // --- Types ---
-
-interface StoredJSONKeyOpt {
-  key: string;
-  value?: string;
-}
 
 interface CookieConsent {
   settings?: boolean;
@@ -87,7 +93,7 @@ function resolveCategories(entry: GamListItem, section: string): string[] {
 try {
   getStoredJSON("gams", { key: "gamMode" });
 } catch {
-  localStorage.removeItem("gams");
+  removeStoredItem("gams");
   storeJSON("gams", { key: "gamMode", value: "gam" });
 }
 
@@ -95,6 +101,8 @@ const BroadcastDisguise: BroadcastChannel | null =
   typeof BroadcastChannel !== "undefined"
     ? new BroadcastChannel("BroadcastDisguise")
     : null;
+
+hydrateServerStorage();
 
 let consentStorageKey = "gams_cookie_consent_v1";
 let analyticsEnabled = false;
@@ -145,7 +153,7 @@ function bindControls(): void {
 }
 
 function loadCookieConsent(): CookieConsent | null {
-  const raw = localStorage.getItem(consentStorageKey);
+  const raw = getStoredItem(consentStorageKey);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as CookieConsent;
@@ -155,18 +163,12 @@ function loadCookieConsent(): CookieConsent | null {
 }
 
 function saveCookieConsent(consent: CookieConsent): void {
-  localStorage.setItem(consentStorageKey, JSON.stringify(consent));
+  setStoredItem(consentStorageKey, JSON.stringify(consent));
 }
 
 function hasSettingsCookieConsent(): boolean {
   const consent = loadCookieConsent();
   return !!(consent && consent.settings === true);
-}
-
-function clearCookie(name: string): void {
-  document.cookie =
-    name +
-    "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
 }
 
 function enableAnalytics(): void {
@@ -336,52 +338,6 @@ function searchicon(elm: HTMLElement | null): void {
   }, 500);
 }
 
-function getStoredJSON(
-  key: string,
-  data?: StoredJSONKeyOpt
-): string | object | boolean | null {
-  if (data?.key && localStorage[key] !== "null") {
-    try {
-      const inStore = JSON.parse(localStorage[key]) as Record<string, unknown>;
-      if (
-        typeof inStore === "object" &&
-        Object.prototype.hasOwnProperty.call(inStore, data.key)
-      ) {
-        return inStore[data.key] as string | object | boolean | null;
-      }
-    } catch {
-      return null;
-    }
-  }
-  if (localStorage[key] && !data) {
-    try {
-      return JSON.parse(localStorage[key]);
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-function storeJSON(
-  key: string,
-  data: { key: string; value: string }
-): string {
-  let inStore: Record<string, unknown>;
-  if (localStorage[key]) {
-    try {
-      inStore = (JSON.parse(localStorage[key]) as Record<string, unknown>) || {};
-    } catch {
-      inStore = {};
-    }
-    inStore[data.key] = data.value;
-  } else {
-    inStore = { [data.key]: data.value };
-  }
-  localStorage[key] = JSON.stringify(inStore);
-  return localStorage[key];
-}
-
 function changeTheme(input: HTMLInputElement): void {
   if (input.checked) {
     setDark();
@@ -476,35 +432,9 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
 
 const gamsList = gamesListRaw as GamListItem[];
 
-function setCookie(name: string, value: string, days?: number): void {
+function setConsentCookie(name: string, value: string, days?: number): void {
   if (!hasSettingsCookieConsent()) return;
-  let expires = "";
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-    expires = "; expires=" + date.toUTCString();
-  }
-  const secure =
-    window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie =
-    name +
-    "=" +
-    encodeURIComponent(value) +
-    expires +
-    "; path=/; SameSite=Lax" +
-    secure;
-}
-
-function getCookie(name: string): string | null {
-  const nameEQ = name + "=";
-  const cookies = document.cookie.split(";");
-  for (let i = 0; i < cookies.length; i++) {
-    let c = cookies[i];
-    while (c.charAt(0) === " ") c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0)
-      return decodeURIComponent(c.substring(nameEQ.length, c.length));
-  }
-  return null;
+  setCookie(name, value, days);
 }
 
 function getFavoriteIds(): string[] {
@@ -519,7 +449,7 @@ function getFavoriteIds(): string[] {
 }
 
 function saveFavoriteIds(ids: string[]): void {
-  setCookie("gams_favorites", JSON.stringify(ids), 3650);
+  setConsentCookie("gams_favorites", JSON.stringify(ids), 3650);
 }
 
 function toggleFavorite(gameId: string): void {
@@ -765,14 +695,14 @@ function recordGameVisit(gameId: string, gameName: string): void {
     // Sort by lastVisit descending and take top 100
     allEntries.sort((a, b) => b[1].lastVisit - a[1].lastVisit);
     const trimmed = Object.fromEntries(allEntries.slice(0, 100));
-    localStorage.setItem("gams_game_visits", JSON.stringify(trimmed));
+    setStoredItem("gams_game_visits", JSON.stringify(trimmed));
   } else {
-    localStorage.setItem("gams_game_visits", JSON.stringify(visits));
+    setStoredItem("gams_game_visits", JSON.stringify(visits));
   }
 }
 
 function getGameVisits(): Record<string, {count: number; lastVisit: number; name: string}> {
-  const raw = localStorage.getItem("gams_game_visits");
+  const raw = getStoredItem("gams_game_visits");
   if (!raw) return {};
   try {
     return JSON.parse(raw);

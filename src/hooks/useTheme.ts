@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getStoredJSON, storeJSON } from "../utils/storage";
+import { getStoredJSON, removeJSON, storeJSON } from "../utils/storage";
 
 type ThemeMode = "light" | "dark";
 type ContrastMode = "normal" | "high";
@@ -7,6 +7,17 @@ type ContrastMode = "normal" | "high";
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [contrast, setContrast] = useState<ContrastMode>("normal");
+  const [accent, setAccent] = useState<string>("#81f0d7");
+
+  const readAccentFromDOM = () => {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue("--gams-accent")
+      .trim();
+    if (/^#([0-9a-f]{3}){1,2}$/i.test(value)) {
+      return value;
+    }
+    return "#81f0d7";
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-reduced-motion", "true");
@@ -14,6 +25,13 @@ export function useTheme() {
     if (savedContrast === "high") {
       setContrast("high");
       document.documentElement.setAttribute("data-contrast", "high");
+    }
+    const savedAccent = getStoredJSON<string>("gams", { key: "accent" });
+    if (savedAccent && /^#([0-9a-f]{3}){1,2}$/i.test(savedAccent)) {
+      setAccent(savedAccent);
+      document.documentElement.style.setProperty("--gams-accent", savedAccent);
+    } else {
+      setAccent(readAccentFromDOM());
     }
     const savedTheme = getStoredJSON<string>("gams", { key: "theme" });
     if (savedTheme === "light" || savedTheme === "dark") {
@@ -60,5 +78,26 @@ export function useTheme() {
     storeJSON("gams", { key: "contrast", value: nextContrast });
   };
 
-  return { theme, toggleTheme, contrast, toggleContrast };
+  const setAccentColor = (nextAccent: string) => {
+    if (!/^#([0-9a-f]{3}){1,2}$/i.test(nextAccent)) return;
+    setAccent(nextAccent);
+    document.documentElement.style.setProperty("--gams-accent", nextAccent);
+    storeJSON("gams", { key: "accent", value: nextAccent });
+  };
+
+  const resetAccentColor = () => {
+    removeJSON("gams", { key: "accent" });
+    document.documentElement.style.removeProperty("--gams-accent");
+    setAccent(readAccentFromDOM());
+  };
+
+  return {
+    theme,
+    toggleTheme,
+    contrast,
+    toggleContrast,
+    accent,
+    setAccentColor,
+    resetAccentColor,
+  };
 }

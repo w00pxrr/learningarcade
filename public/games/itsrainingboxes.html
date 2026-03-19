@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
 <title>It's Raining... Boxes?!</title>
 <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1.01'>
 <style>
@@ -37,7 +36,7 @@ function rd(a, b){
         a = 0;
     }
 	return M.random() * (b - a) + a;
-};
+}
 
 function rp(a){
     return a[~~rd(a.length)];
@@ -119,7 +118,7 @@ function invert(c){
 
     // Can't invert that shit
     return c;
-};
+}
 
 function cache(w, h, rr, t, i){
     var c = document.createElement('canvas'),
@@ -148,18 +147,18 @@ function cache(w, h, rr, t, i){
     }
 
     return c;
-};
+}
 
-function noop(){};
+function noop(){}
 
 function limit(x, a, b){
     return max(a, min(b, x));
-};
+}
 
 function shuffle(o){
     for(var j, x, i = o.length; i; j = ~~(rd(1) * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
-};
+}
 
 // Vibration api
 navigator.vibrate = (function(){
@@ -252,7 +251,7 @@ function Game(){
 	prepare('gameover', [
 		[2,0.18,0.24,,0.54,0.34,,,,1,0.31,,,,0.8522,,,,0.23,,,,,0.49]
 	]);
-};
+}
 
 Game.prototype = {
 	choice: function(){
@@ -499,7 +498,7 @@ function World(){
 	}
 
 	this.t = 0;
-};
+}
 
 World.prototype = {
 	getHeightMap: function(divs){
@@ -1330,7 +1329,7 @@ function Hero(world){
 	this.walkDir = this.walkT = this.vXFactor = this.pushingTimer = 0;
 	this.walking = this.bounces = false;
 	this.controllable = true;
-};
+}
 
 Hero.prototype = xt(Box.prototype, {
 	cycle: function(e){
@@ -1425,7 +1424,7 @@ Hero.prototype = xt(Box.prototype, {
 			sl = M.sin(this.walkT * M.PI * 2 / lp) * la + la, // sinusoidal length
 			lll = 20, // left leg length
 			rll = 20; // right leg length
-		if(this.walking || !this.liesOn){;
+		if(this.walking || !this.liesOn){
 			lll = 20 - sl;
 			rll = 20 - la * 2 + sl;
 		}
@@ -2029,12 +2028,12 @@ var tweens = [];
 
 function linear(t, b, c, d){
 	return (t / d) * c + b;
-};
+}
 
 function easeOutBack(t, b, c, d, s) {
 	if (s == undefined) s = 1.70158;
 	return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
-};
+}
 
 function easeOutBounce(t, b, c, d) {
 	if ((t/=d) < (1/2.75)) {
@@ -2046,7 +2045,7 @@ function easeOutBounce(t, b, c, d) {
 	} else {
 		return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b;
 	}
-};
+}
 
 var Easing = {
 	tween: function(o, p, a, b, d, l, f, e){
@@ -2087,7 +2086,7 @@ function Button(img, x, y, f){
 	this.y = y;
 	this.clickf = f;
 	this.enabled = true;
-};
+}
 
 Button.prototype = {
 	render: function(){
@@ -2187,7 +2186,7 @@ function PlayScenario(skip){
 	this.schedule[s + 13] = 'Like... really good!';
 
 	this.t = 0;
-};
+}
 
 PlayScenario.prototype = {
 	cycle: function(e){
@@ -2404,7 +2403,7 @@ function TutorialScenario(){
 	}else{
 		this.startState('hello');
 	}
-};
+}
 
 TutorialScenario.prototype = {
 	cycle: function(e){
@@ -2426,7 +2425,7 @@ TutorialScenario.prototype = {
 
 function MenuScenario(){
 	this.nb = 0;
-};
+}
 
 MenuScenario.prototype = {
 	cycle: function(e){
@@ -2442,7 +2441,7 @@ MenuScenario.prototype = {
 function Particle(s, c){
 	this.s = s;
 	this.c = c;
-};
+}
 
 Particle.prototype = {
 	render: function(e){
@@ -2476,7 +2475,7 @@ function Choice(){
 			G.home();
 		}, 0);
 	}
-};
+}
 
 Choice.prototype = xt(Menu.prototype, {
 	out: function(f){

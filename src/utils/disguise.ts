@@ -2,13 +2,21 @@ import { getStoredJSON } from "./storage";
 
 export function setFavicon(href: string): void {
   if (typeof document === "undefined" || !href) return;
-  const existing = document.querySelectorAll('link[rel*="icon"]');
-  existing.forEach((favicon) => favicon.remove());
+  const head = document.head || document.getElementsByTagName("head")[0];
+  if (!head) return;
+  const existing = document.getElementById("gams-favicon") as
+    | HTMLLinkElement
+    | null;
+  if (existing) {
+    existing.href = href;
+    return;
+  }
   const link = document.createElement("link");
+  link.id = "gams-favicon";
   link.type = "image/x-icon";
   link.rel = "icon";
   link.href = href;
-  document.getElementsByTagName("head")[0]?.appendChild(link);
+  head.appendChild(link);
 }
 
 export function applyDisguise(baseTitle: string, baseIcon: string): void {

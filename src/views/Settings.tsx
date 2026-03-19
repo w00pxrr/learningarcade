@@ -1,35 +1,26 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Checkbox,
-  Container,
-  FormControl,
-  FormControlLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
+import * as Checkbox from "@radix-ui/react-checkbox";
+import * as Select from "@radix-ui/react-select";
+import * as Switch from "@radix-ui/react-switch";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
-import { getStoredJSON, removeJSON, storeJSON } from "../utils/storage";
+import {
+  getStoredItem,
+  getStoredJSON,
+  removeJSON,
+  removeStoredItem,
+  setStoredItem,
+  storeJSON,
+} from "../utils/storage";
 
 type CookieConsent = { settings?: boolean; analytics?: boolean };
 const consentStorageKey = "gams_cookie_consent_v1";
 
 function loadCookieConsent(): CookieConsent | null {
-  const raw = localStorage.getItem(consentStorageKey);
+  const raw = getStoredItem(consentStorageKey);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as CookieConsent;
@@ -41,12 +32,19 @@ function loadCookieConsent(): CookieConsent | null {
 }
 
 function saveCookieConsent(consent: CookieConsent): void {
-  localStorage.setItem(consentStorageKey, JSON.stringify(consent));
+  setStoredItem(consentStorageKey, JSON.stringify(consent));
 }
 
 export default function SettingsPage() {
-  const { isDark, toggleTheme, isHighContrast, toggleContrast } =
-    useThemeContext();
+  const {
+    isDark,
+    toggleTheme,
+    isHighContrast,
+    toggleContrast,
+    accent,
+    setAccentColor,
+    resetAccentColor,
+  } = useThemeContext();
   const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
   const { broadcast, apply } = useDisguise(
     "Settings - LearningArcade",
@@ -142,144 +140,143 @@ export default function SettingsPage() {
   };
 
   const resetConsent = () => {
-    localStorage.removeItem(consentStorageKey);
+    removeStoredItem(consentStorageKey);
     setConsent(null);
     setCookieStatus("Consent reset.");
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <div className="ui-page">
       <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
 
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Stack spacing={3}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h5" gutterBottom>
-              Settings
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Configure how LearningArcade behaves on this device.
-            </Typography>
-          </Paper>
+      <main className="ui-container ui-container-md">
+        <div className="ui-stack">
+          <section className="panel">
+            <h2 className="panel-heading">Settings</h2>
+            <p className="muted">Configure how LearningArcade behaves on this device.</p>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Popout menu position
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+          <section className="panel">
+            <h3 className="panel-title">Popout menu position</h3>
+            <p className="muted">
               Display the game info menu when using the “New Tab” popout.
-            </Typography>
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <Select
-                value={popoutMode}
-                onChange={(event) => setPopoutMode(event.target.value)}
+            </p>
+            <Select.Root value={popoutMode} onValueChange={setPopoutMode}>
+              <Select.Trigger className="select-trigger">
+                <Select.Value />
+                <Select.Icon className="select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content className="select-content" position="popper">
+                  <Select.Viewport className="select-viewport">
+                    <Select.Item value="top" className="select-item">
+                      <Select.ItemText>Top</Select.ItemText>
+                    </Select.Item>
+                    <Select.Item value="bottom" className="select-item">
+                      <Select.ItemText>Bottom</Select.ItemText>
+                    </Select.Item>
+                    <Select.Item value="left" className="select-item">
+                      <Select.ItemText>Left</Select.ItemText>
+                    </Select.Item>
+                    <Select.Item value="right" className="select-item">
+                      <Select.ItemText>Right</Select.ItemText>
+                    </Select.Item>
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
+          </section>
+
+          <section className="panel">
+            <h3 className="panel-title">Accessibility</h3>
+            <p className="muted">Increase contrast for text, surfaces, and controls.</p>
+            <label className="switch-row">
+              <Switch.Root
+                className="switch-root"
+                checked={isHighContrast}
+                onCheckedChange={toggleContrast}
               >
-                <MenuItem value="top">Top</MenuItem>
-                <MenuItem value="bottom">Bottom</MenuItem>
-                <MenuItem value="left">Left</MenuItem>
-                <MenuItem value="right">Right</MenuItem>
-              </Select>
-            </FormControl>
-          </Paper>
+                <Switch.Thumb className="switch-thumb" />
+              </Switch.Root>
+              <span>High contrast mode</span>
+            </label>
+            <div className="ui-row">
+              <label className="input-label">
+                Accent color
+                <input
+                  className="input input-color"
+                  type="color"
+                  value={accent}
+                  onChange={(event) => setAccentColor(event.target.value)}
+                />
+              </label>
+              <button className="btn btn-outline" onClick={resetAccentColor}>
+                Reset accent
+              </button>
+            </div>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Accessibility
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Increase contrast for text, surfaces, and controls.
-            </Typography>
-            <Stack spacing={1.5} sx={{ mt: 2 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isHighContrast}
-                    onChange={(event) => toggleContrast(event.target.checked)}
-                  />
-                }
-                label="High contrast mode"
-              />
-            </Stack>
-          </Paper>
-
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Cookie preferences
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Control analytics and settings cookies for LearningArcade.
-            </Typography>
-            <Stack spacing={1.5} sx={{ mt: 2 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!consent?.settings}
-                    onChange={(event) =>
-                      setConsent((prev) => ({
-                        ...(prev || {}),
-                        settings: event.target.checked,
-                      }))
-                    }
-                  />
-                }
-                label="Settings cookies (favorites/preferences)"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!consent?.analytics}
-                    onChange={(event) =>
-                      setConsent((prev) => ({
-                        ...(prev || {}),
-                        analytics: event.target.checked,
-                      }))
-                    }
-                  />
-                }
-                label="Analytics cookies (Umami)"
-              />
-            </Stack>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              sx={{ mt: 2 }}
-            >
-              <Button variant="contained" onClick={saveConsent}>
+          <section className="panel">
+            <h3 className="panel-title">Cookie preferences</h3>
+            <p className="muted">Control analytics and settings cookies for LearningArcade.</p>
+            <div className="ui-stack">
+              <label className="checkbox-row">
+                <Checkbox.Root
+                  className="checkbox-root"
+                  checked={!!consent?.settings}
+                  onCheckedChange={(checked) =>
+                    setConsent((prev) => ({
+                      ...(prev || {}),
+                      settings: checked === true,
+                    }))
+                  }
+                >
+                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                </Checkbox.Root>
+                <span>Settings cookies (favorites/preferences)</span>
+              </label>
+              <label className="checkbox-row">
+                <Checkbox.Root
+                  className="checkbox-root"
+                  checked={!!consent?.analytics}
+                  onCheckedChange={(checked) =>
+                    setConsent((prev) => ({
+                      ...(prev || {}),
+                      analytics: checked === true,
+                    }))
+                  }
+                >
+                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                </Checkbox.Root>
+                <span>Analytics cookies (Umami)</span>
+              </label>
+            </div>
+            <div className="ui-row">
+              <button className="btn btn-primary" onClick={saveConsent}>
                 Save cookie preferences
-              </Button>
-              <Button variant="outlined" onClick={resetConsent}>
+              </button>
+              <button className="btn btn-outline" onClick={resetConsent}>
                 Reset consent
-              </Button>
-            </Stack>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 2, display: "block" }}
-            >
-              {cookieStatus}
-            </Typography>
-          </Paper>
+              </button>
+            </div>
+            <p className="muted small">{cookieStatus}</p>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Disguise
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Change the tab name and icon to blend in.
-            </Typography>
-
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <TextField
-                label="Tab name"
+          <section className="panel">
+            <h3 className="panel-title">Disguise</h3>
+            <p className="muted">Change the tab name and icon to blend in.</p>
+            <div className="ui-stack">
+              <input
+                className="input"
+                placeholder="Tab name"
                 value={tabName}
                 onChange={(event) => setTabName(event.target.value)}
-                fullWidth
               />
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <Button variant="contained" onClick={applyTitle}>
+              <div className="ui-row">
+                <button className="btn btn-primary" onClick={applyTitle}>
                   Apply tab title
-                </Button>
-                <Button variant="outlined" component="label">
+                </button>
+                <label className="btn btn-outline btn-file">
                   Upload icon
                   <input
                     hidden
@@ -287,42 +284,30 @@ export default function SettingsPage() {
                     type="file"
                     onChange={(event) => applyIcon(event.target.files?.[0])}
                   />
-                </Button>
-                <Button variant="text" color="inherit" onClick={removeDisguise}>
+                </label>
+                <button className="btn btn-ghost" onClick={removeDisguise}>
                   Remove disguise
-                </Button>
-              </Stack>
-            </Stack>
+                </button>
+              </div>
+            </div>
 
-            <Typography variant="subtitle2" fontWeight={700} sx={{ mt: 3 }}>
-              Presets
-            </Typography>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
+            <h4 className="panel-subtitle">Presets</h4>
+            <div className="preset-grid">
               {presetIcons.map((preset) => (
-                <Grid item xs={6} sm={4} md={3} key={preset.title}>
-                  <Card variant="outlined">
-                    <CardActionArea
-                      onClick={() => applyPreset(preset.title, preset.src)}
-                    >
-                      <CardMedia
-                        component="img"
-                        image={preset.src}
-                        alt={preset.title}
-                        sx={{ height: 45, objectFit: "contain", p: 2 }}
-                      />
-                      <CardContent sx={{ p: 1.5 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {preset.title}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
+                <button
+                  type="button"
+                  className="preset-card"
+                  key={preset.title}
+                  onClick={() => applyPreset(preset.title, preset.src)}
+                >
+                  <img src={preset.src} alt={preset.title} />
+                  <span>{preset.title}</span>
+                </button>
               ))}
-            </Grid>
-          </Paper>
-        </Stack>
-      </Container>
-    </Box>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }

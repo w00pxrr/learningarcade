@@ -1,17 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Container,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
@@ -56,92 +45,68 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <div className="ui-page">
       <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
 
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Stack spacing={3}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h5" gutterBottom>
-              About LearningArcade
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Why LearningArcade exists and how it works.
-            </Typography>
-          </Paper>
+      <main className="ui-container ui-container-md">
+        <div className="ui-stack">
+          <section className="panel">
+            <h2 className="panel-heading">About LearningArcade</h2>
+            <p className="muted">Why LearningArcade exists and how it works.</p>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              What is LearningArcade?
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              LearningArcade is a curated collection of games you can play in
-              school-friendly environments. It focuses on quick access, clean
-              navigation, and a mix of educational and classic titles.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Instead of chasing the most heavyweight, internet-dependent
-              setups, the goal is to keep the experience smooth, even when
-              connectivity is limited.
-            </Typography>
-          </Paper>
+          <section className="panel">
+            <h3 className="panel-title">What is LearningArcade?</h3>
+            <p className="muted">
+              LearningArcade is a curated collection of games you can play in school-friendly
+              environments. It focuses on quick access, clean navigation, and a mix of educational
+              and classic titles.
+            </p>
+            <p className="muted">
+              Instead of chasing the most heavyweight, internet-dependent setups, the goal is to
+              keep the experience smooth, even when connectivity is limited.
+            </p>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Why choose LearningArcade?
-            </Typography>
-            <List dense>
+          <section className="panel">
+            <h3 className="panel-title">Why choose LearningArcade?</h3>
+            <ul className="list">
               {aboutContent.reasons.map((item) => (
-                <ListItem key={item} sx={{ pl: 0 }}>
-                  <ListItemText primary={item} />
-                </ListItem>
+                <li key={item}>{item}</li>
               ))}
-            </List>
-          </Paper>
+            </ul>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              How does it work?
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Games usually rely on online resources, which can be blocked or
-              slow in school networks. LearningArcade keeps things lightweight
-              by bundling assets and streamlining how games are loaded.
-            </Typography>
-          </Paper>
+          <section className="panel">
+            <h3 className="panel-title">How does it work?</h3>
+            <p className="muted">
+              Games usually rely on online resources, which can be blocked or slow in school
+              networks. LearningArcade keeps things lightweight by bundling assets and streamlining
+              how games are loaded.
+            </p>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Additional notes
-            </Typography>
-            <List dense>
+          <section className="panel">
+            <h3 className="panel-title">Additional notes</h3>
+            <ul className="list">
               {aboutContent.notes.map((item) => (
-                <ListItem key={item} sx={{ pl: 0 }}>
-                  <ListItemText primary={item} />
-                </ListItem>
+                <li key={item}>{item}</li>
               ))}
-            </List>
-          </Paper>
+            </ul>
+          </section>
 
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              Credits
-            </Typography>
-            <List dense>
+          <section className="panel">
+            <h3 className="panel-title">Credits</h3>
+            <ul className="list">
               {aboutContent.credits.map((item) => (
-                <ListItem key={item} sx={{ pl: 0 }}>
-                  <ListItemText primary={item} />
-                </ListItem>
+                <li key={item}>{item}</li>
               ))}
-            </List>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              This site uses Ruffle to emulate Flash content.
-            </Typography>
-            <TextField
+            </ul>
+            <p className="muted">This site uses Ruffle to emulate Flash content.</p>
+            <input
+              className="input"
               type="password"
               placeholder="Enter passcode"
-              fullWidth
-              sx={{ mt: 2 }}
               onInput={(event) => {
                 const target = event.currentTarget as HTMLInputElement;
                 const value = target.value;
@@ -154,9 +119,9 @@ export default function AboutPage() {
                 if (fn) fn(value);
               }}
             />
-          </Paper>
-        </Stack>
-      </Container>
-    </Box>
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }

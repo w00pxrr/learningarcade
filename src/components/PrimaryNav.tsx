@@ -1,21 +1,9 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
-import {
-  AppBar,
-  Box,
-  Button,
-  Chip,
-  Container,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  Menu,
-  MenuItem,
-  Stack,
-  Switch,
-  Toolbar,
-  Typography,
-} from "@mui/material";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as Switch from "@radix-ui/react-switch";
 
 type CategoryLink = {
   value: string;
@@ -42,305 +30,139 @@ export function PrimaryNav({
   activeCategory,
   showCategoryBar = false,
 }: PrimaryNavProps) {
-  const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
-  const isMenuOpen = Boolean(menuAnchor);
   const showCategories = showCategoryBar && (categoryLinks?.length ?? 0) > 0;
   return (
-    <AppBar
-      position="sticky"
-      sx={(theme) => ({
-        "@media (max-width: 900px) and (orientation: landscape)": {
-          display: "none",
-        },
-        [theme.breakpoints.down("sm")]: {
-          backgroundImage: "none",
-          backgroundColor: "transparent",
-          boxShadow: "none",
-        },
-      })}
-    >
-      <Toolbar sx={{ flexWrap: "wrap", gap: 2, py: 1 }}>
-        <IconButton
-          aria-label="Open menu"
-          onClick={(event) => setMenuAnchor(event.currentTarget)}
-          disableRipple
-          disableFocusRipple
-          sx={{
-            display: { xs: "inline-flex", md: "none" },
-            bgcolor: "transparent",
-            "&:hover": { bgcolor: "transparent" },
-          }}
-        >
-          ☰
-        </IconButton>
+    <header className="nav-shell">
+      <div className="nav-bar">
+        <div className="nav-left">
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button className="btn btn-ghost nav-hamburger" aria-label="Open menu">
+                ☰
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content className="dropdown-content" sideOffset={8} align="start">
+                <DropdownMenu.Item className="dropdown-item" asChild>
+                  <Link href="/">Home</Link>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className="dropdown-item" asChild>
+                  <Link href="/category/all">All Games</Link>
+                </DropdownMenu.Item>
+                {showHomeLinks ? (
+                  <>
+                    <DropdownMenu.Item className="dropdown-item" asChild>
+                      <Link href="/#categories">Categories</Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item className="dropdown-item" asChild>
+                      <Link href="/#recommended-section">Top Picks</Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item className="dropdown-item" asChild>
+                      <Link href="/#games">All Games</Link>
+                    </DropdownMenu.Item>
+                  </>
+                ) : null}
+                <DropdownMenu.Item className="dropdown-item" asChild>
+                  <Link href="/about">About</Link>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className="dropdown-item" asChild>
+                  <Link href="/settings">Settings</Link>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className="dropdown-item" asChild>
+                  <Link href="/account">Account</Link>
+                </DropdownMenu.Item>
+                {onToggleTheme ? (
+                  <DropdownMenu.Item
+                    className="dropdown-item dropdown-item-switch"
+                    onSelect={(event) => event.preventDefault()}
+                  >
+                    <span>Dark mode</span>
+                    <Switch.Root
+                      className="switch-root"
+                      checked={!!isDark}
+                      onCheckedChange={onToggleTheme}
+                    >
+                      <Switch.Thumb className="switch-thumb" />
+                    </Switch.Root>
+                  </DropdownMenu.Item>
+                ) : null}
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
 
-        <Menu
-          anchorEl={menuAnchor}
-          open={isMenuOpen}
-          onClose={() => setMenuAnchor(null)}
-          keepMounted
-        >
-          <MenuItem
-            component={Link}
-            href="/"
-            onClick={() => setMenuAnchor(null)}
-          >
-            Home
-          </MenuItem>
-          <MenuItem
-            component={Link}
-            href="/category/all"
-            onClick={() => setMenuAnchor(null)}
-          >
-            All Games
-          </MenuItem>
-          {showHomeLinks
-            ? [
-                <MenuItem
-                  key="categories"
-                  component={Link}
-                  href="/#categories"
-                  onClick={() => setMenuAnchor(null)}
-                >
-                  Categories
-                </MenuItem>,
-                <MenuItem
-                  key="recommended"
-                  component={Link}
-                  href="/#recommended-section"
-                  onClick={() => setMenuAnchor(null)}
-                >
-                  Top Picks
-                </MenuItem>,
-                <MenuItem
-                  key="games"
-                  component={Link}
-                  href="/#games"
-                  onClick={() => setMenuAnchor(null)}
-                >
-                  All Games
-                </MenuItem>,
-              ]
-            : null}
-          <MenuItem
-            component={Link}
-            href="/about"
-            onClick={() => setMenuAnchor(null)}
-          >
-            About
-          </MenuItem>
-          <MenuItem
-            component={Link}
-            href="/settings"
-            onClick={() => setMenuAnchor(null)}
-          >
-            Settings
-          </MenuItem>
-          {onToggleTheme ? (
-            <MenuItem>
-              <FormControlLabel
-                label="Dark"
-                control={
-                  <Switch
-                    checked={!!isDark}
-                    onChange={(event) => onToggleTheme(event.target.checked)}
-                    color="secondary"
-                  />
-                }
-              />
-            </MenuItem>
-          ) : null}
-        </Menu>
+          <div className="nav-brand">
+            <img src="/img/gams-g.png" alt="LearningArcade" className="nav-logo" />
+            <span className="nav-title">LearningArcade</span>
+            <span className="chip chip-accent">Arcade</span>
+          </div>
+        </div>
 
-        <Box
-          sx={{
-            display: { xs: "none", md: "flex" },
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <Box
-            component="img"
-            src="/img/gams-g.png"
-            alt="LearningArcade"
-            sx={{
-              width: 18,
-              height: 18,
-              borderRadius: 1.5,
-              bgcolor: "white",
-              p: 0.25,
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 800, letterSpacing: "0.08em" }}
-          >
-            LearningArcade
-          </Typography>
-          <Chip label="Arcade" size="small" color="secondary" />
-        </Box>
-
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{
-            flexGrow: 1,
-            flexWrap: "wrap",
-            display: { xs: "none", md: "flex" },
-          }}
-        >
-          <Link
-            href="/"
-            style={{
-              color: "inherit",
-              textDecoration: "none",
-              padding: "6px 16px",
-              borderRadius: "999px",
-              fontWeight: 700,
-            }}
-          >
+        <nav className="nav-links">
+          <Link href="/" className="nav-link">
             Home
           </Link>
-          <Link
-            href="/category/all"
-            style={{
-              color: "inherit",
-              textDecoration: "none",
-              padding: "6px 16px",
-              borderRadius: "999px",
-              fontWeight: 700,
-            }}
-          >
+          <Link href="/category/all" className="nav-link">
             All Games
           </Link>
           {showHomeLinks ? (
             <>
-              <Link
-                href="/#categories"
-                style={{
-                  color: "inherit",
-                  textDecoration: "none",
-                  padding: "6px 16px",
-                  borderRadius: "999px",
-                  fontWeight: 700,
-                }}
-              >
+              <Link href="/#categories" className="nav-link">
                 Categories
               </Link>
-              <Link
-                href="/#recommended-section"
-                style={{
-                  color: "inherit",
-                  textDecoration: "none",
-                  padding: "6px 16px",
-                  borderRadius: "999px",
-                  fontWeight: 700,
-                }}
-              >
+              <Link href="/#recommended-section" className="nav-link">
                 Top Picks
               </Link>
-              <Link
-                href="/#games"
-                style={{
-                  color: "inherit",
-                  textDecoration: "none",
-                  padding: "6px 16px",
-                  borderRadius: "999px",
-                  fontWeight: 700,
-                }}
-              >
+              <Link href="/#games" className="nav-link">
                 All Games
               </Link>
             </>
           ) : null}
-          <Link
-            href="/about"
-            style={{
-              color: "inherit",
-              textDecoration: "none",
-              padding: "6px 16px",
-              borderRadius: "999px",
-              fontWeight: 700,
-            }}
-          >
+          <Link href="/about" className="nav-link">
             About
           </Link>
-          <Link
-            href="/settings"
-            style={{
-              color: "inherit",
-              textDecoration: "none",
-              padding: "6px 16px",
-              borderRadius: "999px",
-              fontWeight: 700,
-            }}
-          >
+          <Link href="/settings" className="nav-link">
             Settings
           </Link>
-        </Stack>
+          <Link href="/account" className="nav-link">
+            Account
+          </Link>
+        </nav>
 
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          sx={{ flexWrap: "wrap", display: { xs: "none", md: "flex" } }}
-        >
+        <div className="nav-actions">
           {onToggleTheme ? (
-            <FormControlLabel
-              label="Dark"
-              control={
-                <Switch
-                  checked={!!isDark}
-                  onChange={(event) => onToggleTheme(event.target.checked)}
-                  color="secondary"
-                />
-              }
-            />
+            <label className="switch-inline">
+              <span>Dark</span>
+              <Switch.Root
+                className="switch-root"
+                checked={!!isDark}
+                onCheckedChange={onToggleTheme}
+              >
+                <Switch.Thumb className="switch-thumb" />
+              </Switch.Root>
+            </label>
           ) : null}
-          {extraActions ? (
-            <Box sx={{ display: "flex", gap: 1 }}>{extraActions}</Box>
-          ) : null}
-        </Stack>
-      </Toolbar>
+          {extraActions ? <div className="nav-extra">{extraActions}</div> : null}
+        </div>
+      </div>
+
       {showCategories ? (
-        <Box
-          sx={{
-            borderTop: "1px solid",
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-        >
-          <Container maxWidth="xl" sx={{ py: 1 }}>
-            <Stack
-              direction="row"
-              spacing={1}
-              useFlexGap
-              sx={{
-                flexWrap: { xs: "nowrap", md: "wrap" },
-                overflowX: { xs: "auto", md: "visible" },
-                scrollbarWidth: "none",
-                "&::-webkit-scrollbar": { display: "none" },
-              }}
-            >
-              {categoryLinks?.map((link) => {
-                const selected = activeCategory === link.value;
-                return (
-                  <Chip
-                    key={link.value}
-                    label={link.label}
-                    component={Link}
-                    href={link.href}
-                    clickable
-                    color={selected ? "secondary" : "default"}
-                    variant={selected ? "filled" : "outlined"}
-                    sx={{ textDecoration: "none" }}
-                  />
-                );
-              })}
-            </Stack>
-          </Container>
-        </Box>
+        <div className="nav-categories">
+          <div className="nav-categories-inner">
+            {categoryLinks?.map((link) => {
+              const selected = activeCategory === link.value;
+              return (
+                <Link
+                  key={link.value}
+                  href={link.href}
+                  className={`chip ${selected ? "chip-active" : ""}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       ) : null}
-    </AppBar>
+    </header>
   );
 }

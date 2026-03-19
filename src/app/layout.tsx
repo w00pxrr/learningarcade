@@ -1,6 +1,6 @@
 import "./globals.css";
 import React, { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeRoot } from "../components/ThemeRoot";
 import RouteAnalytics from "./route-analytics";
 import { Analytics } from "@vercel/analytics/next";
@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/img/gams-g.png",
   },
+};
+
+export const viewport: Viewport = {
   themeColor: "#0f172a",
 };
 

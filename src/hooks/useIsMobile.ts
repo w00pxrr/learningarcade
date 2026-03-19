@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(pointer: coarse), (max-width: 900px)").matches;
-  });
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const media = window.matchMedia("(pointer: coarse), (max-width: 900px)");
     const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    setIsMobile(media.matches);
 
     if (typeof media.addEventListener === "function") {
       media.addEventListener("change", handler);

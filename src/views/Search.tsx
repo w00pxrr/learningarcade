@@ -1,21 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Container,
-  MenuItem,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+import Link from "next/link";
+import * as Select from "@radix-ui/react-select";
 import { gamesData, GameData } from "../data/games";
 import { normalizeSearchText } from "../utils/search";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
@@ -167,120 +154,96 @@ export default function SearchPage() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <div className="ui-page">
       <PrimaryNav
         isDark={isDark}
         onToggleTheme={toggleTheme}
         showHomeLinks={false}
       />
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
-          <Stack spacing={2}>
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={2}
-              alignItems="center"
-            >
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h5" gutterBottom>
-                  Search games
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {results.length} results
-                </Typography>
-              </Box>
-              <TextField
+      <main className="ui-container">
+        <section className="panel panel-search">
+          <div className="panel-header">
+            <div>
+              <h2 className="panel-heading">Search games</h2>
+              <p className="muted">{results.length} results</p>
+            </div>
+            <div className="search-controls">
+              <input
+                className="input"
                 placeholder="Search all games"
                 value={searchTerm}
                 onChange={(event) => {
                   setSearchTerm(event.target.value);
                 }}
-                size="small"
-                sx={{ minWidth: { xs: "100%", md: 280 } }}
               />
-              <TextField
-                select
-                label="Sort by"
-                size="small"
+              <Select.Root
                 value={sortMode}
-                onChange={(event) =>
-                  setSortMode(event.target.value as "relevance" | "views")
-                }
-                sx={{ minWidth: { xs: "100%", md: 180 } }}
+                onValueChange={(value) => setSortMode(value as "relevance" | "views")}
               >
-                <MenuItem value="relevance">Relevance</MenuItem>
-                <MenuItem value="views">Views</MenuItem>
-              </TextField>
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" href="/category/all">
+                <Select.Trigger className="select-trigger" aria-label="Sort by">
+                  <Select.Value />
+                  <Select.Icon className="select-icon">▾</Select.Icon>
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Content className="select-content" position="popper">
+                    <Select.Viewport className="select-viewport">
+                      <Select.Item value="relevance" className="select-item">
+                        <Select.ItemText>Relevance</Select.ItemText>
+                      </Select.Item>
+                      <Select.Item value="views" className="select-item">
+                        <Select.ItemText>Views</Select.ItemText>
+                      </Select.Item>
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
+              <div className="ui-row">
+                <Link className="btn btn-outline" href="/category/all">
                   All games
-                </Button>
-                <Button variant="contained" href="/">
+                </Link>
+                <Link className="btn btn-primary" href="/">
                   Back home
-                </Button>
-              </Stack>
-            </Stack>
-          </Stack>
-        </Paper>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {results.length === 0 ? (
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="subtitle1" fontWeight={700}>
-              No results
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Try a different search term.
-            </Typography>
-          </Paper>
+          <section className="panel">
+            <h3 className="panel-title">No results</h3>
+            <p className="muted">Try a different search term.</p>
+          </section>
         ) : (
-          <Grid container spacing={2}>
+          <div className="tile-grid">
             {results.map((game) => {
               const desktopOnly =
                 isMobile && (game.desktopOnly || !game.mobileFriendly);
               return (
-                <Grid size={{ xs: 4, sm: 4, md: 3, lg: 2 }} key={game.id}>
-                  <Card
-                    sx={{
-                      height: "100%",
-                      position: "relative",
-                      borderRadius: 3,
-                      border: "1px solid",
-                      borderColor: "divider",
-                      opacity: desktopOnly ? 0.5 : 1,
+                <div className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
+                  <button
+                    className="tile-action"
+                    type="button"
+                    onClick={() => {
+                      if (!desktopOnly) openGame(game);
                     }}
+                    disabled={desktopOnly}
                   >
-                    <CardActionArea
-                      onClick={() => {
-                        if (!desktopOnly) openGame(game);
-                      }}
-                      disabled={desktopOnly}
-                    >
-                      <CardMedia
-                        component="img"
-                        image={game.img}
-                        alt={game.name}
-                        sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
-                      />
-                      <CardContent sx={{ p: 1.5 }}>
-                        <Typography
-                          variant="subtitle2"
-                          fontWeight={700}
-                          noWrap
-                          sx={{ width: "100%" }}
-                        >
-                          {game.name}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                    <DesktopOnlyOverlay visible={desktopOnly} />
-                  </Card>
-                </Grid>
+                    <img className="tile-image" src={game.img} alt={game.name} />
+                    <div className="tile-content">
+                      <div className="tile-title" title={game.name}>
+                        {game.name}
+                      </div>
+                    </div>
+                  </button>
+                  <DesktopOnlyOverlay visible={desktopOnly} />
+                </div>
               );
             })}
-          </Grid>
+          </div>
         )}
-      </Container>
-    </Box>
+      </main>
+    </div>
   );
 }

@@ -1,23 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Checkbox,
-  Chip,
-  Container,
-  IconButton,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
+import Link from "next/link";
 import { gamesByCategory, gamesById, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
@@ -26,7 +10,14 @@ import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
 import categoryMeta from "../data/categoryMeta.json";
 import { useUmamiViews } from "../hooks/useUmamiViews";
-import { clearCookie, getCookie, setCookie } from "../utils/storage";
+import {
+  clearCookie,
+  getCookie,
+  getStoredItem,
+  setCookie,
+  setStoredItem,
+  hydrateServerStorage,
+} from "../utils/storage";
 import { ensureUmamiLoaded, trackGameView } from "../utils/umami";
 import {
   getCombinedCount,
@@ -52,7 +43,7 @@ const categoryLinks = categoryMeta.items
   }));
 
 function loadCookieConsent(): CookieConsent | null {
-  const raw = localStorage.getItem(consentStorageKey);
+  const raw = getStoredItem(consentStorageKey);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as CookieConsent;
@@ -64,7 +55,7 @@ function loadCookieConsent(): CookieConsent | null {
 }
 
 function saveCookieConsent(consent: CookieConsent): void {
-  localStorage.setItem(consentStorageKey, JSON.stringify(consent));
+  setStoredItem(consentStorageKey, JSON.stringify(consent));
 }
 
 function hasSettingsCookieConsent(consent: CookieConsent | null): boolean {
@@ -139,6 +130,7 @@ export default function HomePage() {
   useDisguise("LearningArcade", baseIcon);
 
   useEffect(() => {
+    hydrateServerStorage();
     const loadedConsent = loadCookieConsent();
     setConsent(loadedConsent);
     setShowConsent(!loadedConsent);
@@ -215,83 +207,54 @@ export default function HomePage() {
   };
 
   const renderTiles = (list: GameData[]) => (
-    <Grid container spacing={2}>
+    <div className="tile-grid">
       {list.map((game) => {
         const desktopOnly =
           isMobile && (game.desktopOnly || !game.mobileFriendly);
         return (
-          <Grid size={{ xs: 4, sm: 4, md: 3, lg: 2 }} key={game.id}>
-            <Card
-              sx={{
-                height: "100%",
-                position: "relative",
-                borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider",
-                opacity: desktopOnly ? 0.5 : 1,
+          <div className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
+            <button
+              className="tile-action"
+              type="button"
+              onClick={() => {
+                if (!desktopOnly) handleOpenGame(game);
               }}
+              disabled={desktopOnly}
             >
-              <CardActionArea
-                onClick={() => {
-                  if (!desktopOnly) handleOpenGame(game);
-                }}
-                disabled={desktopOnly}
-              >
-                <CardMedia
-                  component="img"
-                  image={game.img}
-                  alt={game.name}
-                  sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
-                />
-                <CardContent sx={{ p: 1.5 }}>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight={700}
-                    noWrap
-                    sx={{ width: "100%" }}
-                  >
-                    {game.name}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-              <DesktopOnlyOverlay visible={desktopOnly} />
-              <IconButton
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  toggleFavorite(game.id);
-                }}
-                disabled={!canFavorite}
-                size="small"
-                title={
-                  canFavorite
-                    ? "Toggle favorite"
-                    : "Enable settings cookies to save favorites"
-                }
-                sx={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  bgcolor: "background.paper",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  width: 32,
-                  height: 32,
-                }}
-              >
-                <span style={{ fontSize: 16 }}>
-                  {favoriteSet.has(game.id) ? "★" : "☆"}
-                </span>
-              </IconButton>
-            </Card>
-          </Grid>
+              <img className="tile-image" src={game.img} alt={game.name} />
+              <div className="tile-content">
+                <div className="tile-title" title={game.name}>
+                  {game.name}
+                </div>
+              </div>
+            </button>
+            <DesktopOnlyOverlay visible={desktopOnly} />
+            <button
+              className="icon-button"
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleFavorite(game.id);
+              }}
+              disabled={!canFavorite}
+              title={
+                canFavorite
+                  ? "Toggle favorite"
+                  : "Enable settings cookies to save favorites"
+              }
+              aria-label="Toggle favorite"
+            >
+              {favoriteSet.has(game.id) ? "★" : "☆"}
+            </button>
+          </div>
         );
       })}
-    </Grid>
+    </div>
   );
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <div className="ui-page">
       <PrimaryNav
         isDark={isDark}
         onToggleTheme={toggleTheme}
@@ -300,343 +263,208 @@ export default function HomePage() {
         showCategoryBar
       />
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, lg: 3 }}>
-            <Stack spacing={2}>
-              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                  Search
-                </Typography>
-                <Box component="form" onSubmit={handleSearchSubmit}>
-                  <Stack spacing={1.5}>
-                    <TextField
-                      placeholder="Search games"
-                      value={searchTerm}
-                      onChange={(event) => setSearchTerm(event.target.value)}
-                      fullWidth
-                      size="small"
-                    />
-                    <Stack direction="row" spacing={1}>
-                      <Button type="submit" variant="contained">
-                        Search
-                      </Button>
-                      <Button variant="outlined" href="/category/all">
-                        All games
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </Box>
-              </Paper>
-              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                  Quick stats
-                </Typography>
-                <Stack spacing={1}>
-                  <Chip label={`${gamesData.length} games`} color="primary" />
-                  <Chip
-                    label={`${favorites.length} favorites`}
-                    color="secondary"
-                  />
-                  <Chip label="School friendly" variant="outlined" />
-                </Stack>
-              </Paper>
-              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                  Latest drops
-                </Typography>
-                <Stack spacing={1.5}>
-                  {latest.slice(0, 3).map((game) => (
-                    <Button
-                      key={game.id}
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleOpenGame(game)}
-                      sx={{ justifyContent: "space-between" }}
-                    >
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        alignItems="center"
-                        sx={{ flex: 1, justifyContent: "space-between" }}
-                      >
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          alignItems="center"
-                          sx={{ minWidth: 0 }}
-                        >
-                          <Typography component="span" noWrap>
-                            {game.name}
-                          </Typography>
-                        </Stack>
-                        <Chip
-                          label={`${getCombinedCount(localVisits, game.id, viewCounts).toLocaleString()} plays`}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </Stack>
-                    </Button>
-                  ))}
-                </Stack>
-              </Paper>
-            </Stack>
-          </Grid>
+      <main className="ui-container ui-container-xl">
+        <div className="home-grid">
+          <aside className="ui-stack">
+            <section className="panel">
+              <h3 className="panel-title">Search</h3>
+              <form onSubmit={handleSearchSubmit} className="ui-stack">
+                <input
+                  className="input"
+                  placeholder="Search games"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+                <div className="ui-row">
+                  <button type="submit" className="btn btn-primary">
+                    Search
+                  </button>
+                  <Link className="btn btn-outline" href="/category/all">
+                    All games
+                  </Link>
+                </div>
+              </form>
+            </section>
+            <section className="panel">
+              <h3 className="panel-title">Quick stats</h3>
+              <div className="chip-row">
+                <span className="chip chip-primary">{gamesData.length} games</span>
+                <span className="chip chip-secondary">{favorites.length} favorites</span>
+                <span className="chip">School friendly</span>
+              </div>
+            </section>
+            <section className="panel">
+              <h3 className="panel-title">Latest drops</h3>
+              <div className="ui-stack">
+                {latest.slice(0, 3).map((game) => (
+                  <button
+                    key={game.id}
+                    type="button"
+                    className="btn btn-outline btn-block btn-sm"
+                    onClick={() => handleOpenGame(game)}
+                  >
+                    <span className="btn-row">
+                      <span className="btn-text">{game.name}</span>
+                      <span className="chip chip-outline">
+                        {getCombinedCount(localVisits, game.id, viewCounts).toLocaleString()} plays
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </aside>
 
-          <Grid size={{ xs: 12, lg: 6 }}>
-            <Stack spacing={3}>
-              <Paper
-                sx={(theme) => ({
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 4,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(120deg, #1c1c2b 0%, #2c2034 55%, #1b1b25 100%)"
-                      : "linear-gradient(120deg, #f6f3ff 0%, #fff0f7 55%, #f6fff2 100%)",
-                })}
-              >
-                <Typography variant="h4" gutterBottom>
-                  Your favorites
-                </Typography>
-                {!canFavorite ? (
-                  <Stack spacing={2}>
-                    <Typography variant="body1" color="text.secondary">
-                      Enable settings cookies to save and show favorites here.
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      onClick={() => setShowConsent(true)}
-                      sx={{ alignSelf: "flex-start" }}
-                    >
-                      Update preferences
-                    </Button>
-                  </Stack>
-                ) : favoriteGames.length === 0 ? (
-                  <Stack spacing={2}>
-                    <Typography variant="body1" color="text.secondary">
-                      Star games you love to pin them here.
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      href="/category/all"
-                      sx={{ alignSelf: "flex-start" }}
-                    >
-                      Browse all games
-                    </Button>
-                  </Stack>
-                ) : (
-                  <Stack spacing={2.5}>
-                    {renderTiles(favoriteGames.slice(0, 8))}
-                    {favoriteGames.length > 8 ? (
-                      <Button
-                        variant="outlined"
-                        href="/category/favorites"
-                        sx={{ alignSelf: "flex-start" }}
-                      >
-                        View all favorites
-                      </Button>
-                    ) : null}
-                  </Stack>
-                )}
-              </Paper>
-              <Paper
-                sx={(theme) => ({
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 4,
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(120deg, #0f2f1c 0%, #143f24 65%, #0f2f1c 100%)"
-                      : "linear-gradient(120deg, #e8fff2 0%, #f4ffe6 55%, #fff7d1 100%)",
-                  border: "1px solid",
-                  borderColor:
-                    theme.palette.mode === "dark" ? "#1c2d23" : "#dfe8d9",
-                })}
-              >
-                <Typography variant="h4" gutterBottom>
-                  Based on your plays
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ color: "text.secondary", mb: 3 }}
-                >
-                  Your most-played games, plus a few fresh picks.
-                </Typography>
-                {recommended.length > 0 ? renderTiles(recommended) : null}
-              </Paper>
-              <Paper
-                sx={(theme) => ({
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 4,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(120deg, #1b1c2b 0%, #1a2532 55%, #141b24 100%)"
-                      : "linear-gradient(120deg, #eef6ff 0%, #f2fff7 55%, #fff6e6 100%)",
-                })}
-              >
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  alignItems={{ xs: "flex-start", sm: "center" }}
-                  justifyContent="space-between"
-                  sx={{ mb: 2 }}
-                >
-                  <Box>
-                    <Typography variant="h4" gutterBottom>
-                      Most popular
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{ color: "text.secondary" }}
-                    >
-                      Ranked by total plays.
-                    </Typography>
-                  </Box>
-                  <Button variant="outlined" href="/category/popular">
-                    More
-                  </Button>
-                </Stack>
-                {popularGames.length > 0
-                  ? renderTiles(popularGames.slice(0, 12))
-                  : null}
-              </Paper>
-            </Stack>
-          </Grid>
+          <section className="ui-stack">
+            <section className="panel panel-gradient panel-favorites">
+              <h2 className="panel-heading">Your favorites</h2>
+              {!canFavorite ? (
+                <div className="ui-stack">
+                  <p className="muted">
+                    Enable settings cookies to save and show favorites here.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setShowConsent(true)}
+                  >
+                    Update preferences
+                  </button>
+                </div>
+              ) : favoriteGames.length === 0 ? (
+                <div className="ui-stack">
+                  <p className="muted">Star games you love to pin them here.</p>
+                  <Link className="btn btn-outline" href="/category/all">
+                    Browse all games
+                  </Link>
+                </div>
+              ) : (
+                <div className="ui-stack">
+                  {renderTiles(favoriteGames.slice(0, 8))}
+                  {favoriteGames.length > 8 ? (
+                    <Link className="btn btn-outline" href="/category/favorites">
+                      View all favorites
+                    </Link>
+                  ) : null}
+                </div>
+              )}
+            </section>
 
-          <Grid size={{ xs: 12, lg: 3 }}>
-            <Stack spacing={2}>
-              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                  How to play
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Choose a game, select a launch mode, and start playing. Use
-                  Embed mode for the cleanest experience.
-                </Typography>
-              </Paper>
-              <Paper sx={{ p: 2.5, borderRadius: 3 }}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-                  Report issues
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 1.5 }}
-                >
-                  Find a broken game or bug? Let me know.
-                </Typography>
-                <Button
-                  variant="outlined"
-                  href="https://github.com/w00pxrr/w00pxrr.github.io"
-                >
-                  Report a bug
-                </Button>
-              </Paper>
-            </Stack>
-          </Grid>
-        </Grid>
-      </Container>
+            <section className="panel panel-gradient panel-recommended">
+              <h2 className="panel-heading">Based on your plays</h2>
+              <p className="muted">Your most-played games, plus a few fresh picks.</p>
+              {recommended.length > 0 ? renderTiles(recommended) : null}
+            </section>
+
+            <section className="panel panel-gradient panel-popular">
+              <div className="panel-header">
+                <div>
+                  <h2 className="panel-heading">Most popular</h2>
+                  <p className="muted">Ranked by total plays.</p>
+                </div>
+                <Link className="btn btn-outline btn-sm" href="/category/popular">
+                  More
+                </Link>
+              </div>
+              {popularGames.length > 0 ? renderTiles(popularGames.slice(0, 12)) : null}
+            </section>
+          </section>
+
+          <aside className="ui-stack">
+            <section className="panel">
+              <h3 className="panel-title">How to play</h3>
+              <p className="muted">
+                Choose a game, select a launch mode, and start playing. Use Embed mode for the
+                cleanest experience.
+              </p>
+            </section>
+            <section className="panel">
+              <h3 className="panel-title">Report issues</h3>
+              <p className="muted">Find a broken game or bug? Let me know.</p>
+              <a
+                className="btn btn-outline"
+                href="https://github.com/w00pxrr/w00pxrr.github.io"
+                rel="noreferrer"
+                target="_blank"
+              >
+                Report a bug
+              </a>
+            </section>
+          </aside>
+        </div>
+      </main>
 
       {showConsent ? (
-        <Paper
-          elevation={8}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            left: 16,
-            right: 16,
-            maxWidth: 880,
-            mx: "auto",
-            p: 2.5,
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: "divider",
-            zIndex: 1200,
-          }}
-        >
-          <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-            Cookie preferences
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Choose whether to allow analytics cookies and settings cookies.
-          </Typography>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            sx={{ mt: 2 }}
-          >
-            <Box>
-              <Checkbox
-                checked={!!consent?.settings}
-                onChange={(event) =>
-                  setConsent((prev) => ({
-                    ...(prev || {}),
-                    settings: event.target.checked,
-                  }))
-                }
-              />
-              <Typography variant="body2" component="span">
-                Settings cookies
-              </Typography>
-            </Box>
-            <Box>
-              <Checkbox
-                checked={!!consent?.analytics}
-                onChange={(event) =>
-                  setConsent((prev) => ({
-                    ...(prev || {}),
-                    analytics: event.target.checked,
-                  }))
-                }
-              />
-              <Typography variant="body2" component="span">
-                Analytics cookies
-              </Typography>
-            </Box>
-          </Stack>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            sx={{ mt: 2 }}
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                const next = { settings: true, analytics: true };
-                saveCookieConsent(next);
-                setConsent(next);
-                setShowConsent(false);
-              }}
-            >
-              Accept all
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => {
-                if (consent) saveCookieConsent(consent);
-                setShowConsent(false);
-              }}
-            >
-              Save choices
-            </Button>
-            <Button
-              variant="text"
-              onClick={() => {
-                const next = { settings: false, analytics: false };
-                saveCookieConsent(next);
-                setConsent(next);
-                setShowConsent(false);
-              }}
-            >
-              Reject all
-            </Button>
-          </Stack>
-        </Paper>
+        <div className="consent-panel">
+          <div className="consent-card">
+            <h3 className="panel-title">Cookie preferences</h3>
+            <p className="muted">
+              Choose whether to allow analytics cookies and settings cookies.
+            </p>
+            <div className="ui-row">
+              <label className="checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={!!consent?.settings}
+                  onChange={(event) =>
+                    setConsent((prev) => ({
+                      ...(prev || {}),
+                      settings: event.target.checked,
+                    }))
+                  }
+                />
+                <span>Settings cookies</span>
+              </label>
+              <label className="checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={!!consent?.analytics}
+                  onChange={(event) =>
+                    setConsent((prev) => ({
+                      ...(prev || {}),
+                      analytics: event.target.checked,
+                    }))
+                  }
+                />
+                <span>Analytics cookies</span>
+              </label>
+            </div>
+            <div className="ui-row">
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  const next = { settings: true, analytics: true };
+                  saveCookieConsent(next);
+                  setConsent(next);
+                  setShowConsent(false);
+                }}
+              >
+                Accept all
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  if (consent) saveCookieConsent(consent);
+                  setShowConsent(false);
+                }}
+              >
+                Save choices
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  const next = { settings: false, analytics: false };
+                  saveCookieConsent(next);
+                  setConsent(next);
+                  setShowConsent(false);
+                }}
+              >
+                Reject all
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
-    </Box>
+    </div>
   );
 }
