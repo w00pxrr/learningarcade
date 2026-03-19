@@ -9,7 +9,7 @@ import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { trackGameView } from "../utils/umami";
-import { getCookie, getStoredItem } from "../utils/storage";
+import { getCookie, getStoredItem, setCookie } from "../utils/storage";
 import categoryMeta from "../data/categoryMeta.json";
 import {
   getCombinedCount,
@@ -59,6 +59,10 @@ function getFavoriteIds(): string[] {
   return [];
 }
 
+function saveFavoriteIds(ids: string[]): void {
+  setCookie("gams_favorites", JSON.stringify(ids), 3650);
+}
+
 export default function CategoryPage() {
   const params = useParams();
   const router = useRouter();
@@ -71,6 +75,7 @@ export default function CategoryPage() {
   const label = categoryLabels[category] || category;
   const isMobile = useIsMobile();
   const { counts: viewCounts } = useUmamiViews();
+  const canFavorite = hasSettingsCookieConsent();
 
   useDisguise(`${label} - LearningArcade`, baseIcon);
 
@@ -81,21 +86,7 @@ export default function CategoryPage() {
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
         ?.href || "/img/gams-g.png",
     );
-    const raw = getStoredItem(consentStorageKey);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as { settings?: boolean };
-        if (parsed?.settings === true) {
-          const favRaw = getCookie("gams_favorites");
-          if (favRaw) {
-            const parsedFavs = JSON.parse(favRaw) as unknown;
-            if (Array.isArray(parsedFavs)) {
-              setFavoriteIds(new Set(parsedFavs as string[]));
-            }
-          }
-        }
-      } catch {}
-    }
+    setFavoriteIds(new Set(getFavoriteIds()));
   }, []);
 
   const filtered = useMemo(() => {
@@ -115,7 +106,17 @@ export default function CategoryPage() {
       return scored.map((entry) => entry.game);
     }
     return gamesByCategory[category] ?? [];
-  }, [category, localVisits, viewCounts]);
+  }, [category, favoriteIds, localVisits, viewCounts]);
+
+  const toggleFavorite = (gameId: string) => {
+    if (!canFavorite) return;
+    const next = new Set(favoriteIds);
+    if (next.has(gameId)) next.delete(gameId);
+    else next.add(gameId);
+    const nextList = Array.from(next);
+    saveFavoriteIds(nextList);
+    setFavoriteIds(next);
+  };
 
   const openGame = (game: GameData) => {
     const href = new URL(game.href, window.location.href).href;
@@ -170,6 +171,24 @@ export default function CategoryPage() {
                   </div>
                 </button>
                 <DesktopOnlyOverlay visible={desktopOnly} />
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleFavorite(game.id);
+                  }}
+                  disabled={!canFavorite}
+                  title={
+                    canFavorite
+                      ? "Toggle favorite"
+                      : "Enable settings cookies to save favorites"
+                  }
+                  aria-label="Toggle favorite"
+                >
+                  {favoriteIds.has(game.id) ? "★" : "☆"}
+                </button>
               </div>
             );
           })}
