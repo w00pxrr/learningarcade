@@ -37,7 +37,7 @@
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "fontawesome-free-5-12-0": "npm:@fortawesome/fontawesome-free@5.12.0",
-    "ionicons": "2.0.1",
+    "ionicons": "8.0.13",
     "jquery": "3.5.1",
     "material-symbols": "latest",
     "next": "^16.1.7",
