@@ -8,18 +8,18 @@
   },
   {
     "name": "Drive Mad",
-    "href": "games/g/drivemad/drivemad.html"
+    "href": "/games/g/drivemad/drivemad.html"
   },
   {
     "name": "2048"
   },
   {
     "name": "Cookie Clicker",
-    "href": "games/g/cookie/index.html"
+    "href": "/games/g/cookie/index.html"
   },
   {
     "name": "Cube Field",
-    "href": "games/g/cubefield/index.html"
+    "href": "/games/g/cubefield/index.html"
   },
   {
     "name": "Spacebar Clicker",
@@ -76,12 +76,12 @@
   },
   {
     "name": "Aim Trainer",
-    "href": "games/g/aimtrainer/aimtrainer.html",
+    "href": "/games/g/aimtrainer/aimtrainer.html",
     "desktopOnly": true
   },
   {
     "name": "Snake",
-    "href": "games/snake.html"
+    "href": "/games/snake.html"
   },
   {
     "name": "Slope",
@@ -95,44 +95,44 @@
   },
   {
     "name": "Madalin Stunt Cars",
-    "href": "games/g/madalinstuntcars/madalinstuntcars.html",
+    "href": "/games/g/madalinstuntcars/madalinstuntcars.html",
     "desktopOnly": true
   },
   {
     "name": "Glass City",
-    "href": "games/g/glasscity/glasscity.html"
+    "href": "/games/g/glasscity/glasscity.html"
   },
   {
     "name": "Tunnel Rush",
-    "href": "games/g/tunnelrush/tunnelrush.html"
+    "href": "/games/g/tunnelrush/tunnelrush.html"
   },
   {
     "name": "Tanuki Sunset",
-    "href": "games/g/tanukisunset/tanukisunset.html"
+    "href": "/games/g/tanukisunset/tanukisunset.html"
   },
   {
     "name": "Game Inside a Game",
-    "href": "games/g/gameinsideagame/index.html"
+    "href": "/games/g/gameinsideagame/index.html"
   },
   {
     "name": "Slope 2",
-    "href": "games/g/slope2/index.html"
+    "href": "/games/g/slope2/index.html"
   },
   {
     "name": "Drift Boss",
-    "href": "games/g/driftboss/driftboss.html"
+    "href": "/games/g/driftboss/driftboss.html"
   },
   {
     "name": "Subway Surfers",
-    "href": "games/g/subwaysurf/subwaysurf.html"
+    "href": "/games/g/subwaysurf/subwaysurf.html"
   },
   {
     "name": "Five Nights At Einsteins",
-    "href": "games/g/fnae/fnae.html"
+    "href": "/games/g/fnae/fnae.html"
   },
   {
     "name": "Jetpack Joyride",
-    "href": "games/jj.html"
+    "href": "/games/jj.html"
   },
   {
     "title": "Retro",
@@ -140,12 +140,12 @@
   },
   {
     "name": "Pokemon Sapphire",
-    "href": "games/g/webretro/launch.html?core=mgba&rom=pokemon-sapphire.gba&name=Pokemon%20Sapphire",
+    "href": "/games/g/webretro/launch.html?core=mgba&rom=pokemon-sapphire.gba&name=Pokemon%20Sapphire",
     "desktopOnly": true
   },
   {
     "name": "Doom",
-    "href": "games/g/webretro/launch.html?core=mgba&rom=doom.gba&name=Doom",
+    "href": "/games/g/webretro/launch.html?core=mgba&rom=doom.gba&name=Doom",
     "desktopOnly": true
   },
   {
@@ -203,7 +203,7 @@
   },
   {
     "name": "Worlds Hardest Game 2",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/whg2.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/whg2.swf"
   },
   {
     "name": "The Impossible Quiz"
@@ -267,31 +267,31 @@
   },
   {
     "name": "Run",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/run.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/run.swf"
   },
   {
     "name": "Run 2",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/run-2.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/run-2.swf"
   },
   {
     "name": "Johnny Upgrade",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/john.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/john.swf"
   },
   {
     "name": "Papas Burgeria",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/papasburgeria.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/papasburgeria.swf"
   },
   {
     "name": "Fireboy And Watergirl 1",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/fbwg1.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/fbwg1.swf"
   },
   {
     "name": "Papas Pastaria",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/papaspastaria.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/papaspastaria.swf"
   },
   {
     "name": "Portal",
-    "href": "games/g/Ruffle/player.html?swf=../../flash/portal.swf"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/portal.swf"
   },
   {
     "title": "Tools",
@@ -299,7 +299,7 @@
   },
   {
     "name": "Ruffle Flash Player",
-    "href": "games/g/Ruffle/Ruffle.html"
+    "href": "/games/g/Ruffle/Ruffle.html"
   },
   {
     "name": "Code Editor",
@@ -310,10 +310,10 @@
   },
   {
     "name": "Proxy Browser",
-    "href": "games/proxybrowser.html"
+    "href": "/games/proxybrowser.html"
   },
   {
     "name": "Calculator",
-    "href": "games/calc.html"
+    "href": "/games/calc.html"
   }
 ]
