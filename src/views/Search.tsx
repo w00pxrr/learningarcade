@@ -6,6 +6,7 @@ import * as Select from "@radix-ui/react-select";
 import { gamesData, GameData } from "../data/games";
 import { normalizeSearchText } from "../utils/search";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
+import { GameImage } from "../components/GameImage";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
@@ -140,13 +141,14 @@ export default function SearchPage() {
   }, [localVisits, searchTerm, sortMode, viewCounts]);
 
   const openGame = (game: GameData) => {
-    const href = new URL(game.href, window.location.href).href;
+    const href = new URL(game.href, window.location.origin).href;
     recordGameVisit(game.id, game.name);
     setLocalVisits(getGameVisits());
     trackGameView(game);
     router.push(
       `/game-embed?${new URLSearchParams({
-        icon: new URL(game.img, window.location.href).href,
+        id: game.id,
+        icon: new URL(game.img, window.location.origin).href,
         name: game.name,
         src: href,
       }).toString()}`,
@@ -179,7 +181,9 @@ export default function SearchPage() {
               />
               <Select.Root
                 value={sortMode}
-                onValueChange={(value) => setSortMode(value as "relevance" | "views")}
+                onValueChange={(value) =>
+                  setSortMode(value as "relevance" | "views")
+                }
               >
                 <Select.Trigger className="select-trigger" aria-label="Sort by">
                   <Select.Value />
@@ -221,7 +225,10 @@ export default function SearchPage() {
               const desktopOnly =
                 isMobile && (game.desktopOnly || !game.mobileFriendly);
               return (
-                <div className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
+                <div
+                  className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`}
+                  key={game.id}
+                >
                   <button
                     className="tile-action"
                     type="button"
@@ -230,7 +237,11 @@ export default function SearchPage() {
                     }}
                     disabled={desktopOnly}
                   >
-                    <img className="tile-image" src={game.img} alt={game.name} />
+                    <GameImage
+                      className="tile-image"
+                      sources={game.imgCandidates}
+                      alt={game.name}
+                    />
                     <div className="tile-content">
                       <div className="tile-title" title={game.name}>
                         {game.name}

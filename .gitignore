@@ -170,3 +170,6 @@ fabric.properties
 /.next/
 .vercel
 .env*.local
+/.pnpm-store/
+/test-results/
+/tests/

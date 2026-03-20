@@ -1,4 +1,5 @@
 import gamesListRaw from "./games.json";
+import leaderboardGamesRaw from "./leaderboardGames.json";
 import { normalizeSearchText } from "../utils/search";
 
 export type GamListSection = { title: string; type: "section" };
@@ -21,6 +22,8 @@ export interface GameData {
   name: string;
   href: string;
   img: string;
+  imgCandidates: string[];
+  hasLeaderboard: boolean;
   type: string;
   section: string;
   category: string;
@@ -321,11 +324,39 @@ function resolveCategories(entry: GamListItem, section: string): string[] {
 }
 
 const gamsList = gamesListRaw as GamListItem[];
+const leaderboardGameIds = new Set(leaderboardGamesRaw as string[]);
 
 export const sectionOrder: string[] = [];
 export const gamesData: GameData[] = [];
 export const gamesById: Record<string, GameData> = {};
 export const gamesByCategory: Record<string, GameData[]> = {};
+
+const imageExtensions: string[] = [
+  "jpeg",
+  "jpg",
+  "png",
+  "webp",
+  "avif",
+  "gif",
+  "apng",
+  "svg",
+  "bmp",
+];
+
+const normalizeImagePath = (value: string) => {
+  if (/^https?:\/\//i.test(value) || value.startsWith("/")) return value;
+  return `/img/${value}`;
+};
+
+const hasExplicitExtension = (value: string) => /\.[^/.]+$/.test(value);
+
+const buildImageCandidates = (value: string): string[] => {
+  const normalized = normalizeImagePath(value);
+  if (hasExplicitExtension(value)) {
+    return [normalized];
+  }
+  return imageExtensions.map((ext) => `${normalized}.${ext}`);
+};
 
 let currentSection = "";
 for (let j = 0; j < gamsList.length; j++) {
@@ -339,6 +370,9 @@ for (let j = 0; j < gamsList.length; j++) {
 
   const imgName = gam.name.toLowerCase().replace(/\s/g, "");
   const gameId = gam.id ?? imgName;
+  const imgBase = gam.img ?? gam.src ?? imgName;
+  const imgCandidates = buildImageCandidates(imgBase);
+  const hasLeaderboard = leaderboardGameIds.has(gameId);
   const searchName = normalizeSearchText(gam.name);
   const searchTokens = searchName ? searchName.split(" ").filter(Boolean) : [];
   const categories = resolveCategories(gam, currentSection || "Other");
@@ -352,7 +386,9 @@ for (let j = 0; j < gamsList.length; j++) {
     id: gameId,
     name: gam.name,
     href: gam.href ?? "games/" + imgName + ".html",
-    img: gam.img ?? (gam.src ? "/img/" + gam.src : "/img/" + imgName + ".jpeg"),
+    img: imgCandidates[0],
+    imgCandidates,
+    hasLeaderboard,
     type: gam.type ?? "",
     section: currentSection || "Other",
     categories,

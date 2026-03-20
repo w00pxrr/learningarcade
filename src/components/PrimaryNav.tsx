@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Switch from "@radix-ui/react-switch";
@@ -30,7 +30,32 @@ export function PrimaryNav({
   activeCategory,
   showCategoryBar = false,
 }: PrimaryNavProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const loadAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (!res.ok) {
+          if (active) setIsAuthenticated(false);
+          return;
+        }
+        const data = (await res.json()) as { user?: { username?: string } | null };
+        if (active) setIsAuthenticated(!!data?.user);
+      } catch {
+        if (active) setIsAuthenticated(false);
+      }
+    };
+    void loadAuth();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const showCategories = showCategoryBar && (categoryLinks?.length ?? 0) > 0;
+  const accountLabel = isAuthenticated ? "Account" : "Log in";
+  const accountLinkClass = isAuthenticated ? "nav-link" : "nav-link nav-link-login";
   return (
     <header className="nav-shell">
       <div className="nav-bar">
@@ -69,7 +94,7 @@ export function PrimaryNav({
                   <Link href="/settings">Settings</Link>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/account">Account</Link>
+                  <Link href="/account">{accountLabel}</Link>
                 </DropdownMenu.Item>
                 {onToggleTheme ? (
                   <DropdownMenu.Item
@@ -123,8 +148,8 @@ export function PrimaryNav({
           <Link href="/settings" className="nav-link">
             Settings
           </Link>
-          <Link href="/account" className="nav-link">
-            Account
+          <Link href="/account" className={accountLinkClass}>
+            {accountLabel}
           </Link>
         </nav>
 

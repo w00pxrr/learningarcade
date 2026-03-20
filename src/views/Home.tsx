@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { gamesByCategory, gamesById, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
+import { GameImage } from "../components/GameImage";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
@@ -192,13 +193,14 @@ export default function HomePage() {
   };
 
   const handleOpenGame = (game: GameData) => {
-    const href = new URL(game.href, window.location.href).href;
-    const pic = new URL(game.img, window.location.href).href;
+    const href = new URL(game.href, window.location.origin).href;
+    const pic = new URL(game.img, window.location.origin).href;
     recordGameVisit(game.id, game.name);
     setLocalVisits(getGameVisits());
     trackGameView(game);
 
     const gameShellQuery = new URLSearchParams({
+      id: game.id,
       icon: pic,
       name: game.name,
       src: href,
@@ -212,7 +214,10 @@ export default function HomePage() {
         const desktopOnly =
           isMobile && (game.desktopOnly || !game.mobileFriendly);
         return (
-          <div className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
+          <div
+            className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`}
+            key={game.id}
+          >
             <button
               className="tile-action"
               type="button"
@@ -221,7 +226,11 @@ export default function HomePage() {
               }}
               disabled={desktopOnly}
             >
-              <img className="tile-image" src={game.img} alt={game.name} />
+              <GameImage
+                className="tile-image"
+                sources={game.imgCandidates}
+                alt={game.name}
+              />
               <div className="tile-content">
                 <div className="tile-title" title={game.name}>
                   {game.name}
@@ -288,8 +297,12 @@ export default function HomePage() {
             <section className="panel">
               <h3 className="panel-title">Quick stats</h3>
               <div className="chip-row">
-                <span className="chip chip-primary">{gamesData.length} games</span>
-                <span className="chip chip-secondary">{favorites.length} favorites</span>
+                <span className="chip chip-primary">
+                  {gamesData.length} games
+                </span>
+                <span className="chip chip-secondary">
+                  {favorites.length} favorites
+                </span>
                 <span className="chip">School friendly</span>
               </div>
             </section>
@@ -306,7 +319,12 @@ export default function HomePage() {
                     <span className="btn-row">
                       <span className="btn-text">{game.name}</span>
                       <span className="chip chip-outline">
-                        {getCombinedCount(localVisits, game.id, viewCounts).toLocaleString()} plays
+                        {getCombinedCount(
+                          localVisits,
+                          game.id,
+                          viewCounts,
+                        ).toLocaleString()}{" "}
+                        plays
                       </span>
                     </span>
                   </button>
@@ -342,7 +360,10 @@ export default function HomePage() {
                 <div className="ui-stack">
                   {renderTiles(favoriteGames.slice(0, 8))}
                   {favoriteGames.length > 8 ? (
-                    <Link className="btn btn-outline" href="/category/favorites">
+                    <Link
+                      className="btn btn-outline"
+                      href="/category/favorites"
+                    >
                       View all favorites
                     </Link>
                   ) : null}
@@ -352,7 +373,9 @@ export default function HomePage() {
 
             <section className="panel panel-gradient panel-recommended">
               <h2 className="panel-heading">Based on your plays</h2>
-              <p className="muted">Your most-played games, plus a few fresh picks.</p>
+              <p className="muted">
+                Your most-played games, plus a few fresh picks.
+              </p>
               {recommended.length > 0 ? renderTiles(recommended) : null}
             </section>
 
@@ -362,11 +385,16 @@ export default function HomePage() {
                   <h2 className="panel-heading">Most popular</h2>
                   <p className="muted">Ranked by total plays.</p>
                 </div>
-                <Link className="btn btn-outline btn-sm" href="/category/popular">
+                <Link
+                  className="btn btn-outline btn-sm"
+                  href="/category/popular"
+                >
                   More
                 </Link>
               </div>
-              {popularGames.length > 0 ? renderTiles(popularGames.slice(0, 12)) : null}
+              {popularGames.length > 0
+                ? renderTiles(popularGames.slice(0, 12))
+                : null}
             </section>
           </section>
 
@@ -374,8 +402,8 @@ export default function HomePage() {
             <section className="panel">
               <h3 className="panel-title">How to play</h3>
               <p className="muted">
-                Choose a game, select a launch mode, and start playing. Use Embed mode for the
-                cleanest experience.
+                Choose a game, select a launch mode, and start playing. Use
+                Embed mode for the cleanest experience.
               </p>
             </section>
             <section className="panel">

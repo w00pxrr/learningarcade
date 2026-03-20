@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { PrimaryNav } from "../components/PrimaryNav";
-import { hydrateServerStorage } from "../utils/storage";
+import { hydrateAuthStorage, hydrateServerStorage } from "../utils/storage";
 
 type User = { username: string } | null;
 
@@ -50,6 +50,7 @@ export default function AccountPage() {
       setPassword("");
       await loadMe();
       hydrateServerStorage();
+      await hydrateAuthStorage();
     } catch {
       setStatus("Request failed.");
     } finally {

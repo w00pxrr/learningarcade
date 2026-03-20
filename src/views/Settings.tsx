@@ -7,6 +7,7 @@ import * as Switch from "@radix-ui/react-switch";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
+import { ThemePreset } from "../hooks/useTheme";
 import {
   getStoredItem,
   getStoredJSON,
@@ -41,6 +42,8 @@ export default function SettingsPage() {
     toggleTheme,
     isHighContrast,
     toggleContrast,
+    themePreset,
+    setThemePreset,
     accent,
     setAccentColor,
     resetAccentColor,
@@ -93,6 +96,18 @@ export default function SettingsPage() {
         title: "Drafts (24) -  G-Mail",
         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACEUlEQVQ4jcWSP0jUYRjHP8/7/t7z/JelHAhJEN2QUmKFp1DkkIVubVK0NCSI0ODWdksNQRQJQhq0NQQ1ZYM5aIiY1iZEdIKQQ/BT01S8636/92nIjgyusb7Ld/n+4fnywP+GAMw2NdW7hO3cNW7hfC4X/s2gr0jFB2z7znY8V9fDusmC0YQddcaMO1+c+nDqeFc589adxq6oIpiyVsargmBUsxiTSaediQsn86pYkZbqZMX42sXMkGYxpdYsJjzXOaTLdeOBo4U8BBq3ksEFd699kitvbsRtyxNE6sFItRO5tzrTnvlyyd0EWJ0pPnQJ+rw3+MhjRJj43hS9XLpMAPD0wjBLuRf0zN7G+oiCT1Ahpi8ffW8FqLC2Oe89VXi21DG808rzrSNsp3OYynrUasxcy1Ue9z7RsOZwmMST957AmObAmOa89ySN8FmT4eDGWX22e4xg78A9UlxUYKXxNPczDwYo5kecCAoo4ESQOBq51XZ0YDFqIClxadjSUABOI/lYk16rnV4cjNB+gU2BzQjtr51+P5hrDNYSovK7Z18AQKUvWIDU5MJYLHTHQndqcmEMoDLC/qkPfrGIART1cakh9Xr+3T6194KzIILGP72mY52iIvMeH3r1obW2UO6RxJgCsQ9RH+J1PtfbUQyyWfFnHun1hm8cAljZYaNcwLaVtweD+ARAYSv1Fcn6ctp/hx+qpdgPE5JfygAAAABJRU5ErkJggg==",
       },
+    ],
+    [],
+  );
+
+  const themePresets = useMemo(
+    () => [
+      { value: "default", label: "Default (System)" },
+      { value: "vscode-dark-plus", label: "VS Code Dark+" },
+      { value: "vscode-light-plus", label: "VS Code Light+" },
+      { value: "monokai", label: "Monokai" },
+      { value: "solarized-dark", label: "Solarized Dark" },
+      { value: "solarized-light", label: "Solarized Light" },
     ],
     [],
   );
@@ -214,6 +229,37 @@ export default function SettingsPage() {
                 Reset accent
               </button>
             </div>
+          </section>
+
+          <section className="panel">
+            <h3 className="panel-title">Theme presets</h3>
+            <p className="muted">Pick a preset inspired by VS Code color themes.</p>
+            <Select.Root
+              value={themePreset}
+              onValueChange={(value) =>
+                setThemePreset(value as ThemePreset)
+              }
+            >
+              <Select.Trigger className="select-trigger">
+                <Select.Value />
+                <Select.Icon className="select-icon">▾</Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content className="select-content" position="popper">
+                  <Select.Viewport className="select-viewport">
+                    {themePresets.map((preset) => (
+                      <Select.Item
+                        key={preset.value}
+                        value={preset.value}
+                        className="select-item"
+                      >
+                        <Select.ItemText>{preset.label}</Select.ItemText>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
           </section>
 
           <section className="panel">

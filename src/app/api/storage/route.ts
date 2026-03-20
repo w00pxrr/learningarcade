@@ -4,13 +4,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { Pool } from "@neondatabase/serverless";
 
-type StorageAction = "get" | "set" | "remove" | "bulk_get";
+type StorageAction = "get" | "set" | "remove" | "bulk_get" | "bulk_all" | "bulk_set";
 
 type StorageRequest = {
   action: StorageAction;
   key?: string;
   value?: string;
   keys?: string[];
+  entries?: Record<string, string>;
 };
 
 const pool = new Pool({
@@ -167,6 +168,36 @@ async function handleAction(userId: string, payload: StorageRequest) {
         }
       }
       return { entries };
+    }
+    case "bulk_all": {
+      const result = await pool.query(
+        `SELECT key, value FROM gams_storage
+         WHERE user_id = $1;`,
+        [userId],
+      );
+      const entries: Record<string, string> = {};
+      for (const row of result.rows) {
+        if (row.key && typeof row.value === "string") {
+          entries[row.key] = row.value;
+        }
+      }
+      return { entries };
+    }
+    case "bulk_set": {
+      const entries = payload.entries;
+      if (!entries || typeof entries !== "object") return { ok: false };
+      const keys = Object.keys(entries);
+      if (keys.length === 0) return { ok: true };
+      const values = keys.map((key) => entries[key] ?? "");
+      await pool.query(
+        `INSERT INTO gams_storage (user_id, key, value)
+         SELECT $1, key, value
+         FROM UNNEST($2::text[], $3::text[]) AS t(key, value)
+         ON CONFLICT (user_id, key)
+         DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();`,
+        [userId, keys, values],
+      );
+      return { ok: true };
     }
     default:
       return { ok: false };

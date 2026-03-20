@@ -19,3 +19,14 @@ CREATE TABLE IF NOT EXISTS gams_sessions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS gams_leaderboards (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
+  game_id TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS gams_leaderboards_game_idx
+  ON gams_leaderboards (game_id);

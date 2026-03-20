@@ -1,89 +1,228 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <script src="patch/js/poki-sdk.js"></script>
-    
-    <meta http-equiv="content-type" content="text/html; charset=UTF8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="viewport" content="height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover" />
-    <meta name="description" content="">
-    
-    <link rel="manifest" href="subwaysurfers.webmanifest">
-    <link rel="icon" href="assets/images/app-icon-16.png" type="image/png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/images/app-icon-114.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/images/app-icon-72.png">
-    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="assets/images/app-icon-57.png">
-    <link rel="apple-touch-icon-precomposed" href="assets/images/app-icon-57.png">
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta
+      name="viewport"
+      content="height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover"
+    />
+    <meta name="description" content="" />
+
+    <link rel="manifest" href="subwaysurfers.webmanifest" />
+    <link rel="icon" href="assets/images/app-icon-16.png" type="image/png" />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="114x114"
+      href="assets/images/app-icon-114.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="72x72"
+      href="assets/images/app-icon-72.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="57x57"
+      href="assets/images/app-icon-57.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      href="assets/images/app-icon-57.png"
+    />
 
     <title>Subway Surfers Unblocked - ubg235 Poki</title>
     <style>
-        body, html { 
-            margin: 0;
-            height: 100%;
-            background-color: #0b316b;
-            overflow: hidden;
-            background-image: url('assets/preload/splash.png');
-            background-repeat: no-repeat;
-            background-position: center;
+      body,
+      html {
+        margin: 0;
+        height: 100%;
+        background-color: #0b316b;
+        overflow: hidden;
+        background-image: url("assets/preload/splash.png");
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      #message {
+        text-align: center;
+        font-size: 8px;
+        z-index: 5;
+        font-family: "Verdana", sans-serif;
+        color: #fff;
+        position: fixed;
+        width: 100%;
+        z-index: 9999;
+      }
+
+      .dot {
+        display: inline;
+        margin-left: 0.2em;
+        margin-right: 0.2em;
+        position: relative;
+        top: -1em;
+        font-size: 3.5em;
+        opacity: 0;
+        animation: showHideDot 2.5s ease-in-out infinite;
+      }
+
+      .dot.one {
+        animation-delay: 0.2s;
+      }
+      .dot.two {
+        animation-delay: 0.4s;
+      }
+      .dot.three {
+        animation-delay: 0.6s;
+      }
+
+      @keyframes showHideDot {
+        0% {
+          opacity: 0;
         }
-
-        #message {
-            text-align: center;
-            font-size: 8px;
-            z-index: 5;
-            font-family: "Verdana", sans-serif;
-            color: #fff;
-            position: fixed;
-            width: 100%;
-            z-index: 9999;
+        50% {
+          opacity: 1;
         }
-
-        .dot {
-            display: inline;
-            margin-left: 0.2em;
-            margin-right: 0.2em;
-            position: relative;
-            top: -1em;
-            font-size: 3.5em;
-            opacity: 0;
-            animation: showHideDot 2.5s ease-in-out infinite;
+        60% {
+          opacity: 1;
         }
-
-        .dot.one { animation-delay: 0.2s; }
-        .dot.two { animation-delay: 0.4s; }
-        .dot.three { animation-delay: 0.6s; }
-
-        @keyframes showHideDot {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            60% { opacity: 1; }
-            100% { opacity: 0; }
+        100% {
+          opacity: 0;
         }
-
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <script>
-        window.NOSW = true;
-        window.GAME_CONFIG = {
-            pokiSdkDebug: false,
-            leaderboard: 'mockup',
-            bundlesPath: './bundles',
-        }
-        // https://github.com/pixijs/pixijs/issues/9414
-        delete Array.prototype.group;
+      window.NOSW = true;
+      window.GAME_CONFIG = {
+        pokiSdkDebug: true,
+        leaderboard: "mockup",
+        bundlesPath: "./bundles",
+      };
+      // https://github.com/pixijs/pixijs/issues/9414
+      delete Array.prototype.group;
+
+      (function () {
+        console.log("UBG235: Script loaded, starting score detection");
+
+        var lastScore = 0;
+
+        var scoreInterval = setInterval(function () {
+          var foundScore = null;
+
+          // Log what's available on window
+          if (Math.random() < 0.05) {
+            // Only log occasionally
+            console.log("UBG235: window.game =", typeof window.game);
+            console.log("UBG235: window.scene =", typeof window.scene);
+          }
+
+          // Check all localStorage for any numeric values
+          try {
+            for (var i = 0; i < localStorage.length; i++) {
+              var key = localStorage.key(i);
+              var val = localStorage.getItem(key);
+              if (key && val && /score|point|coin/i.test(key)) {
+                var num = parseInt(val, 10);
+                if (!isNaN(num) && num > 100 && num < 1000000) {
+                  console.log("UBG235: Found in localStorage:", key, num);
+                  if (!foundScore || num > foundScore) {
+                    foundScore = num;
+                  }
+                }
+              }
+            }
+          } catch (e) {}
+
+          // Also check game object - try different paths
+          var gameObj = window.game || window.scene || window.g;
+          if (gameObj) {
+            console.log("UBG235: Game object found, checking...");
+
+            // Try scene keys
+            if (gameObj.scene && gameObj.scene.keys) {
+              var scenes = gameObj.scene.keys;
+              for (var skey in scenes) {
+                var scene = scenes[skey];
+                if (scene) {
+                  for (var prop in scene) {
+                    if (
+                      scene[prop] &&
+                      typeof scene[prop] === "number" &&
+                      scene[prop] > 100 &&
+                      scene[prop] < 1000000 &&
+                      /score|point|coin|run/i.test(prop)
+                    ) {
+                      console.log(
+                        "UBG235: Found in scene." + skey + "." + prop + ":",
+                        scene[prop],
+                      );
+                      if (!foundScore || scene[prop] > foundScore) {
+                        foundScore = scene[prop];
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            // Try direct properties
+            var directProps = [
+              "score",
+              "Score",
+              "points",
+              "currentScore",
+              "runScore",
+              "coinScore",
+              "coins",
+              "distance",
+            ];
+            for (var j = 0; j < directProps.length; j++) {
+              var val = gameObj[directProps[j]];
+              if (typeof val === "number" && val > 100 && val < 1000000) {
+                console.log(
+                  "UBG235: Found in gameObj." + directProps[j] + ":",
+                  val,
+                );
+                if (!foundScore || val > foundScore) {
+                  foundScore = val;
+                }
+              }
+            }
+          }
+
+          if (foundScore) {
+            lastScore = foundScore;
+            // Store on window for parent to read
+            window._currentGameScore = foundScore;
+            // Also store in localStorage
+            try {
+              localStorage.setItem("_ubg235_score", String(foundScore));
+            } catch (e) {}
+            try {
+              localStorage.setItem("_currentGameScore", String(foundScore));
+            } catch (e) {}
+            console.log("UBG235: Score updated to:", foundScore);
+          }
+        }, 200);
+      })();
     </script>
     <div id="message">
-        <h1>Loading</h1>
-        <h1 class="dot one">.</h1><h1 class="dot two">.</h1><h1 class="dot three">.</h1>
+      <h1>Loading</h1>
+      <h1 class="dot one">.</h1>
+      <h1 class="dot two">.</h1>
+      <h1 class="dot three">.</h1>
     </div>
     <script src="js/loading.js"></script>
     <script src="js/boot.js"></script>
     <script src="js/analytics_ubg_v1_4.js"></script>
     <script src="js/ubg235_client_v1_2.js"></script>
-</body>
+  </body>
 </html>

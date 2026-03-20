@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useTheme } from "../hooks/useTheme";
-import { hydrateServerStorage } from "../utils/storage";
+import { ThemePreset, useTheme } from "../hooks/useTheme";
+import { hydrateAuthStorage, hydrateServerStorage } from "../utils/storage";
 
 type ThemeContextValue = {
   isDark: boolean;
   toggleTheme: (nextDark: boolean) => void;
   isHighContrast: boolean;
   toggleContrast: (nextHigh: boolean) => void;
+  themePreset: ThemePreset;
+  setThemePreset: (nextPreset: ThemePreset) => void;
   accent: string;
   setAccentColor: (nextAccent: string) => void;
   resetAccentColor: () => void;
@@ -30,6 +32,8 @@ export function ThemeRoot({ children }: { children: React.ReactNode }) {
     toggleTheme,
     contrast,
     toggleContrast,
+    themePreset,
+    setThemePreset,
     accent,
     setAccentColor,
     resetAccentColor,
@@ -39,6 +43,7 @@ export function ThemeRoot({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     hydrateServerStorage();
+    void hydrateAuthStorage();
     const cores =
       typeof navigator !== "undefined"
         ? navigator.hardwareConcurrency
@@ -54,6 +59,8 @@ export function ThemeRoot({ children }: { children: React.ReactNode }) {
         toggleTheme,
         isHighContrast,
         toggleContrast,
+        themePreset,
+        setThemePreset,
         accent,
         setAccentColor,
         resetAccentColor,

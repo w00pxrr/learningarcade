@@ -5,6 +5,7 @@ import Link from "next/link";
 import { gamesByCategory, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { PrimaryNav } from "../components/PrimaryNav";
+import { GameImage } from "../components/GameImage";
 import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useUmamiViews } from "../hooks/useUmamiViews";
@@ -119,12 +120,13 @@ export default function CategoryPage() {
   };
 
   const openGame = (game: GameData) => {
-    const href = new URL(game.href, window.location.href).href;
+    const href = new URL(game.href, window.location.origin).href;
     recordGameVisit(game.id, game.name);
     trackGameView(game);
     router.push(
       `/game-embed?${new URLSearchParams({
-        icon: new URL(game.img, window.location.href).href,
+        id: game.id,
+        icon: new URL(game.img, window.location.origin).href,
         name: game.name,
         src: href,
       }).toString()}`,
@@ -154,7 +156,10 @@ export default function CategoryPage() {
             const desktopOnly =
               isMobile && (game.desktopOnly || !game.mobileFriendly);
             return (
-              <div className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
+              <div
+                className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`}
+                key={game.id}
+              >
                 <button
                   className="tile-action"
                   type="button"
@@ -163,7 +168,11 @@ export default function CategoryPage() {
                   }}
                   disabled={desktopOnly}
                 >
-                  <img className="tile-image" src={game.img} alt={game.name} />
+                  <GameImage
+                    className="tile-image"
+                    sources={game.imgCandidates}
+                    alt={game.name}
+                  />
                   <div className="tile-content">
                     <div className="tile-title" title={game.name}>
                       {game.name}

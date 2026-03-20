@@ -3,10 +3,39 @@ import { getStoredJSON, removeJSON, storeJSON } from "../utils/storage";
 
 type ThemeMode = "light" | "dark";
 type ContrastMode = "normal" | "high";
+export type ThemePreset =
+  | "default"
+  | "vscode-dark-plus"
+  | "vscode-light-plus"
+  | "monokai"
+  | "solarized-dark"
+  | "solarized-light";
+
+const THEME_PRESETS: ThemePreset[] = [
+  "default",
+  "vscode-dark-plus",
+  "vscode-light-plus",
+  "monokai",
+  "solarized-dark",
+  "solarized-light",
+];
+
+const PRESET_MODE: Record<ThemePreset, ThemeMode | "auto"> = {
+  default: "auto",
+  "vscode-dark-plus": "dark",
+  "vscode-light-plus": "light",
+  monokai: "dark",
+  "solarized-dark": "dark",
+  "solarized-light": "light",
+};
+
+const isThemePreset = (value: string): value is ThemePreset =>
+  THEME_PRESETS.includes(value as ThemePreset);
 
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [contrast, setContrast] = useState<ContrastMode>("normal");
+  const [themePreset, setThemePresetState] = useState<ThemePreset>("default");
   const [accent, setAccent] = useState<string>("#81f0d7");
 
   const readAccentFromDOM = () => {
@@ -17,6 +46,19 @@ export function useTheme() {
       return value;
     }
     return "#81f0d7";
+  };
+
+  const applyThemeMode = (nextTheme: ThemeMode) => {
+    setTheme(nextTheme);
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+  };
+
+  const applyPreset = (nextPreset: ThemePreset) => {
+    if (nextPreset === "default") {
+      document.documentElement.removeAttribute("data-theme");
+      return;
+    }
+    document.documentElement.setAttribute("data-theme", nextPreset);
   };
 
   useEffect(() => {
@@ -33,10 +75,20 @@ export function useTheme() {
     } else {
       setAccent(readAccentFromDOM());
     }
+    const savedPreset = getStoredJSON<string>("gams", { key: "themePreset" });
+    const resolvedPreset =
+      savedPreset && isThemePreset(savedPreset) ? savedPreset : "default";
+    setThemePresetState(resolvedPreset);
+    applyPreset(resolvedPreset);
+    const forcedMode = PRESET_MODE[resolvedPreset];
+
     const savedTheme = getStoredJSON<string>("gams", { key: "theme" });
+    if (forcedMode !== "auto") {
+      applyThemeMode(forcedMode);
+      return;
+    }
     if (savedTheme === "light" || savedTheme === "dark") {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle("dark", savedTheme === "dark");
+      applyThemeMode(savedTheme);
       return;
     }
 
@@ -46,8 +98,7 @@ export function useTheme() {
     if (media) {
       const applyAutoTheme = (isDark: boolean) => {
         const nextTheme: ThemeMode = isDark ? "dark" : "light";
-        setTheme(nextTheme);
-        document.documentElement.classList.toggle("dark", isDark);
+        applyThemeMode(nextTheme);
       };
       applyAutoTheme(media.matches);
       const handler = (event: MediaQueryListEvent) => applyAutoTheme(event.matches);
@@ -62,8 +113,7 @@ export function useTheme() {
 
   const toggleTheme = (nextDark: boolean) => {
     const nextTheme: ThemeMode = nextDark ? "dark" : "light";
-    setTheme(nextTheme);
-    document.documentElement.classList.toggle("dark", nextDark);
+    applyThemeMode(nextTheme);
     storeJSON("gams", { key: "theme", value: nextTheme });
   };
 
@@ -91,11 +141,24 @@ export function useTheme() {
     setAccent(readAccentFromDOM());
   };
 
+  const setThemePreset = (nextPreset: ThemePreset) => {
+    setThemePresetState(nextPreset);
+    applyPreset(nextPreset);
+    storeJSON("gams", { key: "themePreset", value: nextPreset });
+    const forcedMode = PRESET_MODE[nextPreset];
+    if (forcedMode !== "auto") {
+      applyThemeMode(forcedMode);
+      storeJSON("gams", { key: "theme", value: forcedMode });
+    }
+  };
+
   return {
     theme,
     toggleTheme,
     contrast,
     toggleContrast,
+    themePreset,
+    setThemePreset,
     accent,
     setAccentColor,
     resetAccentColor,

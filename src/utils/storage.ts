@@ -10,6 +10,11 @@ const STORAGE_KEYS = [
 const COOKIE_STORE_KEY = "gams_cookie_store";
 const refreshQueue = new Map<string, Promise<void>>();
 let hydrated = false;
+let authSyncEnabled = false;
+let storagePatched = false;
+let internalWrites = 0;
+let authSyncInterval: number | null = null;
+let authCheckInFlight: Promise<void> | null = null;
 
 function getLocalStorage(): Storage | null {
   if (typeof localStorage === "undefined") return null;
@@ -41,6 +46,114 @@ async function postStorage(payload: Record<string, unknown>) {
   } catch {
     return null;
   }
+}
+
+async function fetchAuthUser(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    const res = await fetch("/api/auth/me", { credentials: "include" });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { user?: { username?: string } | null };
+    return !!data?.user;
+  } catch {
+    return false;
+  }
+}
+
+function withInternalWrite(task: () => void): void {
+  internalWrites += 1;
+  try {
+    task();
+  } finally {
+    internalWrites = Math.max(0, internalWrites - 1);
+  }
+}
+
+function patchLocalStorageSync(): void {
+  if (storagePatched) return;
+  if (typeof window === "undefined" || typeof Storage === "undefined") return;
+  try {
+    const originalSetItem = Storage.prototype.setItem;
+    const originalRemoveItem = Storage.prototype.removeItem;
+
+    Storage.prototype.setItem = function setItem(key: string, value: string) {
+      originalSetItem.call(this, key, value);
+      if (!authSyncEnabled || internalWrites > 0) return;
+      pushServerUpdate(key, value);
+    };
+
+    Storage.prototype.removeItem = function removeItem(key: string) {
+      originalRemoveItem.call(this, key);
+      if (!authSyncEnabled || internalWrites > 0) return;
+      pushServerRemove(key);
+    };
+
+    storagePatched = true;
+  } catch {
+    storagePatched = false;
+  }
+}
+
+async function pushServerBulkUpdate(
+  entries: Record<string, string>,
+): Promise<void> {
+  if (Object.keys(entries).length === 0) return;
+  await postStorage({ action: "bulk_set", entries });
+}
+
+async function hydrateServerStorageAll(): Promise<void> {
+  if (typeof window === "undefined") return;
+  const data = await postStorage({ action: "bulk_all" });
+  if (!data || typeof data !== "object") return;
+  const entries = data.entries as Record<string, string> | undefined;
+  if (!entries) return;
+
+  const ls = getLocalStorage();
+  if (!ls) return;
+
+  const pending: Record<string, string> = {};
+  const serverKeys = new Set(Object.keys(entries));
+
+  for (const [key, value] of Object.entries(entries)) {
+    if (typeof value !== "string") continue;
+    const localValue = ls.getItem(key);
+    if (localValue === null) {
+      withInternalWrite(() => ls.setItem(key, value));
+    } else if (localValue !== value) {
+      pending[key] = localValue;
+    }
+  }
+
+  for (let i = 0; i < ls.length; i += 1) {
+    const key = ls.key(i);
+    if (!key || serverKeys.has(key)) continue;
+    const value = ls.getItem(key);
+    if (typeof value === "string") {
+      pending[key] = value;
+    }
+  }
+
+  await pushServerBulkUpdate(pending);
+}
+
+export async function hydrateAuthStorage(): Promise<void> {
+  if (typeof window === "undefined" || authSyncEnabled) return;
+  if (authCheckInFlight) return authCheckInFlight;
+  authCheckInFlight = (async () => {
+    const isAuthed = await fetchAuthUser();
+    if (!isAuthed) return;
+    authSyncEnabled = true;
+    patchLocalStorageSync();
+    await hydrateServerStorageAll();
+    if (authSyncInterval === null) {
+      authSyncInterval = window.setInterval(() => {
+        void hydrateServerStorageAll();
+      }, 30000);
+    }
+  })().finally(() => {
+    authCheckInFlight = null;
+  });
+  return authCheckInFlight;
 }
 
 export function hydrateServerStorage(keys: string[] = STORAGE_KEYS): void {
@@ -137,7 +250,9 @@ export function storeJSON(
   } else {
     inStore = { [data.key]: data.value };
   }
-  ls[key] = JSON.stringify(inStore);
+  withInternalWrite(() => {
+    ls[key] = JSON.stringify(inStore);
+  });
   pushServerUpdate(key, ls[key]);
   return ls[key];
 }
@@ -150,11 +265,15 @@ export function removeJSON(key: string, data: { key: string }): void {
     const inStore = JSON.parse(ls[key]) as Record<string, unknown>;
     if (typeof inStore === "object" && inStore) {
       delete inStore[data.key];
-      ls[key] = JSON.stringify(inStore);
+      withInternalWrite(() => {
+        ls[key] = JSON.stringify(inStore);
+      });
       pushServerUpdate(key, ls[key]);
     }
   } catch {
-    ls.removeItem(key);
+    withInternalWrite(() => {
+      ls.removeItem(key);
+    });
     pushServerRemove(key);
   }
 }
@@ -170,14 +289,18 @@ export function getStoredItem(key: string): string | null {
 export function setStoredItem(key: string, value: string): void {
   const ls = getLocalStorage();
   if (!ls) return;
-  ls.setItem(key, value);
+  withInternalWrite(() => {
+    ls.setItem(key, value);
+  });
   pushServerUpdate(key, value);
 }
 
 export function removeStoredItem(key: string): void {
   const ls = getLocalStorage();
   if (!ls) return;
-  ls.removeItem(key);
+  withInternalWrite(() => {
+    ls.removeItem(key);
+  });
   pushServerRemove(key);
 }
 
