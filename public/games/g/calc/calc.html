@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags added due to entries.js deprecation on July 8th, 2025 -->
+    <meta name="description" content="Calculator Using-Javascript For One Page Html Challenge">
+    <meta name="author" content="Abhay Mourya (Abhay557)">
+    <meta name="github" content="Abhay557">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Made By @Abhay557</title>
+</head>
+<style>
+*{
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height: 100vh;
+    background-color: #233342;
+}
+.calculator{
+    border-radius: 35px;
+    background: #233342;
+    box-shadow:  26px 26px 35px #1c2834,
+             -26px -26px 35px #2a3e50;
+    position: relative;
+    display:grid;
+}
+
+.calculator .value{
+    grid-column: span 4;
+    height: 70px;
+    text-align: right;
+    border: none;
+    outline:none;
+    padding: 10px;
+    font-size: 18px;
+    border-radius:30px;
+    margin: 10px;
+}
+
+.calculator span{
+    margin: 10px;
+    border-radius:50px;
+    display:grid;
+    width: 60px;
+    height: 60px;
+    color: #fff;
+    background-color: #0c2835;
+    place-items: center;
+    border: 1px solid rgba(0,0,0,.1);
+    cursor: pointer;
+}
+
+.calculator span:active{
+    background: #74ff3b;
+    color:#111;
+}
+
+.calculator span.clear{
+    grid-column: span 2;
+    width: 140px;
+    background: #e25057;
+}
+
+.calculator span.plus{
+    grid-row: span 2;
+    height: 140px;
+}
+
+.calculator span.equal{
+    background: #7c4dbe;
+}
+</style>
+<body>
+    <div class="calculator-container">
+        <div class="mode-selector">
+            <button onclick="setMode('basic')">Basic</button>
+            <button onclick="setMode('scientific')">Scientific</button>
+            <button onclick="setMode('graphic')">Graphic</button>
+            <button onclick="setMode('algebra')">Algebra</button>
+            <button onclick="setMode('calculus')">Calculus</button>
+        </div>
+        <form class="calculator" name="cal">
+            <input class="value" type="text" name="txt" readonly="">
+            <div id="basic-buttons" class="button-group">
+                <span class="num clear" onclick="document.cal.txt.value = ''">C</span>
+                <span class="num" onclick="document.cal.txt.value += '/'">/</span>
+                <span class="num" onclick="document.cal.txt.value += '*'">*</span>
+                <span class="num" onclick="document.cal.txt.value += '7'">7</span>
+                <span class="num" onclick="document.cal.txt.value += '8'">8</span>
+                <span class="num" onclick="document.cal.txt.value += '9'">9</span>
+                <span class="num" onclick="document.cal.txt.value += '-'">-</span>
+                <span class="num" onclick="document.cal.txt.value += '('">(</span>
+                <span class="num" onclick="document.cal.txt.value += ')'">)</span>
+                <span class="num" onclick="document.cal.txt.value += '4'">4</span>
+                <span class="num" onclick="document.cal.txt.value += '5'">5</span>
+                <span class="num" onclick="document.cal.txt.value += '6'">6</span>
+                <span class="num plus" onclick="document.cal.txt.value += '+'">+</span>
+                <span class="num" onclick="document.cal.txt.value += '1'">1</span>
+                <span class="num" onclick="document.cal.txt.value += '2'">2</span>
+                <span class="num" onclick="document.cal.txt.value += '3'">3</span>
+                <span class="num" onclick="document.cal.txt.value += '0'">0</span>
+                <span class="num" onclick="document.cal.txt.value += '00'">00</span>
+                <span class="num" onclick="document.cal.txt.value += '.'">.</span>
+                <span class="num equal" onclick="calculate()">=</span>
+            </div>
+            <div id="scientific-buttons" class="button-group" style="display: none;">
+                <span class="num" onclick="document.cal.txt.value += 'Math.sin'">sin</span>
+                <span class="num" onclick="document.cal.txt.value += 'Math.cos'">cos</span>
+                <span class="num" onclick="document.cal.txt.value += 'Math.tan'">tan</span>
+                <span class="num" onclick="document.cal.txt.value += 'Math.log'">log</span>
+                <span class="num" onclick="document.cal.txt.value += 'Math.exp'">exp</span>
+                <span class="num" onclick="document.cal.txt.value += 'Math.sqrt'">√</span>
+                <span class="num" onclick="document.cal.txt.value += '**'">^</span>
+                <span class="num" onclick="document.cal.txt.value += 'Math.PI'">π</span>
+            </div>
+            <div id="graphic-buttons" class="button-group" style="display: none;">
+                <canvas id="graphCanvas" width="300" height="200"></canvas>
+                <span class="num" onclick="plotGraph()">Plot</span>
+            </div>
+            <div id="algebra-buttons" class="button-group" style="display: none;">
+                <span class="num" onclick="document.cal.txt.value += 'solve('">Solve</span>
+                <span class="num" onclick="document.cal.txt.value += 'factor('">Factor</span>
+                <span class="num" onclick="document.cal.txt.value += 'simplify('">Simplify</span>
+            </div>
+            <div id="calculus-buttons" class="button-group" style="display: none;">
+                <span class="num" onclick="document.cal.txt.value += 'derivative('">Derivative</span>
+                <span class="num" onclick="document.cal.txt.value += 'integral('">Integral</span>
+                <span class="num" onclick="document.cal.txt.value += 'limit('">Limit</span>
+            </div>
+        </form>
+    </div>
+    <script>
+        let currentMode = 'basic';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.button-group').forEach(group => {
+                group.style.display = 'none';
+            });
+            document.getElementById(`${mode}-buttons`).style.display = 'grid';
+        }
+
+        function calculate() {
+            const expression = document.cal.txt.value;
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expression: expression, mode: currentMode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.cal.txt.value = data.result;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.cal.txt.value = 'Error';
+            });
+        }
+
+        function plotGraph() {
+            const expression = document.cal.txt.value;
+            fetch('/plot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expression: expression }),
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const canvas = document.getElementById('graphCanvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+                };
+                img.src = url;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.cal.txt.value = 'Error plotting graph';
+            });
+        }
+    </script>
+    <style>
+        .calculator-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .mode-selector {
+            margin-bottom: 10px;
+        }
+        .mode-selector button {
+            margin: 0 5px;
+            padding: 5px 10px;
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        #graphCanvas {
+            grid-column: span 4;
+            border: 1px solid #ccc;
+        }
+    </style>
+</body>
+</html>

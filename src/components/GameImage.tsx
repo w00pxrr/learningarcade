@@ -7,6 +7,7 @@ type GameImageProps = {
   alt: string;
   className?: string;
   loading?: "eager" | "lazy";
+  priority?: boolean;
 };
 
 export function GameImage({
@@ -14,6 +15,7 @@ export function GameImage({
   alt,
   className,
   loading = "lazy",
+  priority = false,
 }: GameImageProps) {
   const sourceKey = sources.join("|");
   const sourceList = useMemo(
@@ -33,7 +35,11 @@ export function GameImage({
       className={className}
       src={activeSource}
       alt={alt}
-      loading={loading}
+      loading={priority ? "eager" : loading}
+      // Use async decoding to prevent main thread blocking on Chromebooks
+      decoding="async"
+      // Reduce quality for faster loading on slower devices
+      fetchPriority={priority ? "high" : "auto"}
       onError={() => {
         if (index < sourceList.length - 1) {
           setIndex(index + 1);

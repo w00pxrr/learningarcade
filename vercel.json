@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "public/games/g/calc/backend.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "1536MB",
+        "runtime": "python3.9"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/calculate",
+      "dest": "public/games/g/calc/backend.py"
+    },
+    {
+      "src": "/plot",
+      "dest": "public/games/g/calc/backend.py"
+    }
+  ]
+}

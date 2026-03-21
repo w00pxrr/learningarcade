@@ -1196,6 +1196,44 @@ html.dark .select-trigger {
   border: 0;
 }
 
+/* Game loading skeleton - improves perceived performance on Chromebooks */
+.game-loading-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--gams-bg);
+  color: var(--gams-tx-2);
+  z-index: 10;
+}
+
+.skeleton-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--gams-bg-3);
+  border-top-color: var(--gams-link);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Optimize iframe rendering on Chromebooks */
+.embed-iframe.loading {
+  visibility: hidden;
+}
+
+.embed-iframe.loaded {
+  visibility: visible;
+}
+
 .fullscreen-prompt {
   position: fixed;
   inset: 0;

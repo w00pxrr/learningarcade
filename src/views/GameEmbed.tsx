@@ -6,7 +6,10 @@ import React, {
   useMemo,
   useRef,
   useState,
+  lazy,
+  Suspense,
 } from "react";
+import { applyWasmFilters } from "../utils/wasmFilters";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Slider from "@radix-ui/react-slider";
@@ -60,6 +63,16 @@ function resolveUrl(rawUrl?: string | null) {
   }
 }
 
+// Loading skeleton component for the iframe
+function GameLoadingSkeleton() {
+  return (
+    <div className="game-loading-skeleton">
+      <div className="skeleton-spinner"></div>
+      <p>Loading game...</p>
+    </div>
+  );
+}
+
 export default function GameEmbedPage() {
   const searchParams = useSearchParams();
   const [gameId, setGameId] = useState<string | null>(null);
@@ -70,6 +83,7 @@ export default function GameEmbedPage() {
   const [windowLock, setWindowLock] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
@@ -186,7 +200,7 @@ export default function GameEmbedPage() {
     return () => window.removeEventListener("pointerdown", handler);
   }, [isFullscreen]);
 
-  const filterStyle = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) hue-rotate(${filters.hue}deg) blur(${filters.blur}px) saturate(${filters.saturate}%) grayscale(${filters.grayscale}%) sepia(${filters.sepia}%) invert(${filters.invert}%) opacity(${filters.opacity}) drop-shadow(0 0 ${filters.dropShadow}px rgba(0,0,0,0.4))`;
+  const filterStyle = '';
 
   const openFullscreen = () => {
     const element = document.getElementById("frame");
@@ -346,15 +360,34 @@ export default function GameEmbedPage() {
           }}
         >
           {frameSrc ? (
-            <iframe
-              id="frame"
-              title="Game frame"
-              src={frameSrc}
-              ref={frameRef}
-              onLoad={() => frameRef.current?.focus()}
-              className="embed-iframe"
-              style={{ filter: filterStyle }}
-            />
+            <>
+              {/* Show loading skeleton until iframe loads - improves perceived performance on Chromebooks */}
+              {!isIframeLoaded && <GameLoadingSkeleton />}
+              <iframe
+                id="frame"
+                title="Game frame"
+                src={frameSrc}
+                ref={frameRef}
+                // Only focus after load to prevent blocking
+                onLoad={() => {
+                  setIsIframeLoaded(true);
+                  frameRef.current?.focus();
+                }}
+                className={`embed-iframe ${isIframeLoaded ? 'loaded' : 'loading'}`}
+                style={{ 
+                  filter: filterStyle,
+                  // Hide iframe content until loaded to prevent flickering
+                  opacity: isIframeLoaded ? 1 : 0,
+                  transition: 'opacity 0.2s ease-in-out',
+                }}
+                // Performance optimizations for Chromebooks
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                // Reduce memory usage
+                allow="autoplay; fullscreen; gamepad"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+              />
+            </>
           ) : null}
         </div>
       </div>

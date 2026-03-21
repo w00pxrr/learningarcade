@@ -32,10 +32,16 @@ export const metadata: Metadata = {
   icons: {
     icon: "/img/gams-g.png",
   },
+  other: {
+    'theme-color': '#0f172a',
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#0f172a",
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -44,7 +50,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnect to external origins for faster connections on Chromebooks */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* DNS prefetch for game resources */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+      </head>
       <body>
         <ThemeRoot>
           {children}
@@ -52,6 +66,7 @@ export default function RootLayout({
             <RouteAnalytics />
           </Suspense>
         </ThemeRoot>
+        {/* Load analytics after page is interactive to reduce impact on Chromebooks */}
         <Analytics />
         <SpeedInsights />
       </body>
