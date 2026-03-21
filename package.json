@@ -34,7 +34,6 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@ruffle-rs/ruffle": "^0.2.0-nightly.2026.3.19",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/python": "^6.25.0",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "latest",
     "bcrypt": "^6.0.0",
