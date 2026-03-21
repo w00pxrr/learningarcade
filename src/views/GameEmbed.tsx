@@ -9,7 +9,6 @@ import React, {
   lazy,
   Suspense,
 } from "react";
-import { applyWasmFilters } from "../utils/wasmFilters";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Slider from "@radix-ui/react-slider";
