@@ -182,7 +182,7 @@ export async function getCurrentUser(): Promise<{ id: string; username: string; 
 }
 
 // Get user role based on username and post count
-export async function getUserRole(username: string, postCount: number): string {
+export async function getUserRole(username: string, postCount: number): Promise<string> {
   // Owner for psolo
   if (username.toLowerCase() === "psolo") return "owner";
   
