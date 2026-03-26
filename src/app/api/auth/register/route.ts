@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { Pool } from "@neondatabase/serverless";
 import { hash } from "bcryptjs";
+import { redirect } from "next/navigation";
 
 const pool = new Pool({
   connectionString:
@@ -13,12 +14,40 @@ const pool = new Pool({
     "",
 });
 
+// Log security events
+async function logSecurityEvent(
+  userId: string | null,
+  eventType: string,
+  details: Record<string, unknown> = {}
+): Promise<void> {
+  try {
+    const id = crypto.randomUUID();
+    await pool.query(
+      `INSERT INTO gams_security_logs (id, user_id, event_type, ip_address, user_agent, details)
+       VALUES ($1, $2, $3, $4, $5, $6);`,
+      [
+        id,
+        userId,
+        eventType,
+        details.ip_address || null,
+        details.user_agent || null,
+        JSON.stringify(details),
+      ]
+    );
+  } catch {
+    // Silently fail - don't block registration for logging issues
+  }
+}
+
 async function ensureAuthTables(): Promise<void> {
   await pool.query(
     `CREATE TABLE IF NOT EXISTS gams_users (
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      school TEXT,
+      bio TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );`,
   );
@@ -39,6 +68,18 @@ async function ensureAuthTables(): Promise<void> {
       expires_at TIMESTAMPTZ NOT NULL
     );`,
   );
+  // Ensure security logs table exists
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS gams_security_logs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES gams_users(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      ip_address TEXT,
+      user_agent TEXT,
+      details JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );`,
+  );
 }
 
 async function mergeAnonymousStorage(userId: string, anonId: string | null) {
@@ -56,14 +97,17 @@ async function mergeAnonymousStorage(userId: string, anonId: string | null) {
 
 export async function POST(req: Request) {
   await ensureAuthTables();
-  let payload: { username?: string; password?: string } | null = null;
+  let payload: { username?: string; password?: string; display_name?: string; school?: string; bio?: string } | null = null;
   try {
-    payload = (await req.json()) as { username?: string; password?: string };
+    payload = (await req.json()) as { username?: string; password?: string; display_name?: string; school?: string; bio?: string };
   } catch {
     payload = null;
   }
   const username = payload?.username?.trim() ?? "";
   const password = payload?.password ?? "";
+  const displayName = payload?.display_name?.trim() ?? username;
+  const school = payload?.school?.trim() ?? null;
+  const bio = payload?.bio?.trim() ?? null;
   if (!username || !password) {
     return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
   }
@@ -85,10 +129,13 @@ export async function POST(req: Request) {
   const userId = crypto.randomUUID();
   const passwordHash = await hash(password, 10);
   await pool.query(
-    `INSERT INTO gams_users (id, username, password_hash)
-     VALUES ($1, $2, $3);`,
-    [userId, username, passwordHash],
+    `INSERT INTO gams_users (id, username, password_hash, display_name, school, bio)
+     VALUES ($1, $2, $3, $4, $5, $6);`,
+    [userId, username, passwordHash, displayName, school, bio],
   );
+
+  // Log successful registration
+  await logSecurityEvent(userId, 'register_success', { username });
 
   const sessionId = crypto.randomUUID();
   const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
@@ -109,5 +156,6 @@ export async function POST(req: Request) {
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
+  redirect("/");
   return response;
 }

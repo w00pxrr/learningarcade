@@ -74,6 +74,9 @@ export function PrimaryNav({
                 <DropdownMenu.Item className="dropdown-item" asChild>
                   <Link href="/category/all">All Games</Link>
                 </DropdownMenu.Item>
+                <DropdownMenu.Item className="dropdown-item" asChild>
+                  <Link href="/forum">Forum</Link>
+                </DropdownMenu.Item>
                 {showHomeLinks ? (
                   <>
                     <DropdownMenu.Item className="dropdown-item" asChild>
@@ -128,6 +131,9 @@ export function PrimaryNav({
           </Link>
           <Link href="/category/all" className="nav-link">
             All Games
+          </Link>
+          <Link href="/forum" className="nav-link">
+            Forum
           </Link>
           {showHomeLinks ? (
             <>

@@ -1,3 +1,4 @@
 allowBuilds:
+  '@fortawesome/fontawesome-free': false
   bcrypt: true
   sharp: true

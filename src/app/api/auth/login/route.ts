@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { Pool } from "@neondatabase/serverless";
 import { compare } from "bcryptjs";
+import { ensureTables } from "@/utils/db";
 
 const pool = new Pool({
   connectionString:
@@ -13,6 +14,30 @@ const pool = new Pool({
     "",
 });
 
+// Log security events
+async function logSecurityEvent(
+  userId: string | null,
+  eventType: string,
+  details: Record<string, unknown> = {}
+): Promise<void> {
+  try {
+    const id = crypto.randomUUID();
+    await pool.query(
+      `INSERT INTO gams_security_logs (id, user_id, event_type, ip_address, user_agent, details)
+       VALUES ($1, $2, $3, $4, $5, $6);`,
+      [
+        id,
+        userId,
+        eventType,
+        details.ip_address || null,
+        details.user_agent || null,
+        JSON.stringify(details),
+      ]
+    );
+  } catch {
+    // Silently fail - don't block login for logging issues
+  }
+}
 async function ensureAuthTables(): Promise<void> {
   await pool.query(
     `CREATE TABLE IF NOT EXISTS gams_users (
@@ -37,6 +62,18 @@ async function ensureAuthTables(): Promise<void> {
       user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       expires_at TIMESTAMPTZ NOT NULL
+    );`,
+  );
+  // Ensure security logs table exists
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS gams_security_logs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES gams_users(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      ip_address TEXT,
+      user_agent TEXT,
+      details JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );`,
   );
 }
@@ -74,12 +111,19 @@ export async function POST(req: Request) {
   );
   const row = result.rows[0];
   if (!row) {
+    // Log failed login attempt - user not found
+    await logSecurityEvent(null, 'login_failed', { username, reason: 'user_not_found' });
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
   const ok = await compare(password, row.password_hash);
   if (!ok) {
+    // Log failed login attempt - wrong password
+    await logSecurityEvent(row.id, 'login_failed', { username, reason: 'wrong_password' });
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
+
+  // Log successful login
+  await logSecurityEvent(row.id, 'login_success', { username });
 
   const sessionId = crypto.randomUUID();
   const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);

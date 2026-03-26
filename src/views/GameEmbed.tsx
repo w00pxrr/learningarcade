@@ -6,8 +6,6 @@ import React, {
   useMemo,
   useRef,
   useState,
-  lazy,
-  Suspense,
 } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -86,6 +84,22 @@ export default function GameEmbedPage() {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
+  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    // Check authentication status
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data.user);
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        setUser(null);
+        setAuthChecked(true);
+      });
+  }, []);
 
   useDisguise(currentName, currentIcon);
 
@@ -287,13 +301,31 @@ export default function GameEmbedPage() {
 
   return (
     <div className="ui-page ui-page-embed">
-      {!isFullscreen ? (
-        <PrimaryNav
-          showHomeLinks={false}
-          extraActions={
-            <>
-              <div className="nav-game-actions">
-                <div className="game-identity">
+      {/* Show login prompt if not authenticated */}
+      {!authChecked ? (
+        <PrimaryNav showHomeLinks={false} />
+      ) : !user ? (
+        <>
+          <PrimaryNav showHomeLinks={false} />
+          <main className="ui-container ui-container-md">
+            <section className="panel">
+              <h2 className="panel-heading">Login Required</h2>
+              <p className="muted">You must be logged in to play games.</p>
+              <a href="/account" className="btn btn-primary">
+                Sign In / Create Account
+              </a>
+            </section>
+          </main>
+        </>
+      ) : (
+        <>
+          {!isFullscreen ? (
+            <PrimaryNav
+              showHomeLinks={false}
+              extraActions={
+                <>
+                  <div className="nav-game-actions">
+                    <div className="game-identity">
                   <img
                     src={currentIcon}
                     alt="Game icon"
@@ -343,10 +375,12 @@ export default function GameEmbedPage() {
                   </DropdownMenu.Portal>
                 </DropdownMenu.Root>
               </div>
-            </>
+         </>
           }
         />
       ) : null}
+        </>
+      )}
 
       <div className="embed-shell">
         <div
