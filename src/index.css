@@ -1506,14 +1506,6 @@ html.dark .select-trigger {
   color: var(--muted-color, #64748b);
 }
 
-.forum-post-content {
-  margin-top: 16px;
-  padding: 16px;
-  background: var(--hover-bg, #f8fafc);
-  border-radius: 6px;
-  white-space: pre-wrap;
-  line-height: 1.6;
-}
 
 .forum-replies {
   display: flex;
