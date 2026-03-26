@@ -35,6 +35,21 @@ html.dark {
   --gams-panel: rgba(15, 24, 39, 0.9);
   --gams-panel-border: rgba(120, 160, 255, 0.35);
 }
+.forum-threads .forum-thread-card {
+  background: var(--gams-panel);
+  border: 1px solid var(--gams-panel-border);
+} .forum-replies .forum-reply-card {
+  background: var(--gams-panel);
+  border: 1px solid var(--gams-panel-border);
+}.forum-categories .forum-category-card {
+  background: var(--gams-panel);
+  border: 1px solid var(--gams-panel-border);
+} .forum-post-content {
+  background: var(--gams-bg-2);
+  border: 1px solid var(--gams-panel-border);
+  border-radius: 12px;
+  padding: 12px;
+}
 
 html[data-theme="vscode-dark-plus"] {
   --gams-title-color: #ffffff;

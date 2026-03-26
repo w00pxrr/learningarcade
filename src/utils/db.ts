@@ -1,5 +1,3 @@
-"use server";
-
 import { Pool } from "@neondatabase/serverless";
 
 // Create a shared pool instance for database connections
