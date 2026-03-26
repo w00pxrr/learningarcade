@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { gamesData, gamesById } from '../../../data/games';
 import ClientGamePage from './client';
+// Ensure proper module resolution for client component
 
 interface Props {
   params: { gameId: string };
