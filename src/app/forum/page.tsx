@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PrimaryNav } from "../../components/PrimaryNav";
 
 type Category = {
@@ -16,6 +17,7 @@ type Category = {
 type User = { username: string } | null;
 
 export default function ForumPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,9 +40,32 @@ export default function ForumPage() {
     // Check auth status
     fetch("/api/auth/me")
       .then((res) => res.json())
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null));
-  }, []);
+      .then((data) => {
+        setUser(data.user);
+        // Redirect to login if not authenticated
+        if (!data.user) {
+          router.push("/login");
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        router.push("/login");
+      });
+  }, [router]);
+
+  // Show loading while checking auth
+  if (!user && !error) {
+    return (
+      <div className="ui-page">
+        <PrimaryNav />
+        <main className="ui-container ui-container-md">
+          <div className="panel">
+            <p className="muted">Checking authentication...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="ui-page">
@@ -82,14 +107,6 @@ export default function ForumPage() {
               </Link>
             ))}
           </div>
-        )}
-
-        {!user && (
-          <section className="panel">
-            <p className="muted">
-              <Link href="/account" className="link">Sign in</Link> to post threads and replies.
-            </p>
-          </section>
         )}
       </main>
     </div>

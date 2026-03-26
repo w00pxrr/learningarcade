@@ -2,81 +2,8 @@
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { Pool } from "@neondatabase/serverless";
 import { compare } from "bcryptjs";
-import { ensureTables } from "@/utils/db";
-
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    "",
-});
-
-// Log security events
-async function logSecurityEvent(
-  userId: string | null,
-  eventType: string,
-  details: Record<string, unknown> = {}
-): Promise<void> {
-  try {
-    const id = crypto.randomUUID();
-    await pool.query(
-      `INSERT INTO gams_security_logs (id, user_id, event_type, ip_address, user_agent, details)
-       VALUES ($1, $2, $3, $4, $5, $6);`,
-      [
-        id,
-        userId,
-        eventType,
-        details.ip_address || null,
-        details.user_agent || null,
-        JSON.stringify(details),
-      ]
-    );
-  } catch {
-    // Silently fail - don't block login for logging issues
-  }
-}
-async function ensureAuthTables(): Promise<void> {
-  await pool.query(
-    `CREATE TABLE IF NOT EXISTS gams_users (
-      id TEXT PRIMARY KEY,
-      username TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );`,
-  );
-  await pool.query(
-    `CREATE TABLE IF NOT EXISTS gams_storage (
-      user_id TEXT NOT NULL,
-      key TEXT NOT NULL,
-      value TEXT NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      PRIMARY KEY (user_id, key)
-    );`,
-  );
-  await pool.query(
-    `CREATE TABLE IF NOT EXISTS gams_sessions (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      expires_at TIMESTAMPTZ NOT NULL
-    );`,
-  );
-  // Ensure security logs table exists
-  await pool.query(
-    `CREATE TABLE IF NOT EXISTS gams_security_logs (
-      id TEXT PRIMARY KEY,
-      user_id TEXT REFERENCES gams_users(id) ON DELETE SET NULL,
-      event_type TEXT NOT NULL,
-      ip_address TEXT,
-      user_agent TEXT,
-      details JSONB,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );`,
-  );
-}
+import { pool, ensureTables, logSecurityEvent } from "@/utils/db";
 
 async function mergeAnonymousStorage(userId: string, anonId: string | null) {
   if (!anonId) return;
@@ -92,7 +19,7 @@ async function mergeAnonymousStorage(userId: string, anonId: string | null) {
 }
 
 export async function POST(req: Request) {
-  await ensureAuthTables();
+  await ensureTables();
   let payload: { username?: string; password?: string } | null = null;
   try {
     payload = (await req.json()) as { username?: string; password?: string };

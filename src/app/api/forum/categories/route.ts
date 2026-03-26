@@ -5,9 +5,7 @@ import { pool, ensureTables, getCurrentUser } from "@/utils/db";
 
 // GET - List all categories
 export async function GET() {
-  console.log("[categories/GET] Fetching forum categories...");
   await ensureTables();
-  console.log("[categories/GET] Tables ensured, querying categories...");
   
   const result = await pool.query(`
     SELECT 
@@ -20,5 +18,8 @@ export async function GET() {
     ORDER BY c.display_order ASC
   `);
   
-  return NextResponse.json({ categories: result.rows });
+  const response = NextResponse.json({ categories: result.rows });
+  // Cache for 5 minutes - categories don't change often
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  return response;
 }

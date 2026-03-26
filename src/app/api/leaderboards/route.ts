@@ -2,60 +2,7 @@
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { Pool } from "@neondatabase/serverless";
-
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    "",
-});
-
-let tablesReady: Promise<void> | null = null;
-
-async function ensureTables(): Promise<void> {
-  if (!tablesReady) {
-    tablesReady = pool
-      .query(
-        `CREATE TABLE IF NOT EXISTS gams_users (
-          id TEXT PRIMARY KEY,
-          username TEXT NOT NULL UNIQUE,
-          password_hash TEXT NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );`,
-      )
-      .then(() =>
-        pool.query(
-          `CREATE TABLE IF NOT EXISTS gams_sessions (
-            id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            expires_at TIMESTAMPTZ NOT NULL
-          );`,
-        ),
-      )
-      .then(() =>
-        pool.query(
-          `CREATE TABLE IF NOT EXISTS gams_leaderboards (
-            id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
-            game_id TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-          );`,
-        ),
-      )
-      .then(() =>
-        pool.query(
-          `CREATE INDEX IF NOT EXISTS gams_leaderboards_game_idx
-           ON gams_leaderboards (game_id);`,
-        ),
-      )
-      .then(() => undefined);
-  }
-  return tablesReady;
-}
+import { pool, ensureTables } from "@/utils/db";
 
 async function getAuthenticatedUser(): Promise<{ id: string; username: string } | null> {
   await ensureTables();

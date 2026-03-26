@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { pool, ensureTables, getCurrentUser, updateUserPostCount } from "@/utils/db";
+import { checkRateLimit, getRateLimitMessage, isContentClean, getContentViolationMessage } from "@/utils/contentModeration";
 
 // GET - List threads in a category
 export async function GET(request: Request) {
@@ -27,7 +28,10 @@ export async function GET(request: Request) {
     LIMIT 50
   `, [categoryId]);
   
-  return NextResponse.json({ threads: result.rows });
+  const response = NextResponse.json({ threads: result.rows });
+  // Cache for 1 minute - threads update frequently
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+  return response;
 }
 
 // POST - Create a new thread (requires login)
@@ -59,6 +63,20 @@ export async function POST(request: Request) {
   
   if (content.length < 1 || content.length > 10000) {
     return NextResponse.json({ error: "Content must be 1-10000 characters" }, { status: 400 });
+  }
+  
+  // Check rate limit for thread creation
+  if (!checkRateLimit(user.id, 'threadCreation')) {
+    return NextResponse.json({ error: getRateLimitMessage('threadCreation') }, { status: 429 });
+  }
+  
+  // Check for profanity in title and content
+  if (!isContentClean(title)) {
+    return NextResponse.json({ error: getContentViolationMessage() }, { status: 400 });
+  }
+  
+  if (!isContentClean(content)) {
+    return NextResponse.json({ error: getContentViolationMessage() }, { status: 400 });
   }
   
   const threadId = crypto.randomUUID();

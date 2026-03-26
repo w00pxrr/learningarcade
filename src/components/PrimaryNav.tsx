@@ -119,7 +119,7 @@ export function PrimaryNav({
           </DropdownMenu.Root>
 
           <div className="nav-brand">
-            <img src="/img/gams-g.png" alt="LearningArcade" className="nav-logo" />
+            <img src="/img/Learning Arcade Background Removed.png" alt="LearningArcade" className="nav-logo" />
             <span className="nav-title">LearningArcade</span>
             <span className="chip chip-accent">Arcade</span>
           </div>

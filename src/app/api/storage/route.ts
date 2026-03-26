@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { Pool } from "@neondatabase/serverless";
+import { pool, ensureTables } from "@/utils/db";
 
 type StorageAction = "get" | "set" | "remove" | "bulk_get" | "bulk_all" | "bulk_set";
 
@@ -14,60 +14,6 @@ type StorageRequest = {
   entries?: Record<string, string>;
 };
 
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    "",
-});
-
-let tableReady: Promise<void> | null = null;
-let authTablesReady: Promise<void> | null = null;
-
-async function ensureTable(): Promise<void> {
-  if (!tableReady) {
-    tableReady = pool
-      .query(
-        `CREATE TABLE IF NOT EXISTS gams_storage (
-          user_id TEXT NOT NULL,
-          key TEXT NOT NULL,
-          value TEXT NOT NULL,
-          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          PRIMARY KEY (user_id, key)
-        );`,
-      )
-      .then(() => undefined);
-  }
-  return tableReady;
-}
-
-async function ensureAuthTables(): Promise<void> {
-  if (!authTablesReady) {
-    authTablesReady = pool
-      .query(
-        `CREATE TABLE IF NOT EXISTS gams_users (
-          id TEXT PRIMARY KEY,
-          username TEXT NOT NULL UNIQUE,
-          password_hash TEXT NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );`,
-      )
-      .then(() =>
-        pool.query(
-          `CREATE TABLE IF NOT EXISTS gams_sessions (
-            id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            expires_at TIMESTAMPTZ NOT NULL
-          );`,
-        ),
-      )
-      .then(() => undefined);
-  }
-  return authTablesReady;
-}
-
 async function getOrCreateUserId() {
   const cookieStore = await cookies();
   const existing = cookieStore.get("gams_uid")?.value;
@@ -77,7 +23,7 @@ async function getOrCreateUserId() {
 }
 
 async function getAuthenticatedUserId(): Promise<string | null> {
-  await ensureAuthTables();
+  await ensureTables();
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("gams_session")?.value;
   if (!sessionId) return null;
@@ -91,7 +37,7 @@ async function getAuthenticatedUserId(): Promise<string | null> {
 }
 
 export async function POST(req: Request) {
-  await ensureTable();
+  await ensureTables();
   const authUserId = await getAuthenticatedUserId();
   const { id: anonId, isNew } = await getOrCreateUserId();
   const userId = authUserId ?? anonId;

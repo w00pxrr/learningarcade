@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { PrimaryNav } from "../../../../components/PrimaryNav";
 
 type Reply = {
@@ -24,6 +24,7 @@ type User = { username: string } | null;
 
 export default function ThreadPage() {
   const params = useParams();
+  const router = useRouter();
   const threadId = params.threadId as string;
   
   const [thread, setThread] = useState<Thread | null>(null);
@@ -50,9 +51,18 @@ export default function ThreadPage() {
 
     fetch("/api/auth/me")
       .then((res) => res.json())
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null));
-  }, [threadId]);
+      .then((data) => {
+        setUser(data.user);
+        // Redirect to login if not authenticated
+        if (!data.user) {
+          router.push("/login");
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        router.push("/login");
+      });
+  }, [threadId, router]);
 
   const handleReply = async () => {
     if (!newReply.trim()) return;
@@ -94,6 +104,20 @@ export default function ThreadPage() {
     });
   };
 
+  // Show loading while checking auth
+  if (!user && !error) {
+    return (
+      <div className="ui-page">
+        <PrimaryNav />
+        <main className="ui-container ui-container-md">
+          <div className="panel">
+            <p className="muted">Checking authentication...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="ui-page">
       <PrimaryNav />
@@ -121,7 +145,9 @@ export default function ThreadPage() {
                 {thread.is_locked && <span className="badge">🔒</span>}
                 {thread.title}
               </h2>
-              <p className="muted">by {thread.author}</p>
+              <p className="muted">
+                by <Link href={`/user/${encodeURIComponent(thread.author)}`} className="forum-author-link">{thread.author}</Link>
+              </p>
               <div className="forum-post-content">
                 {thread.content}
               </div>
@@ -137,7 +163,7 @@ export default function ThreadPage() {
                   {replies.map((reply) => (
                     <div key={reply.id} className="forum-reply">
                       <div className="forum-reply-header">
-                        <span className="forum-reply-author">{reply.author}</span>
+                        <Link href={`/user/${encodeURIComponent(reply.author)}`} className="forum-author-link">{reply.author}</Link>
                         <span className="forum-reply-date">{formatDate(reply.created_at)}</span>
                       </div>
                       <div className="forum-reply-content">
@@ -171,12 +197,6 @@ export default function ThreadPage() {
                     {submitting ? "Posting..." : "Post Reply"}
                   </button>
                 </div>
-              </section>
-            ) : !user ? (
-              <section className="panel">
-                <p className="muted">
-                  <Link href="/account" className="link">Sign in</Link> to reply.
-                </p>
               </section>
             ) : thread.is_locked ? (
               <section className="panel">

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { PrimaryNav } from "../../../components/PrimaryNav";
 
 type Thread = {
@@ -21,6 +21,7 @@ type User = { username: string } | null;
 
 export default function CategoryPage() {
   const params = useParams();
+  const router = useRouter();
   const categoryId = params.categoryId as string;
   
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -47,9 +48,18 @@ export default function CategoryPage() {
 
     fetch("/api/auth/me")
       .then((res) => res.json())
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null));
-  }, [categoryId]);
+      .then((data) => {
+        setUser(data.user);
+        // Redirect to login if not authenticated
+        if (!data.user) {
+          router.push("/login");
+        }
+      })
+      .catch(() => {
+        setUser(null);
+        router.push("/login");
+      });
+  }, [categoryId, router]);
 
   const handleCreateThread = async () => {
     if (!newTitle.trim() || !newContent.trim()) return;
@@ -91,6 +101,20 @@ export default function CategoryPage() {
       day: 'numeric',
     });
   };
+
+  // Show loading while checking auth
+  if (!user && !error) {
+    return (
+      <div className="ui-page">
+        <PrimaryNav />
+        <main className="ui-container ui-container-md">
+          <div className="panel">
+            <p className="muted">Checking authentication...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="ui-page">
@@ -175,7 +199,7 @@ export default function CategoryPage() {
                     {thread.title}
                   </h3>
                   <p className="forum-thread-meta">
-                    by {thread.author} • {formatDate(thread.created_at)}
+                    by <span className="forum-author-link">{thread.author}</span> • {formatDate(thread.created_at)}
                   </p>
                 </div>
                 <div className="forum-thread-stats">
@@ -185,14 +209,6 @@ export default function CategoryPage() {
               </Link>
             ))}
           </div>
-        )}
-
-        {!user && (
-          <section className="panel">
-            <p className="muted">
-              <Link href="/account" className="link">Sign in</Link> to post threads.
-            </p>
-          </section>
         )}
       </main>
     </div>

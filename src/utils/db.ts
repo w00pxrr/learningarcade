@@ -143,19 +143,24 @@ export async function logSecurityEvent(
   eventType: string,
   details: Record<string, unknown> = {}
 ): Promise<void> {
-  const id = crypto.randomUUID();
-  await pool.query(
-    `INSERT INTO gams_security_logs (id, user_id, event_type, ip_address, user_agent, details)
-     VALUES ($1, $2, $3, $4, $5, $6);`,
-    [
-      id,
-      userId,
-      eventType,
-      details.ip_address || null,
-      details.user_agent || null,
-      JSON.stringify(details),
-    ]
-  );
+  try {
+    const id = crypto.randomUUID();
+    await pool.query(
+      `INSERT INTO gams_security_logs (id, user_id, event_type, ip_address, user_agent, details)
+       VALUES ($1, $2, $3, $4, $5, $6);`,
+      [
+        id,
+        userId,
+        eventType,
+        details.ip_address || null,
+        details.user_agent || null,
+        JSON.stringify(details),
+      ]
+    );
+  } catch (error) {
+    // Silently fail - don't block operations for logging issues
+    console.error('[logSecurityEvent] Failed to log security event:', error);
+  }
 }
 
 // Get current user from session
@@ -193,28 +198,32 @@ export async function getUserRole(username: string, postCount: number): Promise<
 
 // Update user's post count and role
 export async function updateUserPostCount(userId: string): Promise<void> {
-  const result = await pool.query(
-    `SELECT username FROM gams_users WHERE id = $1`,
-    [userId]
-  );
-  
-  if (result.rows.length === 0) return;
-  
-  const username = result.rows[0].username;
-  const countResult = await pool.query(
-    `SELECT COUNT(*) as count FROM gams_forum_threads WHERE user_id = $1
-     UNION ALL
-     SELECT COUNT(*) as count FROM gams_forum_replies WHERE user_id = $1`,
-    [userId]
-  );
-  
-  const totalPosts = countResult.rows.reduce((sum, row) => sum + parseInt(row.count), 0);
-  const role = getUserRole(username, totalPosts);
-  
-  await pool.query(
-    `UPDATE gams_users SET post_count = $1, role = $2 WHERE id = $3`,
-    [totalPosts, role, userId]
-  );
+  try {
+    const result = await pool.query(
+      `SELECT username FROM gams_users WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rows.length === 0) return;
+    
+    const username = result.rows[0].username;
+    const countResult = await pool.query(
+      `SELECT COUNT(*) as count FROM gams_forum_threads WHERE user_id = $1
+       UNION ALL
+       SELECT COUNT(*) as count FROM gams_forum_replies WHERE user_id = $1`,
+      [userId]
+    );
+    
+    const totalPosts = countResult.rows.reduce((sum, row) => sum + parseInt(row.count), 0);
+    const role = getUserRole(username, totalPosts);
+    
+    await pool.query(
+      `UPDATE gams_users SET post_count = $1, role = $2 WHERE id = $3`,
+      [totalPosts, role, userId]
+    );
+  } catch (error) {
+    console.error('[updateUserPostCount] Failed to update post count:', error);
+  }
 }
 
 // Update user profile
@@ -222,28 +231,33 @@ export async function updateUserProfile(
   userId: string,
   data: { display_name?: string; school?: string; bio?: string }
 ): Promise<void> {
-  const updates: string[] = [];
-  const values: (string | null)[] = [];
-  let paramIndex = 1;
-  
-  if (data.display_name !== undefined) {
-    updates.push(`display_name = ${paramIndex++}`);
-    values.push(data.display_name || null);
+  try {
+    const updates: string[] = [];
+    const values: (string | null)[] = [];
+    let paramIndex = 1;
+    
+    if (data.display_name !== undefined) {
+      updates.push(`display_name = ${paramIndex++}`);
+      values.push(data.display_name || null);
+    }
+    if (data.school !== undefined) {
+      updates.push(`school = ${paramIndex++}`);
+      values.push(data.school || null);
+    }
+    if (data.bio !== undefined) {
+      updates.push(`bio = ${paramIndex++}`);
+      values.push(data.bio || null);
+    }
+    
+    if (updates.length === 0) return;
+    
+    values.push(userId);
+    await pool.query(
+      `UPDATE gams_users SET ${updates.join(", ")} WHERE id = ${paramIndex}`,
+      values
+    );
+  } catch (error) {
+    console.error('[updateUserProfile] Failed to update user profile:', error);
+    throw error; // Re-throw to allow caller to handle
   }
-  if (data.school !== undefined) {
-    updates.push(`school = ${paramIndex++}`);
-    values.push(data.school || null);
-  }
-  if (data.bio !== undefined) {
-    updates.push(`bio = ${paramIndex++}`);
-    values.push(data.bio || null);
-  }
-  
-  if (updates.length === 0) return;
-  
-  values.push(userId);
-  await pool.query(
-    `UPDATE gams_users SET ${updates.join(", ")} WHERE id = ${paramIndex}`,
-    values
-  );
 }

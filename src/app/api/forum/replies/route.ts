@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { pool, ensureTables, getCurrentUser } from "@/utils/db";
+import { checkRateLimit, getRateLimitMessage, isContentClean, getContentViolationMessage } from "@/utils/contentModeration";
 
 // GET - List replies in a thread
 export async function GET(request: Request) {
@@ -14,36 +15,35 @@ export async function GET(request: Request) {
   
   await ensureTables();
   
-  // Increment view count
-  await pool.query(
+  // Increment view count asynchronously (don't block response)
+  pool.query(
     `UPDATE gams_forum_threads SET view_count = view_count + 1 WHERE id = $1`,
     [threadId]
-  );
+  ).catch(() => {}); // Silently fail - view count is not critical
   
-  const result = await pool.query(`
-    SELECT 
-      r.id, r.content, r.created_at, r.updated_at,
-      u.username as author
-    FROM gams_forum_replies r
-    JOIN gams_users u ON u.id = r.user_id
-    WHERE r.thread_id = $1
-    ORDER BY r.created_at ASC
-    LIMIT 100
-  `, [threadId]);
-  
-  // Get thread info
-  const threadResult = await pool.query(`
-    SELECT id, title, content, is_locked, author
-    FROM (
+  // Fetch replies and thread info in parallel
+  const [repliesResult, threadResult] = await Promise.all([
+    pool.query(`
+      SELECT 
+        r.id, r.content, r.created_at, r.updated_at,
+        u.username as author
+      FROM gams_forum_replies r
+      JOIN gams_users u ON u.id = r.user_id
+      WHERE r.thread_id = $1
+      ORDER BY r.created_at ASC
+      LIMIT 100
+    `, [threadId]),
+    pool.query(`
       SELECT t.id, t.title, t.content, t.is_locked, u.username as author
       FROM gams_forum_threads t
       JOIN gams_users u ON u.id = t.user_id
       WHERE t.id = $1
-    ) AS thread
-  `, [threadId]);
+      LIMIT 1
+    `, [threadId])
+  ]);
   
   return NextResponse.json({ 
-    replies: result.rows,
+    replies: repliesResult.rows,
     thread: threadResult.rows[0] || null
   });
 }
@@ -72,6 +72,16 @@ export async function POST(request: Request) {
   
   if (content.length < 1 || content.length > 5000) {
     return NextResponse.json({ error: "Content must be 1-5000 characters" }, { status: 400 });
+  }
+  
+  // Check rate limit for reply creation
+  if (!checkRateLimit(user.id, 'replyCreation')) {
+    return NextResponse.json({ error: getRateLimitMessage('replyCreation') }, { status: 429 });
+  }
+  
+  // Check for profanity in content
+  if (!isContentClean(content)) {
+    return NextResponse.json({ error: getContentViolationMessage() }, { status: 400 });
   }
   
   // Check if thread is locked

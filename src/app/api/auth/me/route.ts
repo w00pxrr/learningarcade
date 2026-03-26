@@ -2,15 +2,7 @@
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { Pool } from "@neondatabase/serverless";
-
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    "",
-});
+import { pool } from "@/utils/db";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -19,13 +11,13 @@ export async function GET() {
     return NextResponse.json({ user: null });
   }
   const result = await pool.query(
-    `SELECT u.username
+    `SELECT u.username, u.display_name, u.school, u.bio, u.role, u.post_count
      FROM gams_sessions s
      JOIN gams_users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW()
      LIMIT 1;`,
     [sessionId],
   );
-  const username = result.rows[0]?.username ?? null;
-  return NextResponse.json({ user: username ? { username } : null });
+  const user = result.rows[0] ?? null;
+  return NextResponse.json({ user });
 }

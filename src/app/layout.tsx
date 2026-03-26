@@ -8,38 +8,104 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://learningarcade.vercel.app"),
-  title: "LearningArcade | Unblocked Educational Games for School",
+  title: {
+    default: "LearningArcade | Free Online Games for School",
+    template: "%s | LearningArcade",
+  },
   description:
-    "LearningArcade offers safe, school-friendly unblocked games with educational and skill-building titles. Play fast, lightweight browser games on any device.",
+    "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more. Works on any device - no downloads required.",
+  keywords: [
+    "online games",
+    "free games",
+    "unblocked games",
+    "school games",
+    "browser games",
+    "HTML5 games",
+    "educational games",
+    "action games",
+    "puzzle games",
+    "racing games",
+    "sports games",
+    "strategy games",
+    "simulation games",
+    "platformer games",
+    "arcade games",
+    "flash games",
+    "retro games",
+    "games for school",
+    "games for kids",
+    "safe games",
+  ],
   openGraph: {
     type: "website",
     url: "https://learningarcade.vercel.app/",
-    title: "LearningArcade | Unblocked Educational Games for School",
+    title: "LearningArcade | Free Online Games for School",
     description:
-      "Safe, school-friendly unblocked games with educational and skill-building titles. Play fast, lightweight browser games on any device.",
+      "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more. Works on any device.",
     siteName: "LearningArcade",
     locale: "en_US",
-    images: ["/img/gams.png"],
+    images: [
+      {
+        url: "/img/Learning Arcade Background Removed.png",
+        width: 1200,
+        height: 630,
+        alt: "LearningArcade - Free Online Games",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LearningArcade | Unblocked Educational Games for School",
+    title: "LearningArcade | Free Online Games for School",
     description:
-      "Safe, school-friendly unblocked games with educational and skill-building titles. Play fast, lightweight browser games on any device.",
-    images: ["/img/gams.png"],
+      "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more.",
+    images: ["/img/Learning Arcade Background Removed.png"],
+    creator: "@learningarcade",
+    site: "@learningarcade",
   },
-  robots: "index, follow",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
-    icon: "/img/gams-g.png",
+    icon: [
+      { url: "/img/Learning Arcade Background Removed.png", sizes: "32x32", type: "image/png" },
+      { url: "/img/Learning Arcade Background Removed.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/img/Learning Arcade Background Removed.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/img/Learning Arcade Background Removed.png",
+      },
+    ],
+  },
+  manifest: "/manifest.json",
+  alternates: {
+    canonical: "https://learningarcade.vercel.app",
   },
   other: {
-    'theme-color': '#0f172a',
+    "theme-color": "#0f172a",
+    "msapplication-TileColor": "#0f172a",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "LearningArcade",
+    "application-name": "LearningArcade",
+    "mobile-web-app-capable": "yes",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: "#0f172a",
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 5,
 };
@@ -49,15 +115,59 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Structured data for the website
+  const websiteStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "LearningArcade",
+    url: "https://learningarcade.vercel.app",
+    description:
+      "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: "https://learningarcade.vercel.app/search?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const organizationStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "LearningArcade",
+    url: "https://learningarcade.vercel.app",
+    logo: "https://learningarcade.vercel.app/img/Learning Arcade Background Removed.png",
+    sameAs: [],
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Preconnect to external origins for faster connections on Chromebooks */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         {/* DNS prefetch for game resources */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        {/* Structured data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteStructuredData),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationStructuredData),
+          }}
+        />
       </head>
       <body>
         <ThemeRoot>
