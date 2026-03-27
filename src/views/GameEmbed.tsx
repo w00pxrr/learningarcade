@@ -307,7 +307,7 @@ export default function GameEmbedPage() {
       ) : !user ? (
         <>
           <PrimaryNav showHomeLinks={false} />
-          <main className="ui-container ui-container-md">
+          <main className="ui-container ui-container-md force-login">
             <section className="panel">
               <h2 className="panel-heading">Login Required</h2>
               <p className="muted">You must be logged in to play games.</p>

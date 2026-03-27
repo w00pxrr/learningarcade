@@ -64,8 +64,8 @@ export async function POST(req: Request) {
   const userId = crypto.randomUUID();
   const passwordHash = await hash(password, 10);
   await pool.query(
-    `INSERT INTO gams_users (id, username, password_hash, display_name, school, bio)
-     VALUES ($1, $2, $3, $4, $5, $6);`,
+    `INSERT INTO gams_users (id, username, password_hash, display_name, school, bio, oauth_provider)
+     VALUES ($1, $2, $3, $4, $5, $6, 'local');`,
     [userId, username, passwordHash, displayName, school, bio],
   );
 

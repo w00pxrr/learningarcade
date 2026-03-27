@@ -38,6 +38,7 @@ export async function ensureTables(): Promise<void> {
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS bio TEXT;`);
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'member';`);
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS post_count INTEGER NOT NULL DEFAULT 0;`);
+    await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS oauth_provider TEXT;`);
   } catch (e) {
     // Columns may already exist, ignore
   }
@@ -116,6 +117,42 @@ export async function ensureTables(): Promise<void> {
     );
   `);
 
+  // User phones table for encrypted phone numbers
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS gams_user_phones (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
+      phone_encrypted TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id)
+    );
+  `);
+
+  // Password resets table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS gams_password_resets (
+      user_id TEXT PRIMARY KEY REFERENCES gams_users(id) ON DELETE CASCADE,
+      phone_encrypted TEXT NOT NULL,
+      code TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      reset_token TEXT,
+      reset_token_expires TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  // Visitor IP logs table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS gams_visitor_logs (
+      id TEXT PRIMARY KEY,
+      ip_address TEXT NOT NULL,
+      user_agent TEXT,
+      path TEXT,
+      referer TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
   // Create indexes for performance
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_forum_threads_category ON gams_forum_threads(category_id);
@@ -134,6 +171,21 @@ export async function ensureTables(): Promise<void> {
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_security_logs_created ON gams_security_logs(created_at);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_user_phones_user ON gams_user_phones(user_id);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_password_resets_user ON gams_password_resets(user_id);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_visitor_logs_ip ON gams_visitor_logs(ip_address);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_visitor_logs_created ON gams_visitor_logs(created_at);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_visitor_logs_path ON gams_visitor_logs(path);
   `);
 }
 
@@ -164,7 +216,7 @@ export async function logSecurityEvent(
 }
 
 // Get current user from session
-export async function getCurrentUser(): Promise<{ id: string; username: string; display_name?: string; school?: string; bio?: string; role: string; post_count: number } | null> {
+export async function getCurrentUser(): Promise<{ id: string; username: string; display_name?: string; school?: string; bio?: string; role: string; post_count: number; oauth_provider?: string } | null> {
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("gams_session")?.value;
@@ -172,7 +224,7 @@ export async function getCurrentUser(): Promise<{ id: string; username: string; 
   if (!sessionId) return null;
   
   const result = await pool.query(
-    `SELECT u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count
+    `SELECT u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count, u.oauth_provider
      FROM gams_sessions s
      JOIN gams_users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW()

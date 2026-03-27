@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ user: null });
   }
   const result = await pool.query(
-    `SELECT u.username, u.display_name, u.school, u.bio, u.role, u.post_count
+    `SELECT u.username, u.display_name, u.school, u.bio, u.role, u.post_count, u.oauth_provider
      FROM gams_sessions s
      JOIN gams_users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW()

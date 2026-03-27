@@ -18,7 +18,7 @@ export async function GET(
   
   const result = await pool.query(`
     SELECT 
-      u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count, u.created_at,
+      u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count, u.oauth_provider, u.created_at,
       (SELECT COUNT(*) FROM gams_forum_threads WHERE user_id = u.id) as thread_count,
       (SELECT COUNT(*) FROM gams_forum_replies WHERE user_id = u.id) as reply_count
     FROM gams_users u

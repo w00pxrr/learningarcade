@@ -6,6 +6,7 @@ import { gamesByCategory, gamesById, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
 import { GameImage } from "../components/GameImage";
 import { PrimaryNav } from "../components/PrimaryNav";
+import { LoginModal } from "../components/LoginModal";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -126,6 +127,8 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [localVisits, setLocalVisits] = useState<GameVisits>({});
   const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [user, setUser] = useState<{ username: string } | null>(null);
   const isMobile = useIsMobile();
 
   useDisguise("LearningArcade", baseIcon);
@@ -141,6 +144,22 @@ export default function HomePage() {
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
         ?.href || "/img/gams-g.png",
     );
+
+    // Check if user is logged in
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          setShowLoginModal(true);
+        }
+      } catch {
+        setShowLoginModal(true);
+      }
+    };
+    checkAuth();
   }, []);
 
   useEffect(() => {
@@ -493,6 +512,15 @@ export default function HomePage() {
           </div>
         </div>
       ) : null}
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setUser({ username: "user" });
+          setShowLoginModal(false);
+        }}
+      />
     </div>
   );
 }
