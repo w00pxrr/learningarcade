@@ -1,60 +1,120 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
+const { promisify } = require('util');
 
-const GAMES_DIR = path.join(__dirname, '../public/games');
+const gzip = promisify(zlib.gzip);
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
 
-// File extensions to compress
-const EXTENSIONS_TO_COMPRESS = ['.html', '.js', '.css'];
+const GAMES_DIR = path.join(__dirname, '..', 'public', 'games');
+const MIN_SIZE_KB = 100; // Only compress files larger than 100KB
+const MIN_SIZE_BYTES = MIN_SIZE_KB * 1024;
 
-function compressFile(filePath) {
-  const ext = path.extname(filePath);
-  if (!EXTENSIONS_TO_COMPRESS.includes(ext)) {
-    return;
+async function compressFile(filePath) {
+  try {
+    const stats = await stat(filePath);
+    
+    // Skip small files
+    if (stats.size < MIN_SIZE_BYTES) {
+      return { skipped: true, reason: 'too small' };
+    }
+    
+    // Skip if .gz file already exists and is newer
+    const gzPath = `${filePath}.gz`;
+    try {
+      const gzStats = await stat(gzPath);
+      if (gzStats.mtime >= stats.mtime) {
+        return { skipped: true, reason: 'already compressed' };
+      }
+    } catch {
+      // .gz file doesn't exist, continue
+    }
+    
+    console.log(`Compressing: ${path.basename(filePath)} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+    
+    const content = await readFile(filePath);
+    const compressed = await gzip(content, { level: 9 }); // Maximum compression
+    
+    await writeFile(gzPath, compressed);
+    
+    const compressionRatio = ((1 - compressed.length / stats.size) * 100).toFixed(1);
+    console.log(`  → ${(compressed.length / 1024 / 1024).toFixed(2)} MB (${compressionRatio}% smaller)`);
+    
+    return { success: true, originalSize: stats.size, compressedSize: compressed.length };
+  } catch (error) {
+    console.error(`Error compressing ${filePath}:`, error.message);
+    return { error: error.message };
   }
-
-  // Skip already compressed files
-  if (filePath.endsWith('.gz') || filePath.endsWith('.br')) {
-    return;
-  }
-
-  // Read the file
-  const content = fs.readFileSync(filePath);
-  
-  // Compress with gzip
-  const compressed = zlib.gzipSync(content);
-  
-  // Write the compressed file
-  const gzipPath = filePath + '.gz';
-  fs.writeFileSync(gzipPath, compressed);
-  
-  const originalSize = content.length;
-  const compressedSize = compressed.length;
-  const ratio = ((1 - compressedSize / originalSize) * 100).toFixed(1);
-  
-  console.log(`${path.basename(filePath)}: ${originalSize} -> ${compressedSize} bytes (${ratio}% reduction)`);
 }
 
-function walkDir(dir) {
-  const files = fs.readdirSync(dir);
+async function processDirectory(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  let items = [];
   
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
     
-    if (stat.isDirectory()) {
-      walkDir(filePath);
-    } else {
-      compressFile(filePath);
+    if (entry.isDirectory()) {
+      // Recursively process subdirectories
+      const subItems = await processDirectory(fullPath);
+      items = items.concat(subItems);
+    } else if (entry.isFile() && (entry.name.endsWith('.html') || entry.name.endsWith('.js'))) {
+      items.push(fullPath);
     }
   }
+  
+  return items;
 }
 
-console.log('Starting compression of games directory...');
-console.log('Target directory:', GAMES_DIR);
-console.log('');
+async function main() {
+  console.log('🎮 Game File Compression Tool\n');
+  console.log(`Scanning: ${GAMES_DIR}\n`);
+  
+  try {
+    const files = await processDirectory(GAMES_DIR);
+    console.log(`Found ${files.length} HTML/JS files\n`);
+    
+    let totalOriginal = 0;
+    let totalCompressed = 0;
+    let compressedCount = 0;
+    let skippedCount = 0;
+    
+    for (const file of files) {
+      const result = await compressFile(file);
+      
+      if (result.success) {
+        totalOriginal += result.originalSize;
+        totalCompressed += result.compressedSize;
+        compressedCount++;
+      } else if (result.skipped) {
+        skippedCount++;
+      }
+    }
+    
+    console.log('\n📊 Compression Summary:');
+    console.log(`  Files processed: ${files.length}`);
+    console.log(`  Files compressed: ${compressedCount}`);
+    console.log(`  Files skipped: ${skippedCount}`);
+    
+    if (compressedCount > 0) {
+      const totalSaved = totalOriginal - totalCompressed;
+      const totalSavedMB = (totalSaved / 1024 / 1024).toFixed(2);
+      const avgCompression = ((1 - totalCompressed / totalOriginal) * 100).toFixed(1);
+      
+      console.log(`  Total space saved: ${totalSavedMB} MB`);
+      console.log(`  Average compression: ${avgCompression}%`);
+    }
+    
+    console.log('\n✅ Compression complete!');
+  } catch (error) {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  }
+}
 
-walkDir(GAMES_DIR);
-
-console.log('');
-console.log('Compression complete!');
+main();

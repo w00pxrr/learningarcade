@@ -1,5 +1,10 @@
 import { Metadata } from "next";
-import HomePage from "../views/Home";
+import dynamic from "next/dynamic";
+
+// Dynamic import for code splitting
+const HomePage = dynamic(() => import("../views/Home"), {
+  loading: () => <div>Loading...</div>,
+});
 
 export const metadata: Metadata = {
   title: "LearningArcade | Free Online Games for School",

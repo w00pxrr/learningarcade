@@ -1,15 +1,15 @@
 {
   "name": "learningarcade",
   "private": true,
-  "packageManager": "pnpm@10.32.1",
   "scripts": {
-    "prebuild": "node -e \"require('fs').rmSync('public/vendor', { recursive: true, force: true });\" && mkdir -p public/vendor public/vendor/axios public/vendor/fontawesome-6 public/vendor/material-symbols public/vendor/typeface-merriweather && cp -R node_modules/@ruffle-rs/ruffle public/vendor/ruffle && cp node_modules/axios/dist/axios.min.js public/vendor/axios/axios.min.js && cp -R node_modules/@fortawesome/fontawesome-free public/vendor/fontawesome-6 && cp -R node_modules/material-symbols public/vendor/material-symbols && cp -R node_modules/typeface-merriweather public/vendor/typeface-merriweather",
-    "detect-leaderboards": "node scripts/detect-leaderboards.cjs",
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "test": "playwright test"
+    "prebuild": "bun -e \"require('fs').rmSync('public/vendor', { recursive: true, force: true });\" && mkdir -p public/vendor public/vendor/axios public/vendor/fontawesome-6 public/vendor/material-symbols && cp -R node_modules/@ruffle-rs/ruffle public/vendor/ruffle && cp node_modules/axios/dist/axios.min.js public/vendor/axios/axios.min.js && cp -R node_modules/@fortawesome/fontawesome-free public/vendor/fontawesome-6 && cp -R node_modules/material-symbols public/vendor/material-symbols",
+    "detect-leaderboards": "bun scripts/detect-leaderboards.cjs",
+    "compress-games": "bun scripts/compress-games.cjs",
+    "dev": "bun run --bun next dev",
+    "build": "bun run --bun next build",
+    "start": "bun run --bun next start",
+    "typecheck": "bun run --bun tsc --noEmit",
+    "test": "bun run --bun playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -30,14 +30,10 @@
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",
-    "fontawesome-free-5-12-0": "npm:@fortawesome/fontawesome-free@^7.2.0",
-    "ionicons": "^8.0.13",
-    "jquery": "^4.0.0",
     "material-symbols": "^0.43.0",
     "next": "^16.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "typeface-merriweather": "^1.1.13",
     "webfontloader": "^1.6.28"
   }
 }

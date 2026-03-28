@@ -155,6 +155,13 @@ export default function RootLayout({
         {/* DNS prefetch for game resources */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        {/* Preload critical resources */}
+        <link
+          rel="preload"
+          href="/img/Learning Arcade Background Removed.png"
+          as="image"
+          type="image/png"
+        />
         {/* Structured data */}
         <script
           type="application/ld+json"
@@ -166,6 +173,18 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationStructuredData),
+          }}
+        />
+        {/* Register service worker for caching */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').catch(() => {});
+                });
+              }
+            `,
           }}
         />
       </head>
