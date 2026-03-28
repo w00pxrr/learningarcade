@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import * as Select from "@radix-ui/react-select";
+import { Select, SelectTrigger, SelectValue, SelectIcon, SelectContent, SelectViewport, SelectItem, SelectItemText } from "../components/ui";
 import { gamesData, GameData } from "../data/games";
 import { normalizeSearchText } from "../utils/search";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
@@ -163,96 +163,149 @@ export default function SearchPage() {
         showHomeLinks={false}
       />
 
-      <main className="ui-container">
-        <section className="panel panel-search">
-          <div className="panel-header">
+      <main className="main-container">
+        {/* Search Header */}
+        <section className="section animate-fade-in">
+          <div className="section-header">
             <div>
-              <h2 className="panel-heading">Search games</h2>
-              <p className="muted">{results.length} results</p>
+              <h1 className="section-title">
+                <span className="section-title-icon">🔍</span>
+                Search Games
+              </h1>
+              <p className="section-subtitle">{results.length} results found</p>
             </div>
-            <div className="search-controls">
-              <input
-                className="input"
-                placeholder="Search all games"
-                value={searchTerm}
-                onChange={(event) => {
-                  setSearchTerm(event.target.value);
-                }}
-              />
-              <Select.Root
+            <Link className="btn btn-outline" href="/">
+              ← Back to Home
+            </Link>
+          </div>
+        </section>
+
+        {/* Search Controls */}
+        <section className="section">
+          <div className="panel">
+            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
+              <div className="search-container" style={{ flex: 1, minWidth: "250px" }}>
+                <span className="search-icon">🔍</span>
+                <input
+                  className="search-input"
+                  placeholder="Search all games..."
+                  value={searchTerm}
+                  onChange={(event) => {
+                    setSearchTerm(event.target.value);
+                  }}
+                />
+              </div>
+              <Select
                 value={sortMode}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setSortMode(value as "relevance" | "views")
                 }
               >
-                <Select.Trigger className="select-trigger" aria-label="Sort by">
-                  <Select.Value />
-                  <Select.Icon className="select-icon">▾</Select.Icon>
-                </Select.Trigger>
-                <Select.Portal>
-                  <Select.Content className="select-content" position="popper">
-                    <Select.Viewport className="select-viewport">
-                      <Select.Item value="relevance" className="select-item">
-                        <Select.ItemText>Relevance</Select.ItemText>
-                      </Select.Item>
-                      <Select.Item value="views" className="select-item">
-                        <Select.ItemText>Views</Select.ItemText>
-                      </Select.Item>
-                    </Select.Viewport>
-                  </Select.Content>
-                </Select.Portal>
-              </Select.Root>
-              <div className="ui-row">
-                <Link className="btn btn-outline" href="/category/all">
-                  All games
-                </Link>
-                <Link className="btn btn-primary" href="/">
-                  Back home
-                </Link>
-              </div>
+                <SelectTrigger className="select-trigger" aria-label="Sort by" style={{
+                  padding: "12px 20px",
+                  background: "var(--cg-bg-card)",
+                  border: "2px solid var(--cg-border-color)",
+                  borderRadius: "50px",
+                  color: "var(--cg-text-primary)",
+                  fontSize: "0.95rem",
+                  cursor: "pointer",
+                  minWidth: "150px"
+                }}>
+                  <SelectValue />
+                  <SelectIcon className="select-icon">▾</SelectIcon>
+                </SelectTrigger>
+                <SelectContent className="select-content" position="popper" style={{
+                  background: "var(--cg-bg-card)",
+                  border: "1px solid var(--cg-border-color)",
+                  borderRadius: "12px",
+                  padding: "8px",
+                  boxShadow: "var(--cg-shadow-card)"
+                }}>
+                  <SelectViewport className="select-viewport">
+                    <SelectItem value="relevance" className="select-item" style={{
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      color: "var(--cg-text-secondary)"
+                    }}>
+                      <SelectItemText>Relevance</SelectItemText>
+                    </SelectItem>
+                    <SelectItem value="views" className="select-item" style={{
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      color: "var(--cg-text-secondary)"
+                    }}>
+                      <SelectItemText>Views</SelectItemText>
+                    </SelectItem>
+                  </SelectViewport>
+                </SelectContent>
+              </Select>
+              <Link className="btn btn-primary" href="/category/all">
+                All Games
+              </Link>
             </div>
           </div>
         </section>
 
+        {/* Search Results */}
         {results.length === 0 ? (
-          <section className="panel">
-            <h3 className="panel-title">No results</h3>
-            <p className="muted">Try a different search term.</p>
+          <section className="section">
+            <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
+              <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🔍</div>
+              <h3 className="panel-heading">No results found</h3>
+              <p className="muted" style={{ marginBottom: "24px" }}>
+                Try a different search term or browse all games.
+              </p>
+              <Link href="/category/all" className="btn btn-primary">
+                Browse All Games
+              </Link>
+            </div>
           </section>
         ) : (
-          <div className="tile-grid">
-            {results.map((game) => {
-              const desktopOnly =
-                isMobile && (game.desktopOnly || !game.mobileFriendly);
-              return (
-                <div
-                  className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`}
-                  key={game.id}
-                >
-                  <button
-                    className="tile-action"
-                    type="button"
-                    onClick={() => {
-                      if (!desktopOnly) openGame(game);
-                    }}
-                    disabled={desktopOnly}
+          <section className="section">
+            <div className="games-grid">
+              {results.map((game) => {
+                const desktopOnly =
+                  isMobile && (game.desktopOnly || !game.mobileFriendly);
+                return (
+                  <div
+                    className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}
+                    key={game.id}
                   >
-                    <GameImage
-                      className="tile-image"
-                      sources={game.imgCandidates}
-                      alt={game.name}
-                    />
-                    <div className="tile-content">
-                      <div className="tile-title" title={game.name}>
-                        {game.name}
+                    <button
+                      className="tile-action"
+                      type="button"
+                      onClick={() => {
+                        if (!desktopOnly) openGame(game);
+                      }}
+                      disabled={desktopOnly}
+                    >
+                      <div className="game-card-image-container">
+                        <GameImage
+                          className="game-card-image"
+                          sources={game.imgCandidates}
+                          alt={game.name}
+                        />
+                        <div className="game-card-overlay">
+                          <div className="play-button">▶</div>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                  <DesktopOnlyOverlay visible={desktopOnly} />
-                </div>
-              );
-            })}
-          </div>
+                      <div className="game-card-content">
+                        <div className="game-card-title" title={game.name}>
+                          {game.name}
+                        </div>
+                        <div className="game-card-category">
+                          {game.category || "Game"}
+                        </div>
+                      </div>
+                    </button>
+                    <DesktopOnlyOverlay visible={desktopOnly} />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         )}
       </main>
     </div>

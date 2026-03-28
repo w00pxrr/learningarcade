@@ -7,10 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as Slider from "@radix-ui/react-slider";
-import * as Switch from "@radix-ui/react-switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, Slider, Switch } from "../components/ui";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { gamesById, gamesData } from "../data/games";
 import { useDisguise } from "../hooks/useDisguise";
@@ -84,6 +81,7 @@ export default function GameEmbedPage() {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
+  const [activeButton, setActiveButton] = useState<string | null>(null);
 
   useDisguise(currentName, currentIcon);
 
@@ -283,6 +281,17 @@ export default function GameEmbedPage() {
     [],
   );
 
+  // Handle button press with visual feedback
+  const handleButtonPress = (key: string) => {
+    setActiveButton(key);
+    sendVirtualKey("keydown", key);
+  };
+
+  const handleButtonRelease = (key: string) => {
+    setActiveButton(null);
+    sendVirtualKey("keyup", key);
+  };
+
   return (
     <div className="ui-page ui-page-embed">
       {!isFullscreen ? (
@@ -315,31 +324,39 @@ export default function GameEmbedPage() {
                 </button>
               </div>
               <div className="nav-game-mobile">
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger asChild>
-                    <button className="btn btn-outline btn-sm">Controls</button>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Portal>
-                    <DropdownMenu.Content
-                      className="dropdown-content"
-                      sideOffset={8}
-                      align="end"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="btn btn-outline btn-sm" style={{
+                      padding: "8px 16px",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      borderRadius: "50px",
+                      background: "var(--cg-bg-card)",
+                      border: "2px solid var(--cg-border-color)",
+                      color: "var(--cg-text-primary)"
+                    }}>
+                      ⚙️ Menu
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="dropdown-content"
+                    sideOffset={8}
+                    align="end"
+                  >
+                    <DropdownMenuItem
+                      className="dropdown-item"
+                      onSelect={() => openFullscreen()}
                     >
-                      <DropdownMenu.Item
-                        className="dropdown-item"
-                        onSelect={() => openFullscreen()}
-                      >
-                        {isFullscreen ? "Exit full" : "Fullscreen"}
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        className="dropdown-item"
-                        onSelect={() => setIsModalOpen(true)}
-                      >
-                        Settings
-                      </DropdownMenu.Item>
-                    </DropdownMenu.Content>
-                  </DropdownMenu.Portal>
-                </DropdownMenu.Root>
+                      {isFullscreen ? "⛶ Exit Fullscreen" : "⛶ Fullscreen"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="dropdown-item"
+                      onSelect={() => setIsModalOpen(true)}
+                    >
+                      ⚙️ Settings
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </>
           }
@@ -398,19 +415,19 @@ export default function GameEmbedPage() {
       <div className="mobile-controls" aria-label="Mobile game controls">
         <div className="mobile-dpad">
           <button
-            className="arrow-btn"
+            className={`arrow-btn ${activeButton === "ArrowUp" ? "active" : ""}`}
             style={{ gridColumn: 2, gridRow: 1 }}
             onPointerDown={(event) => {
               event.preventDefault();
-              sendVirtualKey("keydown", "ArrowUp");
+              handleButtonPress("ArrowUp");
             }}
             onPointerUp={(event) => {
               event.preventDefault();
-              sendVirtualKey("keyup", "ArrowUp");
+              handleButtonRelease("ArrowUp");
             }}
             onPointerLeave={(event) => {
               event.preventDefault();
-              sendVirtualKey("keyup", "ArrowUp");
+              handleButtonRelease("ArrowUp");
             }}
           >
             ▲
@@ -424,19 +441,19 @@ export default function GameEmbedPage() {
           ).map(([keyValue, label, col, row]) => (
             <button
               key={keyValue}
-              className="arrow-btn"
+              className={`arrow-btn ${activeButton === keyValue ? "active" : ""}`}
               style={{ gridColumn: col, gridRow: row }}
               onPointerDown={(event) => {
                 event.preventDefault();
-                sendVirtualKey("keydown", keyValue);
+                handleButtonPress(keyValue);
               }}
               onPointerUp={(event) => {
                 event.preventDefault();
-                sendVirtualKey("keyup", keyValue);
+                handleButtonRelease(keyValue);
               }}
               onPointerLeave={(event) => {
                 event.preventDefault();
-                sendVirtualKey("keyup", keyValue);
+                handleButtonRelease(keyValue);
               }}
             >
               {label}
@@ -444,45 +461,41 @@ export default function GameEmbedPage() {
           ))}
         </div>
         <button
-          className="space-btn"
+          className={`space-btn ${activeButton === " " ? "active" : ""}`}
           onPointerDown={(event) => {
             event.preventDefault();
-            sendVirtualKey("keydown", " ");
+            handleButtonPress(" ");
           }}
           onPointerUp={(event) => {
             event.preventDefault();
-            sendVirtualKey("keyup", " ");
+            handleButtonRelease(" ");
           }}
           onPointerLeave={(event) => {
             event.preventDefault();
-            sendVirtualKey("keyup", " ");
+            handleButtonRelease(" ");
           }}
         >
           Space
         </button>
       </div>
 
-      <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="dialog-overlay" />
-          <Dialog.Content className="dialog-content">
-            <div className="dialog-header">
-              <Dialog.Title className="dialog-title">
-                Game settings
-              </Dialog.Title>
-              <Dialog.Close asChild>
-                <button className="btn btn-ghost btn-sm">Close</button>
-              </Dialog.Close>
-            </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="dialog-content">
+          <DialogHeader className="dialog-header">
+            <DialogTitle className="dialog-title">
+              ⚙️ Game Settings
+            </DialogTitle>
+            <DialogClose asChild>
+              <button className="btn btn-ghost btn-sm">✕</button>
+            </DialogClose>
+          </DialogHeader>
             <div className="ui-stack">
               <label className="switch-row">
-                <Switch.Root
+                <Switch
                   className="switch-root"
                   checked={windowLock}
                   onCheckedChange={setWindowLock}
-                >
-                  <Switch.Thumb className="switch-thumb" />
-                </Switch.Root>
+                />
                 <span>Ask before closing window</span>
               </label>
               {typedFilterControls.map(({ label, key, min, max, step }) => (
@@ -491,27 +504,21 @@ export default function GameEmbedPage() {
                     <span className="slider-label">{label}</span>
                     <span className="slider-value">{filters[key]}</span>
                   </div>
-                  <Slider.Root
+                  <Slider
                     className="slider-root"
                     value={[filters[key]]}
                     min={min}
                     max={max}
                     step={step}
-                    onValueChange={(value) =>
+                    onValueChange={(value: number[]) =>
                       updateFilter(key, value[0] ?? min)
                     }
-                  >
-                    <Slider.Track className="slider-track">
-                      <Slider.Range className="slider-range" />
-                    </Slider.Track>
-                    <Slider.Thumb className="slider-thumb" />
-                  </Slider.Root>
+                  />
                 </div>
               ))}
             </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

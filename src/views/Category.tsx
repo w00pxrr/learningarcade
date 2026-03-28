@@ -140,68 +140,103 @@ export default function CategoryPage() {
         activeCategory={category}
         showCategoryBar
       />
-      <main className="ui-container">
-        <section className="panel panel-header">
-          <div>
-            <h2 className="panel-heading">{label} Games</h2>
-            <p className="muted">{filtered.length} games available.</p>
+      <main className="main-container">
+        {/* Header Section */}
+        <section className="section animate-fade-in">
+          <div className="section-header">
+            <div>
+              <h1 className="section-title">
+                <span className="section-title-icon">🎮</span>
+                {label} Games
+              </h1>
+              <p className="section-subtitle">{filtered.length} games available</p>
+            </div>
+            <Link className="btn btn-outline" href="/">
+              ← Back to Home
+            </Link>
           </div>
-          <Link className="btn btn-outline" href="/">
-            Back to home
-          </Link>
         </section>
 
-        <div className="tile-grid">
-          {filtered.map((game) => {
-            const desktopOnly =
-              isMobile && (game.desktopOnly || !game.mobileFriendly);
-            return (
-              <div
-                className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`}
-                key={game.id}
-              >
-                <button
-                  className="tile-action"
-                  type="button"
-                  onClick={() => {
-                    if (!desktopOnly) openGame(game);
-                  }}
-                  disabled={desktopOnly}
+        {/* Games Grid */}
+        <section className="section">
+          <div className="games-grid">
+            {filtered.map((game) => {
+              const desktopOnly =
+                isMobile && (game.desktopOnly || !game.mobileFriendly);
+              return (
+                <div
+                  className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}
+                  key={game.id}
                 >
-                  <GameImage
-                    className="tile-image"
-                    sources={game.imgCandidates}
-                    alt={game.name}
-                  />
-                  <div className="tile-content">
-                    <div className="tile-title" title={game.name}>
-                      {game.name}
+                  <button
+                    className="tile-action"
+                    type="button"
+                    onClick={() => {
+                      if (!desktopOnly) openGame(game);
+                    }}
+                    disabled={desktopOnly}
+                  >
+                    <div className="game-card-image-container">
+                      <GameImage
+                        className="game-card-image"
+                        sources={game.imgCandidates}
+                        alt={game.name}
+                      />
+                      <div className="game-card-overlay">
+                        <div className="play-button">▶</div>
+                      </div>
                     </div>
-                  </div>
-                </button>
-                <DesktopOnlyOverlay visible={desktopOnly} />
-                <button
-                  className="icon-button"
-                  type="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleFavorite(game.id);
-                  }}
-                  disabled={!canFavorite}
-                  title={
-                    canFavorite
-                      ? "Toggle favorite"
-                      : "Enable settings cookies to save favorites"
-                  }
-                  aria-label="Toggle favorite"
-                >
-                  {favoriteIds.has(game.id) ? "★" : "☆"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                    <div className="game-card-content">
+                      <div className="game-card-title" title={game.name}>
+                        {game.name}
+                      </div>
+                      <div className="game-card-category">
+                        {game.category || "Game"}
+                      </div>
+                    </div>
+                  </button>
+                  <DesktopOnlyOverlay visible={desktopOnly} />
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      toggleFavorite(game.id);
+                    }}
+                    disabled={!canFavorite}
+                    title={
+                      canFavorite
+                        ? "Toggle favorite"
+                        : "Enable settings cookies to save favorites"
+                    }
+                    aria-label="Toggle favorite"
+                  >
+                    {favoriteIds.has(game.id) ? "★" : "☆"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Empty State */}
+        {filtered.length === 0 && (
+          <section className="section">
+            <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
+              <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🎮</div>
+              <h3 className="panel-heading">No games found</h3>
+              <p className="muted" style={{ marginBottom: "24px" }}>
+                {category === "favorites"
+                  ? "You haven't starred any games yet. Browse games and star your favorites!"
+                  : "No games available in this category."}
+              </p>
+              <Link href="/category/all" className="btn btn-primary">
+                Browse All Games
+              </Link>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

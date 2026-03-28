@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import * as Checkbox from "@radix-ui/react-checkbox";
-import * as Select from "@radix-ui/react-select";
-import * as Switch from "@radix-ui/react-switch";
+import { Checkbox, Select, SelectTrigger, SelectValue, SelectIcon, SelectContent, SelectViewport, SelectItem, SelectItemText, Switch } from "../components/ui";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
@@ -176,43 +174,39 @@ export default function SettingsPage() {
             <p className="muted">
               Display the game info menu when using the “New Tab” popout.
             </p>
-            <Select.Root value={popoutMode} onValueChange={setPopoutMode}>
-              <Select.Trigger className="select-trigger">
-                <Select.Value />
-                <Select.Icon className="select-icon">▾</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content className="select-content" position="popper">
-                  <Select.Viewport className="select-viewport">
-                    <Select.Item value="top" className="select-item">
-                      <Select.ItemText>Top</Select.ItemText>
-                    </Select.Item>
-                    <Select.Item value="bottom" className="select-item">
-                      <Select.ItemText>Bottom</Select.ItemText>
-                    </Select.Item>
-                    <Select.Item value="left" className="select-item">
-                      <Select.ItemText>Left</Select.ItemText>
-                    </Select.Item>
-                    <Select.Item value="right" className="select-item">
-                      <Select.ItemText>Right</Select.ItemText>
-                    </Select.Item>
-                  </Select.Viewport>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
+            <Select value={popoutMode} onValueChange={setPopoutMode}>
+              <SelectTrigger className="select-trigger">
+                <SelectValue />
+                <SelectIcon className="select-icon">▾</SelectIcon>
+              </SelectTrigger>
+              <SelectContent className="select-content" position="popper">
+                <SelectViewport className="select-viewport">
+                  <SelectItem value="top" className="select-item">
+                    <SelectItemText>Top</SelectItemText>
+                  </SelectItem>
+                  <SelectItem value="bottom" className="select-item">
+                    <SelectItemText>Bottom</SelectItemText>
+                  </SelectItem>
+                  <SelectItem value="left" className="select-item">
+                    <SelectItemText>Left</SelectItemText>
+                  </SelectItem>
+                  <SelectItem value="right" className="select-item">
+                    <SelectItemText>Right</SelectItemText>
+                  </SelectItem>
+                </SelectViewport>
+              </SelectContent>
+            </Select>
           </section>
 
           <section className="panel">
             <h3 className="panel-title">Accessibility</h3>
             <p className="muted">Increase contrast for text, surfaces, and controls.</p>
             <label className="switch-row">
-              <Switch.Root
+              <Switch
                 className="switch-root"
                 checked={isHighContrast}
                 onCheckedChange={toggleContrast}
-              >
-                <Switch.Thumb className="switch-thumb" />
-              </Switch.Root>
+              />
               <span>High contrast mode</span>
             </label>
             <div className="ui-row">
@@ -234,32 +228,30 @@ export default function SettingsPage() {
           <section className="panel">
             <h3 className="panel-title">Theme presets</h3>
             <p className="muted">Pick a preset inspired by VS Code color themes.</p>
-            <Select.Root
+            <Select
               value={themePreset}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setThemePreset(value as ThemePreset)
               }
             >
-              <Select.Trigger className="select-trigger">
-                <Select.Value />
-                <Select.Icon className="select-icon">▾</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content className="select-content" position="popper">
-                  <Select.Viewport className="select-viewport">
-                    {themePresets.map((preset) => (
-                      <Select.Item
-                        key={preset.value}
-                        value={preset.value}
-                        className="select-item"
-                      >
-                        <Select.ItemText>{preset.label}</Select.ItemText>
-                      </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
+              <SelectTrigger className="select-trigger">
+                <SelectValue />
+                <SelectIcon className="select-icon">▾</SelectIcon>
+              </SelectTrigger>
+              <SelectContent className="select-content" position="popper">
+                <SelectViewport className="select-viewport">
+                  {themePresets.map((preset) => (
+                    <SelectItem
+                      key={preset.value}
+                      value={preset.value}
+                      className="select-item"
+                    >
+                      <SelectItemText>{preset.label}</SelectItemText>
+                    </SelectItem>
+                  ))}
+                </SelectViewport>
+              </SelectContent>
+            </Select>
           </section>
 
           <section className="panel">
@@ -267,7 +259,7 @@ export default function SettingsPage() {
             <p className="muted">Control analytics and settings cookies for LearningArcade.</p>
             <div className="ui-stack">
               <label className="checkbox-row">
-                <Checkbox.Root
+                <Checkbox
                   className="checkbox-root"
                   checked={!!consent?.settings}
                   onCheckedChange={(checked) =>
@@ -276,13 +268,11 @@ export default function SettingsPage() {
                       settings: checked === true,
                     }))
                   }
-                >
-                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
-                </Checkbox.Root>
+                />
                 <span>Settings cookies (favorites/preferences)</span>
               </label>
               <label className="checkbox-row">
-                <Checkbox.Root
+                <Checkbox
                   className="checkbox-root"
                   checked={!!consent?.analytics}
                   onCheckedChange={(checked) =>
@@ -291,9 +281,7 @@ export default function SettingsPage() {
                       analytics: checked === true,
                     }))
                   }
-                >
-                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
-                </Checkbox.Root>
+                />
                 <span>Analytics cookies (Umami)</span>
               </label>
             </div>

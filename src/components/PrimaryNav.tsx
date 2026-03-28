@@ -2,8 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as Switch from "@radix-ui/react-switch";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, Switch } from "./ui";
 
 type CategoryLink = {
   value: string;
@@ -35,63 +34,58 @@ export function PrimaryNav({
     <header className="nav-shell">
       <div className="nav-bar">
         <div className="nav-left">
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button className="btn btn-ghost nav-hamburger" aria-label="Open menu">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="nav-hamburger" aria-label="Open menu">
                 ☰
               </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content className="dropdown-content" sideOffset={8} align="start">
-                <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/">Home</Link>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/category/all">All Games</Link>
-                </DropdownMenu.Item>
-                {showHomeLinks ? (
-                  <>
-                    <DropdownMenu.Item className="dropdown-item" asChild>
-                      <Link href="/#categories">Categories</Link>
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item className="dropdown-item" asChild>
-                      <Link href="/#recommended-section">Top Picks</Link>
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item className="dropdown-item" asChild>
-                      <Link href="/#games">All Games</Link>
-                    </DropdownMenu.Item>
-                  </>
-                ) : null}
-                <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/about">About</Link>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/settings">Settings</Link>
-                </DropdownMenu.Item>
-                {onToggleTheme ? (
-                  <DropdownMenu.Item
-                    className="dropdown-item dropdown-item-switch"
-                    onSelect={(event) => event.preventDefault()}
-                  >
-                    <span>Dark mode</span>
-                    <Switch.Root
-                      className="switch-root"
-                      checked={!!isDark}
-                      onCheckedChange={onToggleTheme}
-                    >
-                      <Switch.Thumb className="switch-thumb" />
-                    </Switch.Root>
-                  </DropdownMenu.Item>
-                ) : null}
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="dropdown-content" sideOffset={8} align="start">
+              <DropdownMenuItem className="dropdown-item" asChild>
+                <Link href="/">Home</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="dropdown-item" asChild>
+                <Link href="/category/all">All Games</Link>
+              </DropdownMenuItem>
+              {showHomeLinks ? (
+                <>
+                  <DropdownMenuItem className="dropdown-item" asChild>
+                    <Link href="/#categories">Categories</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="dropdown-item" asChild>
+                    <Link href="/#recommended-section">Top Picks</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="dropdown-item" asChild>
+                    <Link href="/#games">All Games</Link>
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+              <DropdownMenuItem className="dropdown-item" asChild>
+                <Link href="/about">About</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="dropdown-item" asChild>
+                <Link href="/settings">Settings</Link>
+              </DropdownMenuItem>
+              {onToggleTheme ? (
+                <DropdownMenuItem
+                  className="dropdown-item dropdown-item-switch"
+                  onSelect={(event) => event.preventDefault()}
+                >
+                  <span>Dark mode</span>
+                  <Switch
+                    className="switch-root"
+                    checked={!!isDark}
+                    onCheckedChange={onToggleTheme}
+                  />
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <div className="nav-brand">
+          <Link href="/" className="nav-brand">
             <img src="/img/Learning Arcade Background Removed.png" alt="LearningArcade" className="nav-logo" />
             <span className="nav-title">LearningArcade</span>
-            <span className="chip chip-accent">Arcade</span>
-          </div>
+          </Link>
         </div>
 
         <nav className="nav-links">
@@ -124,15 +118,13 @@ export function PrimaryNav({
 
         <div className="nav-actions">
           {onToggleTheme ? (
-            <label className="switch-inline">
-              <span>Dark</span>
-              <Switch.Root
+            <label className="switch-inline" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "0.9rem", color: "var(--cg-text-secondary)" }}>Dark</span>
+              <Switch
                 className="switch-root"
                 checked={!!isDark}
                 onCheckedChange={onToggleTheme}
-              >
-                <Switch.Thumb className="switch-thumb" />
-              </Switch.Root>
+              />
             </label>
           ) : null}
           {extraActions ? <div className="nav-extra">{extraActions}</div> : null}
@@ -148,7 +140,7 @@ export function PrimaryNav({
                 <Link
                   key={link.value}
                   href={link.href}
-                  className={`chip ${selected ? "chip-active" : ""}`}
+                  className={`chip ${selected ? "active" : ""}`}
                 >
                   {link.label}
                 </Link>

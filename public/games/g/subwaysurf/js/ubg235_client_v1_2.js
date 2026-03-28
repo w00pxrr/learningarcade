@@ -19,5 +19,6 @@ function loadJS(FILE_URL, async = true) {
 }
 
 window.addEventListener("load", function () {
-  loadJS("https://ubg235.pages.dev/js/ubg235_server_v1_2.js", true);
+  // External script loading disabled - no redirects to ubg235.pages.dev
+  console.log("ubg235 client: External script loading disabled");
 });

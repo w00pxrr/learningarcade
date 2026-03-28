@@ -43,6 +43,18 @@ const categoryLinks = categoryMeta.items
     href: `/category/${item.value}`,
   }));
 
+// Category filter buttons for the main page
+const categoryFilters = [
+  { value: "all", label: "All Games", icon: "🎮" },
+  { value: "action", label: "Action", icon: "⚔️" },
+  { value: "adventure", label: "Adventure", icon: "🗺️" },
+  { value: "puzzle", label: "Puzzle", icon: "🧩" },
+  { value: "sports", label: "Sports", icon: "⚽" },
+  { value: "racing", label: "Racing", icon: "🏎️" },
+  { value: "strategy", label: "Strategy", icon: "♟️" },
+  { value: "simulation", label: "Simulation", icon: "🎯" },
+];
+
 function loadCookieConsent(): CookieConsent | null {
   const raw = getStoredItem(consentStorageKey);
   if (!raw) return null;
@@ -117,6 +129,147 @@ function getTopVisitedGamesFromVisits(
   return recommended.slice(0, limit);
 }
 
+// Game Card Component with hover effects
+function GameCard({ 
+  game, 
+  onOpenGame, 
+  onToggleFavorite, 
+  canFavorite, 
+  isFavorite,
+  badge,
+  isMobile
+}: {
+  game: GameData;
+  onOpenGame: (game: GameData) => void;
+  onToggleFavorite: (gameId: string) => void;
+  canFavorite: boolean;
+  isFavorite: boolean;
+  badge?: "new" | "trending" | "featured";
+  isMobile: boolean;
+}) {
+  const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
+
+  return (
+    <div className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}>
+      {badge && (
+        <span className={`game-card-badge ${badge}`}>
+          {badge === "new" ? "NEW" : badge === "trending" ? "TRENDING" : "FEATURED"}
+        </span>
+      )}
+      <button
+        className="tile-action"
+        type="button"
+        onClick={() => {
+          if (!desktopOnly) onOpenGame(game);
+        }}
+        disabled={desktopOnly}
+      >
+        <div className="game-card-image-container">
+          <GameImage
+            className="game-card-image"
+            sources={game.imgCandidates}
+            alt={game.name}
+          />
+          <div className="game-card-overlay">
+            <div className="play-button">▶</div>
+          </div>
+        </div>
+        <div className="game-card-content">
+          <div className="game-card-title" title={game.name}>
+            {game.name}
+          </div>
+          <div className="game-card-category">
+            {game.category || "Game"}
+          </div>
+        </div>
+      </button>
+      <DesktopOnlyOverlay visible={desktopOnly} />
+      <button
+        className="icon-button"
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onToggleFavorite(game.id);
+        }}
+        disabled={!canFavorite}
+        title={
+          canFavorite
+            ? "Toggle favorite"
+            : "Enable settings cookies to save favorites"
+        }
+        aria-label="Toggle favorite"
+      >
+        {isFavorite ? "★" : "☆"}
+      </button>
+    </div>
+  );
+}
+
+// Section Component
+function GameSection({
+  title,
+  subtitle,
+  icon,
+  games,
+  badge,
+  viewAllLink,
+  viewAllText,
+  onOpenGame,
+  onToggleFavorite,
+  canFavorite,
+  favoriteSet,
+  isMobile,
+}: {
+  title: string;
+  subtitle?: string;
+  icon: string;
+  games: GameData[];
+  badge?: "new" | "trending" | "featured";
+  viewAllLink?: string;
+  viewAllText?: string;
+  onOpenGame: (game: GameData) => void;
+  onToggleFavorite: (gameId: string) => void;
+  canFavorite: boolean;
+  favoriteSet: Set<string>;
+  isMobile: boolean;
+}) {
+  if (games.length === 0) return null;
+
+  return (
+    <section className="section animate-fade-in">
+      <div className="section-header">
+        <div>
+          <h2 className="section-title">
+            <span className="section-title-icon">{icon}</span>
+            {title}
+          </h2>
+          {subtitle && <p className="section-subtitle">{subtitle}</p>}
+        </div>
+        {viewAllLink && (
+          <Link href={viewAllLink} className="section-link">
+            {viewAllText || "View All"}
+          </Link>
+        )}
+      </div>
+      <div className="games-grid">
+        {games.map((game) => (
+          <GameCard
+            key={game.id}
+            game={game}
+            onOpenGame={onOpenGame}
+            onToggleFavorite={onToggleFavorite}
+            canFavorite={canFavorite}
+            isFavorite={favoriteSet.has(game.id)}
+            badge={badge}
+            isMobile={isMobile}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const { isDark, toggleTheme } = useThemeContext();
   const router = useRouter();
@@ -126,9 +279,10 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [localVisits, setLocalVisits] = useState<GameVisits>({});
   const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
+  const [activeCategory, setActiveCategory] = useState("all");
   const isMobile = useIsMobile();
 
-  useDisguise("LearningArcade", baseIcon);
+  useDisguise("LearningArcde", baseIcon);
 
   useEffect(() => {
     hydrateServerStorage();
@@ -173,6 +327,15 @@ export default function HomePage() {
     () => favorites.map((id) => gamesById[id]).filter(Boolean) as GameData[],
     [favorites],
   );
+
+  // Filter games by category
+  const filteredGames = useMemo(() => {
+    if (activeCategory === "all") return gamesData;
+    return gamesData.filter((game) => 
+      game.category?.toLowerCase() === activeCategory.toLowerCase()
+    );
+  }, [activeCategory]);
+
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const trimmed = searchTerm.trim();
@@ -208,60 +371,6 @@ export default function HomePage() {
     router.push(`/game-embed?${gameShellQuery}`);
   };
 
-  const renderTiles = (list: GameData[]) => (
-    <div className="tile-grid">
-      {list.map((game) => {
-        const desktopOnly =
-          isMobile && (game.desktopOnly || !game.mobileFriendly);
-        return (
-          <div
-            className={`tile-card ${desktopOnly ? "tile-disabled" : ""}`}
-            key={game.id}
-          >
-            <button
-              className="tile-action"
-              type="button"
-              onClick={() => {
-                if (!desktopOnly) handleOpenGame(game);
-              }}
-              disabled={desktopOnly}
-            >
-              <GameImage
-                className="tile-image"
-                sources={game.imgCandidates}
-                alt={game.name}
-              />
-              <div className="tile-content">
-                <div className="tile-title" title={game.name}>
-                  {game.name}
-                </div>
-              </div>
-            </button>
-            <DesktopOnlyOverlay visible={desktopOnly} />
-            <button
-              className="icon-button"
-              type="button"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                toggleFavorite(game.id);
-              }}
-              disabled={!canFavorite}
-              title={
-                canFavorite
-                  ? "Toggle favorite"
-                  : "Enable settings cookies to save favorites"
-              }
-              aria-label="Toggle favorite"
-            >
-              {favoriteSet.has(game.id) ? "★" : "☆"}
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
-
   return (
     <div className="ui-page">
       <PrimaryNav
@@ -272,156 +381,161 @@ export default function HomePage() {
         showCategoryBar
       />
 
-      <main className="ui-container ui-container-xl">
-        <div className="home-grid">
-          <aside className="ui-stack">
-            <section className="panel">
-              <h3 className="panel-title">Search</h3>
-              <form onSubmit={handleSearchSubmit} className="ui-stack">
+      <main className="main-container">
+        {/* Hero Section */}
+        <section className="hero animate-fade-in">
+          <div className="hero-content">
+            <h1 className="hero-title">Play Free Online Games</h1>
+            <p className="hero-subtitle">
+              Discover thousands of free games. Action, adventure, puzzle, and more!
+            </p>
+            <div className="hero-search">
+              <form onSubmit={handleSearchSubmit} className="search-container">
+                <span className="search-icon">🔍</span>
                 <input
-                  className="input"
-                  placeholder="Search games"
+                  className="search-input"
+                  placeholder="Search games..."
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                 />
-                <div className="ui-row">
-                  <button type="submit" className="btn btn-primary">
-                    Search
-                  </button>
-                  <Link className="btn btn-outline" href="/category/all">
-                    All games
-                  </Link>
-                </div>
               </form>
-            </section>
-            <section className="panel">
-              <h3 className="panel-title">Quick stats</h3>
-              <div className="chip-row">
-                <span className="chip chip-primary">
-                  {gamesData.length} games
-                </span>
-                <span className="chip chip-secondary">
-                  {favorites.length} favorites
-                </span>
-                <span className="chip">School friendly</span>
+            </div>
+            <div className="stats-bar">
+              <div className="stat-item">
+                <div className="stat-value">{gamesData.length}+</div>
+                <div className="stat-label">Games</div>
               </div>
-            </section>
-            <section className="panel">
-              <h3 className="panel-title">Latest drops</h3>
-              <div className="ui-stack">
-                {latest.slice(0, 3).map((game) => (
-                  <button
-                    key={game.id}
-                    type="button"
-                    className="btn btn-outline btn-block btn-sm"
-                    onClick={() => handleOpenGame(game)}
-                  >
-                    <span className="btn-row">
-                      <span className="btn-text">{game.name}</span>
-                      <span className="chip chip-outline">
-                        {getCombinedCount(
-                          localVisits,
-                          game.id,
-                          viewCounts,
-                        ).toLocaleString()}{" "}
-                        plays
-                      </span>
-                    </span>
-                  </button>
-                ))}
+              <div className="stat-item">
+                <div className="stat-value">100%</div>
+                <div className="stat-label">Free</div>
               </div>
-            </section>
-          </aside>
-
-          <section className="ui-stack">
-            <section className="panel panel-gradient panel-favorites">
-              <h2 className="panel-heading">Your favorites</h2>
-              {!canFavorite ? (
-                <div className="ui-stack">
-                  <p className="muted">
-                    Enable settings cookies to save and show favorites here.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    onClick={() => setShowConsent(true)}
-                  >
-                    Update preferences
-                  </button>
-                </div>
-              ) : favoriteGames.length === 0 ? (
-                <div className="ui-stack">
-                  <p className="muted">Star games you love to pin them here.</p>
-                  <Link className="btn btn-outline" href="/category/all">
-                    Browse all games
-                  </Link>
-                </div>
-              ) : (
-                <div className="ui-stack">
-                  {renderTiles(favoriteGames.slice(0, 8))}
-                  {favoriteGames.length > 8 ? (
-                    <Link
-                      className="btn btn-outline"
-                      href="/category/favorites"
-                    >
-                      View all favorites
-                    </Link>
-                  ) : null}
-                </div>
-              )}
-            </section>
-
-            <section className="panel panel-gradient panel-recommended">
-              <h2 className="panel-heading">Based on your plays</h2>
-              <p className="muted">
-                Your most-played games, plus a few fresh picks.
-              </p>
-              {recommended.length > 0 ? renderTiles(recommended) : null}
-            </section>
-
-            <section className="panel panel-gradient panel-popular">
-              <div className="panel-header">
-                <div>
-                  <h2 className="panel-heading">Most popular</h2>
-                  <p className="muted">Ranked by total plays.</p>
-                </div>
-                <Link
-                  className="btn btn-outline btn-sm"
-                  href="/category/popular"
-                >
-                  More
-                </Link>
+              <div className="stat-item">
+                <div className="stat-value">24/7</div>
+                <div className="stat-label">Available</div>
               </div>
-              {popularGames.length > 0
-                ? renderTiles(popularGames.slice(0, 12))
-                : null}
-            </section>
-          </section>
+            </div>
+          </div>
+        </section>
 
-          <aside className="ui-stack">
-            <section className="panel">
-              <h3 className="panel-title">How to play</h3>
-              <p className="muted">
-                Choose a game, select a launch mode, and start playing. Use
-                Embed mode for the cleanest experience.
-              </p>
-            </section>
-            <section className="panel">
-              <h3 className="panel-title">Report issues</h3>
-              <p className="muted">Find a broken game or bug? Let me know.</p>
-              <a
-                className="btn btn-outline"
-                href="https://github.com/w00pxrr/w00pxrr.github.io"
-                rel="noreferrer"
-                target="_blank"
+        {/* Category Filters */}
+        <section className="section">
+          <div className="category-filters">
+            {categoryFilters.map((cat) => (
+              <button
+                key={cat.value}
+                className={`category-btn ${activeCategory === cat.value ? "active" : ""}`}
+                onClick={() => setActiveCategory(cat.value)}
               >
-                Report a bug
-              </a>
-            </section>
-          </aside>
-        </div>
+                <span style={{ marginRight: "6px" }}>{cat.icon}</span>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Featured Games */}
+        <GameSection
+          title="Featured Games"
+          subtitle="Hand-picked games you'll love"
+          icon="⭐"
+          games={recommended.slice(0, 6)}
+          badge="featured"
+          viewAllLink="/category/popular"
+          viewAllText="View All"
+          onOpenGame={handleOpenGame}
+          onToggleFavorite={toggleFavorite}
+          canFavorite={canFavorite}
+          favoriteSet={favoriteSet}
+          isMobile={isMobile}
+        />
+
+        {/* Trending Games */}
+        <GameSection
+          title="Trending Now"
+          subtitle="Most popular games this week"
+          icon="🔥"
+          games={popularGames.slice(0, 6)}
+          badge="trending"
+          viewAllLink="/category/popular"
+          viewAllText="View All"
+          onOpenGame={handleOpenGame}
+          onToggleFavorite={toggleFavorite}
+          canFavorite={canFavorite}
+          favoriteSet={favoriteSet}
+          isMobile={isMobile}
+        />
+
+        {/* New Releases */}
+        <GameSection
+          title="New Releases"
+          subtitle="Fresh games just added"
+          icon="🆕"
+          games={latest}
+          badge="new"
+          onOpenGame={handleOpenGame}
+          onToggleFavorite={toggleFavorite}
+          canFavorite={canFavorite}
+          favoriteSet={favoriteSet}
+          isMobile={isMobile}
+        />
+
+        {/* All Games / Filtered Games */}
+        {activeCategory !== "all" && (
+          <GameSection
+            title={`${categoryFilters.find(c => c.value === activeCategory)?.label || "Games"}`}
+            subtitle={`Browse all ${activeCategory} games`}
+            icon="🎮"
+            games={filteredGames.slice(0, 12)}
+            onOpenGame={handleOpenGame}
+            onToggleFavorite={toggleFavorite}
+            canFavorite={canFavorite}
+            favoriteSet={favoriteSet}
+            isMobile={isMobile}
+          />
+        )}
+
+        {/* Favorites Section */}
+        {canFavorite && favoriteGames.length > 0 && (
+          <GameSection
+            title="Your Favorites"
+            subtitle="Games you've starred"
+            icon="❤️"
+            games={favoriteGames.slice(0, 6)}
+            viewAllLink="/category/favorites"
+            viewAllText="View All"
+            onOpenGame={handleOpenGame}
+            onToggleFavorite={toggleFavorite}
+            canFavorite={canFavorite}
+            favoriteSet={favoriteSet}
+            isMobile={isMobile}
+          />
+        )}
+
+        {/* Quick Actions */}
+        <section className="section">
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">
+                <span className="section-title-icon">🚀</span>
+                Quick Actions
+              </h2>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            <Link href="/category/all" className="btn btn-primary">
+              Browse All Games
+            </Link>
+            <Link href="/category/popular" className="btn btn-secondary">
+              Most Popular
+            </Link>
+            <Link href="/about" className="btn btn-outline">
+              About Us
+            </Link>
+          </div>
+        </section>
       </main>
 
+      {/* Cookie Consent */}
       {showConsent ? (
         <div className="consent-panel">
           <div className="consent-card">
