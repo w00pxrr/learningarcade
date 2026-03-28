@@ -6,17 +6,17 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/account/', '/settings/', '/login/'],
+        disallow: ['/api/', '/settings/'],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/account/', '/settings/', '/login/'],
+        disallow: ['/api/', '/settings/'],
       },
       {
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: ['/api/', '/account/', '/settings/', '/login/'],
+        disallow: ['/api/', '/settings/'],
       },
     ],
     sitemap: 'https://learningarcade.vercel.app/sitemap.xml',

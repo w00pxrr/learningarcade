@@ -38,7 +38,6 @@ export async function ensureTables(): Promise<void> {
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS bio TEXT;`);
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'member';`);
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS post_count INTEGER NOT NULL DEFAULT 0;`);
-    await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS oauth_provider TEXT;`);
   } catch (e) {
     // Columns may already exist, ignore
   }
@@ -61,46 +60,6 @@ export async function ensureTables(): Promise<void> {
       value TEXT NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       PRIMARY KEY (user_id, key)
-    );
-  `);
-
-  // Forum categories
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS gams_forum_categories (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT,
-      display_order INTEGER NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  // Forum threads
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS gams_forum_threads (
-      id TEXT PRIMARY KEY,
-      category_id TEXT NOT NULL REFERENCES gams_forum_categories(id) ON DELETE CASCADE,
-      user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      content TEXT NOT NULL,
-      is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
-      is_locked BOOLEAN NOT NULL DEFAULT FALSE,
-      view_count INTEGER NOT NULL DEFAULT 0,
-      reply_count INTEGER NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  // Forum replies
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS gams_forum_replies (
-      id TEXT PRIMARY KEY,
-      thread_id TEXT NOT NULL REFERENCES gams_forum_threads(id) ON DELETE CASCADE,
-      user_id TEXT NOT NULL REFERENCES gams_users(id) ON DELETE CASCADE,
-      content TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
 
@@ -155,18 +114,6 @@ export async function ensureTables(): Promise<void> {
 
   // Create indexes for performance
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_forum_threads_category ON gams_forum_threads(category_id);
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_forum_threads_user ON gams_forum_threads(user_id);
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_forum_replies_thread ON gams_forum_replies(thread_id);
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_forum_replies_user ON gams_forum_replies(user_id);
-  `);
-  await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_security_logs_user ON gams_security_logs(user_id);
   `);
   await pool.query(`
@@ -216,7 +163,7 @@ export async function logSecurityEvent(
 }
 
 // Get current user from session
-export async function getCurrentUser(): Promise<{ id: string; username: string; display_name?: string; school?: string; bio?: string; role: string; post_count: number; oauth_provider?: string } | null> {
+export async function getCurrentUser(): Promise<{ id: string; username: string; display_name?: string; school?: string; bio?: string; role: string; post_count: number } | null> {
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("gams_session")?.value;
@@ -224,7 +171,7 @@ export async function getCurrentUser(): Promise<{ id: string; username: string; 
   if (!sessionId) return null;
   
   const result = await pool.query(
-    `SELECT u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count, u.oauth_provider
+    `SELECT u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count
      FROM gams_sessions s
      JOIN gams_users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW()

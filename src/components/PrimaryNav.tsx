@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Switch from "@radix-ui/react-switch";
@@ -30,32 +30,7 @@ export function PrimaryNav({
   activeCategory,
   showCategoryBar = false,
 }: PrimaryNavProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    const loadAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
-        if (!res.ok) {
-          if (active) setIsAuthenticated(false);
-          return;
-        }
-        const data = (await res.json()) as { user?: { username?: string } | null };
-        if (active) setIsAuthenticated(!!data?.user);
-      } catch {
-        if (active) setIsAuthenticated(false);
-      }
-    };
-    void loadAuth();
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const showCategories = showCategoryBar && (categoryLinks?.length ?? 0) > 0;
-  const accountLabel = isAuthenticated ? "Account" : "Log in";
-  const accountLinkClass = isAuthenticated ? "nav-link" : "nav-link nav-link-login";
   return (
     <header className="nav-shell">
       <div className="nav-bar">
@@ -73,9 +48,6 @@ export function PrimaryNav({
                 </DropdownMenu.Item>
                 <DropdownMenu.Item className="dropdown-item" asChild>
                   <Link href="/category/all">All Games</Link>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/forum">Forum</Link>
                 </DropdownMenu.Item>
                 {showHomeLinks ? (
                   <>
@@ -95,9 +67,6 @@ export function PrimaryNav({
                 </DropdownMenu.Item>
                 <DropdownMenu.Item className="dropdown-item" asChild>
                   <Link href="/settings">Settings</Link>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item className="dropdown-item" asChild>
-                  <Link href="/account">{accountLabel}</Link>
                 </DropdownMenu.Item>
                 {onToggleTheme ? (
                   <DropdownMenu.Item
@@ -132,9 +101,6 @@ export function PrimaryNav({
           <Link href="/category/all" className="nav-link">
             All Games
           </Link>
-          <Link href="/forum" className="nav-link">
-            Forum
-          </Link>
           {showHomeLinks ? (
             <>
               <Link href="/#categories" className="nav-link">
@@ -153,9 +119,6 @@ export function PrimaryNav({
           </Link>
           <Link href="/settings" className="nav-link">
             Settings
-          </Link>
-          <Link href="/account" className={accountLinkClass}>
-            {accountLabel}
           </Link>
         </nav>
 

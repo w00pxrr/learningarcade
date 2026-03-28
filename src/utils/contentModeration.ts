@@ -59,21 +59,6 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Rate limit windows (in milliseconds)
 const RATE_LIMITS = {
-  // Account registration: 3 accounts per IP per hour
-  registration: {
-    maxAttempts: 3,
-    windowMs: 60 * 60 * 1000, // 1 hour
-  },
-  // Thread creation: 5 threads per user per hour
-  threadCreation: {
-    maxAttempts: 5,
-    windowMs: 60 * 60 * 1000, // 1 hour
-  },
-  // Reply creation: 10 replies per user per 10 minutes
-  replyCreation: {
-    maxAttempts: 10,
-    windowMs: 10 * 60 * 1000, // 10 minutes
-  },
 };
 
 /**
@@ -114,71 +99,4 @@ export function isContentClean(content: string): boolean {
  */
 export function getContentViolationMessage(): string {
   return "Your message contains inappropriate language. Please revise and try again.";
-}
-
-/**
- * Check rate limit for a specific action
- * @param key - Unique identifier (e.g., IP address or user ID)
- * @param action - The action type to check
- * @returns true if allowed, false if rate limited
- */
-export function checkRateLimit(
-  key: string,
-  action: keyof typeof RATE_LIMITS
-): boolean {
-  const config = RATE_LIMITS[action];
-  const rateLimitKey = `${action}:${key}`;
-  const now = Date.now();
-  
-  const entry = rateLimitStore.get(rateLimitKey);
-  
-  if (!entry || now > entry.resetTime) {
-    // No entry or window has expired, create new entry
-    rateLimitStore.set(rateLimitKey, {
-      count: 1,
-      resetTime: now + config.windowMs,
-    });
-    return true;
-  }
-  
-  if (entry.count >= config.maxAttempts) {
-    // Rate limit exceeded
-    return false;
-  }
-  
-  // Increment count
-  entry.count++;
-  rateLimitStore.set(rateLimitKey, entry);
-  return true;
-}
-
-/**
- * Get rate limit error message with retry information
- * @param action - The action type
- * @returns Error message string
- */
-export function getRateLimitMessage(action: keyof typeof RATE_LIMITS): string {
-  const messages: Record<keyof typeof RATE_LIMITS, string> = {
-    registration: "Too many account creation attempts. Please try again later.",
-    threadCreation: "You're creating threads too quickly. Please wait before creating another.",
-    replyCreation: "You're posting replies too quickly. Please wait before posting again.",
-  };
-  return messages[action];
-}
-
-/**
- * Clean up expired rate limit entries (call periodically)
- */
-export function cleanupRateLimits(): void {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(key);
-    }
-  }
-}
-
-// Run cleanup every 5 minutes
-if (typeof setInterval !== 'undefined') {
-  setInterval(cleanupRateLimits, 5 * 60 * 1000);
 }
