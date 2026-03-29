@@ -4,7 +4,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { pool, ensureTables } from "@/utils/db";
 
-type StorageAction = "get" | "set" | "remove" | "bulk_get" | "bulk_all" | "bulk_set";
+type StorageAction =
+  | "get"
+  | "set"
+  | "remove"
+  | "bulk_get"
+  | "bulk_all"
+  | "bulk_set"
+  | "auth";
 
 type StorageRequest = {
   action: StorageAction;
@@ -51,10 +58,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const response = NextResponse.json(
-    await handleAction(userId, payload),
-    { status: 200 },
-  );
+  const response = NextResponse.json(await handleAction(userId, payload), {
+    status: 200,
+  });
   if (!authUserId && isNew) {
     response.cookies.set("gams_uid", anonId, {
       httpOnly: true,
@@ -144,6 +150,9 @@ async function handleAction(userId: string, payload: StorageRequest) {
         [userId, keys, values],
       );
       return { ok: true };
+    }
+    case "auth": {
+      return { user: null };
     }
     default:
       return { ok: false };

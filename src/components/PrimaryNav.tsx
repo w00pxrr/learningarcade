@@ -117,7 +117,7 @@ export function PrimaryNav({
             <Link href="/" className="nav-brand">
               <Image
                 src="/img/Learning Arcade Background Removed.png"
-                alt="LearningArcade"
+                alt=""
                 className="nav-logo"
                 width={40}
                 height={40}

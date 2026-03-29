@@ -44,8 +44,8 @@ function getAutoCategories(name: string, section: string): string[] {
   const categories = new Set<string>();
 
   // Check if game name ends with .io
-  if (lower.endsWith('.io')) {
-    categories.add('io');
+  if (lower.endsWith(".io")) {
+    categories.add("io");
   }
 
   if (section === "Retro") categories.add("retro");
@@ -337,10 +337,10 @@ export const gamesById: Record<string, GameData> = {};
 export const gamesByCategory: Record<string, GameData[]> = {};
 
 const imageExtensions: string[] = [
-  "jpeg",
-  "jpg",
-  "png",
   "webp",
+  "png",
+  "jpg",
+  "jpeg",
   "avif",
   "gif",
   "apng",

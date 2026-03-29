@@ -23,7 +23,7 @@
 
   /* Accent Colors */
   --cg-accent-orange: #ff6b35;
-  --cg-accent-purple: #6c5ce7;
+  --cg-accent-purple: #a29bfe;
   --cg-accent-blue: #0984e3;
   --cg-accent-green: #00b894;
   --cg-accent-pink: #e84393;
@@ -37,7 +37,7 @@
   --cg-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
   --cg-shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
   --cg-shadow-glow-orange: 0 0 20px rgba(255, 107, 53, 0.4);
-  --cg-shadow-glow-purple: 0 0 20px rgba(108, 92, 231, 0.4);
+  --cg-shadow-glow-purple: 0 0 20px rgba(162, 155, 254, 0.4);
   --cg-shadow-glow-blue: 0 0 20px rgba(9, 132, 227, 0.4);
 
   /* Border */

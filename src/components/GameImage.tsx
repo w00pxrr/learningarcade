@@ -25,15 +25,40 @@ export function GameImage({
     [sourceKey],
   );
   const [index, setIndex] = useState(0);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     setIndex(0);
+    setFailed(false);
   }, [sourceKey]);
 
+  // Pick the best source: prefer webp, then png, then others
   const activeSource = sourceList[index] ?? sourceList[0] ?? "";
+
+  if (!activeSource || failed) {
+    return (
+      <div
+        className={className}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--cg-bg-card-hover, #2d2d4a)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <i
+          className="fa-solid fa-gamepad"
+          style={{ fontSize: "2rem", color: "var(--cg-text-muted, #8888a0)" }}
+        />
+      </div>
+    );
+  }
 
   return (
     <Image
+      key={activeSource}
       className={className}
       src={activeSource}
       alt={alt}
@@ -43,8 +68,10 @@ export function GameImage({
       decoding="async"
       fetchPriority={priority ? "high" : "auto"}
       onError={() => {
-        if (index < sourceList.length - 1) {
+        if (index + 1 < sourceList.length) {
           setIndex(index + 1);
+        } else {
+          setFailed(true);
         }
       }}
     />

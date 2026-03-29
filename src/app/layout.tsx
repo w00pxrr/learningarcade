@@ -175,13 +175,34 @@ export default function RootLayout({
     >
       <head>
         {/* Resource hints for faster loading */}
-        <link rel="preconnect" href="https://learningarcade.vercel.app" />
-        <link rel="dns-prefetch" href="https://learningarcade.vercel.app" />
+        <link rel="preconnect" href="https://cloud.umami.is" />
+        <link rel="preconnect" href="https://api-gateway.umami.dev" />
+        <link rel="dns-prefetch" href="https://cloud.umami.is" />
+        <link rel="dns-prefetch" href="https://api-gateway.umami.dev" />
+
+        {/* Preload critical FontAwesome font */}
+        <link
+          rel="preload"
+          href="/vendor/fontawesome-6/fontawesome-free/webfonts/fa-solid-900.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
 
         {/* FontAwesome icons */}
         <link
           rel="stylesheet"
           href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css"
+        />
+        {/* Override FontAwesome font-display for better performance */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:900;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-solid-900.woff2") format("woff2")}
+              @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-regular-400.woff2") format("woff2")}
+              @font-face{font-family:"Font Awesome 7 Brands";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-brands-400.woff2") format("woff2")}
+            `,
+          }}
         />
 
         {/* Structured data */}

@@ -65,7 +65,7 @@ export function CategorySidebar({
             aria-hidden="true"
           />
         )}
-        
+
         {/* Mobile Sidebar */}
         <aside className={`category-sidebar mobile ${isOpen ? "open" : ""}`}>
           <div className="sidebar-header">
@@ -78,7 +78,7 @@ export function CategorySidebar({
               <i className="fa-solid fa-xmark" />
             </button>
           </div>
-          
+
           <nav className="sidebar-nav">
             {categoryLinks.map((link) => {
               const selected = activeCategory === link.value;
@@ -107,7 +107,7 @@ export function CategorySidebar({
         {categoryLinks.map((link) => {
           const selected = activeCategory === link.value;
           const isHovered = hoveredCategory === link.value;
-          
+
           return (
             <div key={link.value} className="sidebar-item">
               <Link
@@ -115,16 +115,13 @@ export function CategorySidebar({
                 className={`sidebar-link ${selected ? "active" : ""}`}
                 onMouseEnter={() => setHoveredCategory(link.value)}
                 onMouseLeave={() => setHoveredCategory(null)}
+                aria-label={link.label}
               >
                 <i className={getIcon(link.value)} />
               </Link>
-              
+
               {/* Tooltip */}
-              {isHovered && (
-                <div className="sidebar-tooltip">
-                  {link.label}
-                </div>
-              )}
+              {isHovered && <div className="sidebar-tooltip">{link.label}</div>}
             </div>
           );
         })}
