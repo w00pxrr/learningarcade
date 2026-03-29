@@ -230,6 +230,48 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Blocker detection: Securly, Cisco Umbrella, GoGuardian */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                var REDIRECT='https://learningarcade2.vercel.app';
+                function check(){
+                  try{
+                    var html=(document.documentElement&&document.documentElement.innerHTML)||'';
+                    var body=(document.body&&document.body.innerText)||'';
+                    var title=document.title||'';
+                    var url=location.href;
+                    var checks=[
+                      /securly/i,
+                      /blocked\\s+by\\s+securly/i,
+                      /Cisco\\s+Umbrella/i,
+                      /umbrella\\s+blocked/i,
+                      /blocked\\s+by\\s+your\\s+organization/i,
+                      /GoGuardian/i,
+                      /blocked\\s+by\\s+goguardian/i,
+                      /goguardian\\.com/i,
+                      /securly\\.com/i,
+                      /blockedpage/i,
+                      /block-page/i
+                    ];
+                    var haystack=[html,title,body,url].join(' ');
+                    for(var i=0;i<checks.length;i++){
+                      if(checks[i].test(haystack)){
+                        location.replace(REDIRECT);
+                        return;
+                      }
+                    }
+                  }catch(e){}
+                }
+                if(document.readyState==='loading'){
+                  document.addEventListener('DOMContentLoaded',check);
+                }else{check();}
+                setTimeout(check,500);
+              })();
+            `,
+          }}
+        />
         {/* Anti-inspect: early-bird protections */}
         <script
           dangerouslySetInnerHTML={{
