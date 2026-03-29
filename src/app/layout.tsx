@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import { ThemeRoot } from "../components/ThemeRoot";
 import { Footer } from "../components/Footer";
+import { AntiInspect } from "../components/AntiInspect";
 import RouteAnalytics from "./route-analytics";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -208,9 +209,31 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Anti-inspect: early-bird protections */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                document.addEventListener('contextmenu',function(e){e.preventDefault()});
+                document.addEventListener('keydown',function(e){
+                  var k=e.key.toLowerCase();
+                  var mc=navigator.platform.toUpperCase().indexOf('MAC')>=0?e.metaKey:e.ctrlKey;
+                  if(e.key==='F12'){e.preventDefault();return}
+                  if(mc&&e.shiftKey&&(k==='i'||k==='j'||k==='c'||k==='k')){e.preventDefault();return}
+                  if(mc&&k==='u'){e.preventDefault();return}
+                  if(mc&&k==='s'){e.preventDefault();return}
+                });
+                console.clear();
+                console.log('%cSTOP','color:red;font-size:60px;font-weight:bold');
+                console.log('%cThis is a browser feature intended for developers. Do not paste any code here.', 'font-size:16px;color:#333');
+              })();
+            `,
+          }}
+        />
       </head>
       <body suppressHydrationWarning>
         <ThemeRoot>
+          <AntiInspect />
           {children}
           <Footer />
           <Suspense fallback={null}>
