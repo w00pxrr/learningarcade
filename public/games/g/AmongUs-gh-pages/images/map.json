@@ -1,0 +1,87 @@
+{
+  "frames": {
+    "map.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 980,
+        "h": 561
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 980,
+        "h": 561
+      },
+      "sourceSize": {
+        "w": 980,
+        "h": 561
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "map_reactor.png": {
+      "frame": {
+        "x": 980,
+        "y": 0,
+        "w": 73,
+        "h": 71
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 73,
+        "h": 71
+      },
+      "sourceSize": {
+        "w": 73,
+        "h": 71
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "map_energi.png": {
+      "frame": {
+        "x": 1053,
+        "y": 0,
+        "w": 72,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 72,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 72,
+        "h": 72
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.6",
+    "image": "map.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1125,
+      "h": 561
+    },
+    "scale": 1
+  }
+}

@@ -1,0 +1,55 @@
+{
+    "gameCode": "IMPOSTORIO",
+
+    "bots": 30,
+    "max_boxes": 150,
+
+    "fonts": [
+        {
+            "name": "Joffrey",
+            "url": "./fonts/In_your_face_joffrey.ttf"
+        },
+        {
+            "name": "Varela",
+            "url": "./fonts/varela_regular.ttf"
+        },
+        {
+            "name": "Mono",
+            "url": "./fonts/VCR_OSD_MONO_1.ttf"
+        }
+    ],
+
+    "levels": [
+        100,
+        400,
+        700,
+        1100,
+        1800,
+        2700,
+        4000,
+        6000,
+        10000,
+        15000
+    ],
+
+    "level_update": {
+        "+hp": 500,
+        "healing": 1500,
+        "speed": -0.02,
+        "camera": 0.05
+    },
+
+    "colors": [
+        {"name": "red", "color": 16711680},
+        {"name": "blue", "color": 1315020},
+        {"name": "yellow", "color": 16699908},
+        {"name": "white", "color": 14213616},
+        {"name": "green", "color": 260359},
+        {"name": "orange", "color": 16677636},
+        {"name": "dark_green", "color": 2454814},
+        {"name": "brown", "color": 8934189},
+        {"name": "pink", "color": 14036860},
+        {"name": "light_blue", "color": 325630},
+        {"name": "purple", "color": 11800780}
+    ]
+}

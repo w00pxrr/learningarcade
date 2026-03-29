@@ -13,6 +13,7 @@
   {
     "name": "2048"
   },
+  {"name": "FNAF5","href":"/games/g/FNAF5-gh-pages/index.html","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fi.ytimg.com%2Fvi%2Ff-zqS2CiZqw%2Fmaxresdefault.jpg&sp=1774746471Tf3bdbd39c826f45d622be8ac8df248dd559c5b32449d9a2095feedcf31b05bfc"},
   {
     "name": "Cookie Clicker",
     "href": "/games/g/cookie/index.html"
@@ -120,7 +121,9 @@
     "desktopOnly": true,
     "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.j6q6EWtdB1vWsrs6-ZggXgHaFD%3Fpid%3DApi&sp=1774743172T74ab6a4742ddc52e0f9d5cb4ef3d51f5380742352aaa7ee101089cbd8e794f7c"
   },
-  {
+  {"name": "Head Soccer","href":"/games/g/HeadSoccer2023-gh-pages/index.html","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.ws4FTqsl1whntbx_yYGM0gHaHa%3Fpid%3DApi&sp=1774745136Tc4c518ad5be8c87b788591440927c7558c3a8fbd7a89e5e45802115764874a58"},
+  {"name":"among us","href":"/games/g/AmongUs-gh-pages/index.html","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse4.mm.bing.net%2Fth%2Fid%2FOIP.P6wX6LtF2B7JssJGVXWAdQHaEK%3Fpid%3DApi&sp=1774745398T91c51e41d74fe91e421dc907313a6f4637457d2ccbf4e99cc378606557b81a33"}
+  ,{
     "name": "Snake",
     "href": "/games/snake.html"
   },
@@ -338,6 +341,9 @@
   {
     "name": "Portal",
     "href": "/games/g/Ruffle/player.html?swf=../../flash/portal.swf"
+  },  {
+    "name": "Happy Wheels",
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/happywheels.swf","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fwww.pockettactics.com%2Fwp-content%2Fsites%2Fpockettactics%2F2022%2F08%2Fhappy-wheels-download-logo.jpg&sp=1774745986T0fbef686d2db14a7c95a0058746b276c82d4026f64b1fe107cd1240a4759bc38"
   },
   {
     "title": "Tools",

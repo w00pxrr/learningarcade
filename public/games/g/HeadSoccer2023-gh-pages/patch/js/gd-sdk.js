@@ -1,0 +1,1 @@
+// UBG popup functionality removed

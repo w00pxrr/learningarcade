@@ -1,0 +1,178 @@
+{
+    "swords": [
+        {
+            "name": "sword",
+            "texture": "sword_0",
+            "range": 120,
+            "grip": 10,
+            "damage": 330,
+            "speed": 1.7,
+            "power": 2,
+            "scale": 0.23
+        },
+        {
+            "name": "sword",
+            "texture": "sword_1",
+            "range": 150,
+            "grip": 10,
+            "damage": 300,
+            "speed": 1.5,
+            "power": 1.5,
+            "scale": 0.31,
+            "anchorY": 0.8
+        },
+        {
+            "name": "sword",
+            "texture": "sword_2",
+            "range": 125,
+            "grip": 10,
+            "damage": 360,
+            "speed": 1.7,
+            "power": 2.5,
+            "scale": 0.25
+        },
+        {
+            "name": "sword",
+            "texture": "sword_3",
+            "range": 140,
+            "grip": 10,
+            "damage": 400,
+            "speed": 1.5,
+            "power": 4,
+            "scale": 0.27,
+            "anchorY": 0.4
+        },
+        {
+            "name": "sword",
+            "texture": "sword_4",
+            "range": 120,
+            "grip": 10,
+            "damage": 390,
+            "speed": 2.2,
+            "power": 1,
+            "scale": 0.23,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_5",
+            "range": 125,
+            "grip": 10,
+            "damage": 410,
+            "speed": 2,
+            "power": 3,
+            "scale": 0.25,
+            "anchorY": 0.8
+        },
+        {
+            "name": "sword",
+            "texture": "sword_6",
+            "range": 130,
+            "grip": 10,
+            "damage": 430,
+            "speed": 2,
+            "power": 3.2,
+            "scale": 0.26,
+            "anchorY": 0.7
+        },
+        {
+            "name": "sword",
+            "texture": "sword_7",
+            "range": 120,
+            "grip": 10,
+            "damage": 480,
+            "speed": 2.2,
+            "power": 1.5,
+            "scale": 0.23,
+            "anchorY": 0.45,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_8",
+            "range": 110,
+            "grip": 10,
+            "damage": 600,
+            "speed": 2,
+            "power": 2,
+            "scale": 0.4
+        },
+        {
+            "name": "sword",
+            "texture": "sword_9",
+            "range": 130,
+            "grip": 10,
+            "damage": 550,
+            "speed": 2.2,
+            "power": 1.5,
+            "scale": 0.26,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_10",
+            "range": 130,
+            "grip": 10,
+            "damage": 630,
+            "speed": 2,
+            "power": 2,
+            "scale": 0.29,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_11",
+            "range": 140,
+            "grip": 10,
+            "damage": 650,
+            "speed": 2.2,
+            "power": 1.7,
+            "scale": 0.28,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_12",
+            "range": 145,
+            "grip": 10,
+            "damage": 700,
+            "speed": 2,
+            "power": 1.9,
+            "scale": 0.28,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_13",
+            "range": 140,
+            "grip": 10,
+            "damage": 700,
+            "speed": 2.3,
+            "power": 1,
+            "scale": 0.27,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_14",
+            "range": 140,
+            "grip": 10,
+            "damage": 730,
+            "speed": 2.5,
+            "power": 1,
+            "scale": 0.27,
+            "blade": true
+        },
+        {
+            "name": "sword",
+            "texture": "sword_15",
+            "range": 140,
+            "grip": 10,
+            "damage": 850,
+            "speed": 2.3,
+            "power": 1,
+            "scale": 0.27,
+            "blade": true
+        }
+    ]
+}

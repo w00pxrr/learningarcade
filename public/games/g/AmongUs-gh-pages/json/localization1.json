@@ -1,0 +1,40 @@
+{
+    "en": {
+        "load": "Loading",
+        "play": "Play",
+        "admin": "Admin",
+        "cafeteria": "Cafeteria",
+        "electrical": "Electrical", 
+        "hospital": "MedBay", 
+        "motorBottom": "Lower Engine", 
+        "motorTop": "Upper Engine", 
+        "navigation": "Navigation",
+        "o2": "O2",
+        "office": "Communications", 
+        "reactor": "Reactor", 
+        "security": "Security", 
+        "shields": "Shields",
+        "storage": "Storage",
+        "weapons": "Weapons",
+        "your_name": "Your Name"
+    },
+    "ru": {
+        "load": "Загрузка",
+        "play": "Играть",
+        "admin": "Admin",
+        "cafeteria": "Cafeteria",
+        "electrical": "Electrical", 
+        "hospital": "MedBay", 
+        "motorBottom": "Lower Engine", 
+        "motorTop": "Upper Engine", 
+        "navigation": "Navigation",
+        "o2": "O2",
+        "office": "Communications", 
+        "reactor": "Reactor", 
+        "security": "Security", 
+        "shields": "Shields",
+        "storage": "Storage",
+        "weapons": "Weapons",
+        "your_name": "Your Name"
+    }
+}

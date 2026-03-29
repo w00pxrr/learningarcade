@@ -1,0 +1,111 @@
+{
+  "frames": {
+    "ventilation_arrow.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 118,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 118,
+        "h": 100
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "ventilation_select.png": {
+      "frame": {
+        "x": 118,
+        "y": 0,
+        "w": 57,
+        "h": 33
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 57,
+        "h": 33
+      },
+      "sourceSize": {
+        "w": 57,
+        "h": 33
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "ventilation_def.png": {
+      "frame": {
+        "x": 175,
+        "y": 0,
+        "w": 55,
+        "h": 30
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 55,
+        "h": 30
+      },
+      "sourceSize": {
+        "w": 55,
+        "h": 30
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "ventilation_open.png": {
+      "frame": {
+        "x": 230,
+        "y": 0,
+        "w": 47,
+        "h": 47
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 47,
+        "h": 47
+      },
+      "sourceSize": {
+        "w": 47,
+        "h": 47
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.6",
+    "image": "ventilation.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 277,
+      "h": 100
+    },
+    "scale": 1
+  }
+}

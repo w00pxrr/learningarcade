@@ -1,0 +1,62 @@
+{
+    "hats": [
+        {
+            "name": "hat_1",
+            "sheet": "hat_1"
+        },
+        {
+            "name": "hat_2",
+            "sheet": "hat_2",
+            "left": true,
+            "x": 15,
+            "y": 25
+        },
+        {
+            "name": "hat_3",
+            "sheet": "hat_3",
+            "y": -6,
+            "x": 0
+        },
+        {
+            "name": "hat_4",
+            "sheet": "hat_4",
+            "y": 27,
+            "x": 4
+        },
+        {
+            "name": "hat_5",
+            "sheet": "hat_5",
+            "y": -5,
+            "x": -7
+        },
+        {
+            "name": "hat_6",
+            "sheet": "hat_6",
+            "y": -15,
+            "x": 2
+        },
+        {
+            "name": "hat_7",
+            "sheet": "hat_7",
+            "y": 7
+        },
+        {
+            "name": "hat_8",
+            "sheet": "hat_8",
+            "y": -10,
+            "x": -5
+        },
+        {
+            "name": "hat_9",
+            "sheet": "hat_9",
+            "y": 3,
+            "x": 3
+        },
+        {
+            "name": "hat_10",
+            "sheet": "hat_10",
+            "y": -8,
+            "x": -4
+        }
+    ]
+}

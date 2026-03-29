@@ -1,0 +1,63 @@
+{
+  "frames": {
+    "down.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 47
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 47
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 47
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "def.png": {
+      "frame": {
+        "x": 67,
+        "y": 0,
+        "w": 55,
+        "h": 54
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 55,
+        "h": 54
+      },
+      "sourceSize": {
+        "w": 55,
+        "h": 54
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.6",
+    "image": "hat_3.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 122,
+      "h": 54
+    },
+    "scale": 1
+  }
+}

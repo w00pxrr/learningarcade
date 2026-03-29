@@ -471,7 +471,7 @@ export default function HomePage() {
               </div>
               <div className="stat-item">
                 <div className="stat-value">100%</div>
-                <div className="stat-label">Free</div>
+                <div className="stat-label">Free - No Ads</div>
               </div>
               <div className="stat-item">
                 <div className="stat-value">24/7</div>
