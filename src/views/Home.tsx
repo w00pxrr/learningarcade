@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { gamesByCategory, gamesById, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
@@ -31,6 +31,59 @@ import { useRouter } from "next/navigation";
 type CookieConsent = { settings?: boolean; analytics?: boolean };
 
 const consentStorageKey = "gams_cookie_consent_v1";
+
+// Loading skeleton for game sections
+function GameSectionSkeleton() {
+  return (
+    <section className="section">
+      <div className="section-header">
+        <div>
+          <h2 className="section-title">
+            <span
+              className="section-title-icon"
+              style={{ background: "var(--cg-bg-tertiary)" }}
+            >
+              &nbsp;
+            </span>
+            &nbsp;
+          </h2>
+        </div>
+      </div>
+      <div className="games-grid">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="game-card"
+            style={{ background: "var(--cg-bg-card)" }}
+          >
+            <div
+              className="game-card-image-container"
+              style={{ background: "var(--cg-bg-tertiary)" }}
+            />
+            <div className="game-card-content">
+              <div
+                style={{
+                  height: "1rem",
+                  background: "var(--cg-bg-tertiary)",
+                  borderRadius: "4px",
+                  marginBottom: "8px",
+                }}
+              />
+              <div
+                style={{
+                  height: "0.8rem",
+                  width: "60%",
+                  background: "var(--cg-bg-tertiary)",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 const categoryLinks = categoryMeta.items
   .filter((item) => {
@@ -102,20 +155,26 @@ function getLatestGames(): GameData[] {
 function getRandomFeaturedGames(): GameData[] {
   const allowedSections = ["HTML5/unity Webgl", "Flash"];
   const filtered = gamesData.filter((g) => allowedSections.includes(g.section));
-  
+
   // Calculate 12-hour window (43200000 ms = 12 hours)
   // Use a deterministic seed based on date to ensure server/client consistency
   const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
   const now = Date.now();
   const windowIndex = Math.floor(now / TWELVE_HOURS_MS);
-  
+
   // Check if we have a cached selection for this window (client-side only)
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const cached = getStoredItem("gams_featured_games");
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as { windowIndex: number; gameIds: string[] };
-        if (parsed.windowIndex === windowIndex && Array.isArray(parsed.gameIds)) {
+        const parsed = JSON.parse(cached) as {
+          windowIndex: number;
+          gameIds: string[];
+        };
+        if (
+          parsed.windowIndex === windowIndex &&
+          Array.isArray(parsed.gameIds)
+        ) {
           const games = parsed.gameIds
             .map((id) => gamesById[id])
             .filter(Boolean) as GameData[];
@@ -126,24 +185,28 @@ function getRandomFeaturedGames(): GameData[] {
       }
     }
   }
-  
+
   // Generate new random selection using window index as seed
   // Use a deterministic shuffle that produces the same result on server and client
   const shuffled = [...filtered].sort((a, b) => {
     // Create a deterministic hash from game IDs and window index
-    const hashA = (a.id + windowIndex.toString()).split('').reduce((acc, char) => {
-      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-    }, 0);
-    const hashB = (b.id + windowIndex.toString()).split('').reduce((acc, char) => {
-      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-    }, 0);
+    const hashA = (a.id + windowIndex.toString())
+      .split("")
+      .reduce((acc, char) => {
+        return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+      }, 0);
+    const hashB = (b.id + windowIndex.toString())
+      .split("")
+      .reduce((acc, char) => {
+        return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+      }, 0);
     return hashA - hashB;
   });
-  
+
   const selected = shuffled.slice(0, 8);
-  
+
   // Cache the selection (client-side only)
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     setStoredItem(
       "gams_featured_games",
       JSON.stringify({
@@ -152,8 +215,25 @@ function getRandomFeaturedGames(): GameData[] {
       }),
     );
   }
-  
+
   return selected;
+}
+
+// Cached featured games to avoid recomputation
+let cachedFeaturedGames: GameData[] | null = null;
+let cachedFeaturedGamesWindowIndex: number | null = null;
+
+function getCachedFeaturedGames(): GameData[] {
+  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+  const windowIndex = Math.floor(Date.now() / TWELVE_HOURS_MS);
+
+  if (cachedFeaturedGames && cachedFeaturedGamesWindowIndex === windowIndex) {
+    return cachedFeaturedGames;
+  }
+
+  cachedFeaturedGames = getRandomFeaturedGames();
+  cachedFeaturedGamesWindowIndex = windowIndex;
+  return cachedFeaturedGames;
 }
 
 function getTopVisitedGamesFromVisits(
@@ -187,14 +267,15 @@ function getTopVisitedGamesFromVisits(
 }
 
 // Game Card Component with hover effects
-function GameCard({ 
-  game, 
-  onOpenGame, 
-  onToggleFavorite, 
-  canFavorite, 
+function GameCard({
+  game,
+  onOpenGame,
+  onToggleFavorite,
+  canFavorite,
   isFavorite,
   badge,
-  isMobile
+  isMobile,
+  onPrefetch,
 }: {
   game: GameData;
   onOpenGame: (game: GameData) => void;
@@ -203,6 +284,7 @@ function GameCard({
   isFavorite: boolean;
   badge?: "new" | "trending" | "featured";
   isMobile: boolean;
+  onPrefetch?: (game: GameData) => void;
 }) {
   const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
 
@@ -210,7 +292,11 @@ function GameCard({
     <div className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}>
       {badge && (
         <span className={`game-card-badge ${badge}`}>
-          {badge === "new" ? "NEW" : badge === "trending" ? "TRENDING" : "FEATURED"}
+          {badge === "new"
+            ? "NEW"
+            : badge === "trending"
+              ? "TRENDING"
+              : "FEATURED"}
         </span>
       )}
       <button
@@ -219,6 +305,7 @@ function GameCard({
         onClick={() => {
           if (!desktopOnly) onOpenGame(game);
         }}
+        onMouseEnter={() => onPrefetch?.(game)}
         disabled={desktopOnly}
       >
         <div className="game-card-image-container">
@@ -235,9 +322,7 @@ function GameCard({
           <div className="game-card-title" title={game.name}>
             {game.name}
           </div>
-          <div className="game-card-category">
-            {game.category || "Game"}
-          </div>
+          <div className="game-card-category">{game.category || "Game"}</div>
         </div>
       </button>
       <DesktopOnlyOverlay visible={desktopOnly} />
@@ -277,6 +362,7 @@ function GameSection({
   canFavorite,
   favoriteSet,
   isMobile,
+  onPrefetch,
 }: {
   title: string;
   subtitle?: string;
@@ -290,6 +376,7 @@ function GameSection({
   canFavorite: boolean;
   favoriteSet: Set<string>;
   isMobile: boolean;
+  onPrefetch?: (game: GameData) => void;
 }) {
   if (games.length === 0) return null;
 
@@ -320,6 +407,7 @@ function GameSection({
             isFavorite={favoriteSet.has(game.id)}
             badge={badge}
             isMobile={isMobile}
+            onPrefetch={onPrefetch}
           />
         ))}
       </div>
@@ -375,7 +463,7 @@ export default function HomePage() {
     [localVisits],
   );
   const latest = useMemo(() => getLatestGames(), []);
-  const featuredGames = useMemo(() => getRandomFeaturedGames(), []);
+  const featuredGames = useMemo(() => getCachedFeaturedGames(), []);
   const popularGames = useMemo(() => {
     const scored = gamesData.map((game) => {
       const score = getCombinedCount(localVisits, game.id, viewCounts);
@@ -395,8 +483,8 @@ export default function HomePage() {
   // Filter games by category
   const filteredGames = useMemo(() => {
     if (activeCategory === "all") return gamesData;
-    return gamesData.filter((game) => 
-      game.category?.toLowerCase() === activeCategory.toLowerCase()
+    return gamesData.filter(
+      (game) => game.category?.toLowerCase() === activeCategory.toLowerCase(),
     );
   }, [activeCategory]);
 
@@ -435,6 +523,17 @@ export default function HomePage() {
     router.push(`/game-embed?${gameShellQuery}`);
   };
 
+  const prefetchGame = (game: GameData) => {
+    const href = new URL(game.href, window.location.origin).href;
+    const gameShellQuery = new URLSearchParams({
+      id: game.id,
+      icon: new URL(game.img, window.location.origin).href,
+      name: game.name,
+      src: href,
+    }).toString();
+    router.prefetch(`/game-embed?${gameShellQuery}`);
+  };
+
   return (
     <div className="ui-page">
       <PrimaryNav
@@ -451,7 +550,8 @@ export default function HomePage() {
           <div className="hero-content">
             <h1 className="hero-title">Play Free Online Games</h1>
             <p className="hero-subtitle">
-              Discover thousands of free games. Action, adventure, puzzle, and more!
+              Discover thousands of free games. Action, adventure, puzzle, and
+              more!
             </p>
             <div className="hero-search">
               <form onSubmit={handleSearchSubmit} className="search-container">
@@ -495,68 +595,81 @@ export default function HomePage() {
           canFavorite={canFavorite}
           favoriteSet={favoriteSet}
           isMobile={isMobile}
+          onPrefetch={prefetchGame}
         />
 
-        {/* Trending Games */}
-        <GameSection
-          title="Trending Now"
-          subtitle="Most popular games this week"
-          icon="🔥"
-          games={popularGames.slice(0, 8)}
-          badge="trending"
-          viewAllLink="/category/popular"
-          viewAllText="View All"
-          onOpenGame={handleOpenGame}
-          onToggleFavorite={toggleFavorite}
-          canFavorite={canFavorite}
-          favoriteSet={favoriteSet}
-          isMobile={isMobile}
-        />
-
-        {/* New Releases */}
-        <GameSection
-          title="New Releases"
-          subtitle="Fresh games just added"
-          icon="🆕"
-          games={latest}
-          badge="new"
-          onOpenGame={handleOpenGame}
-          onToggleFavorite={toggleFavorite}
-          canFavorite={canFavorite}
-          favoriteSet={favoriteSet}
-          isMobile={isMobile}
-        />
-
-        {/* All Games / Filtered Games */}
-        {activeCategory !== "all" && (
+        {/* Trending Games - Lazy loaded */}
+        <Suspense fallback={<GameSectionSkeleton />}>
           <GameSection
-            title={`${categoryFilters.find(c => c.value === activeCategory)?.label || "Games"}`}
-            subtitle={`Browse all ${activeCategory} games`}
-            icon="🎮"
-            games={filteredGames.slice(0, 12)}
-            onOpenGame={handleOpenGame}
-            onToggleFavorite={toggleFavorite}
-            canFavorite={canFavorite}
-            favoriteSet={favoriteSet}
-            isMobile={isMobile}
-          />
-        )}
-
-        {/* Favorites Section */}
-        {canFavorite && favoriteGames.length > 0 && (
-          <GameSection
-            title="Your Favorites"
-            subtitle="Games you've starred"
-            icon="❤️"
-            games={favoriteGames.slice(0, 8)}
-            viewAllLink="/category/favorites"
+            title="Trending Now"
+            subtitle="Most popular games this week"
+            icon="🔥"
+            games={popularGames.slice(0, 8)}
+            badge="trending"
+            viewAllLink="/category/popular"
             viewAllText="View All"
             onOpenGame={handleOpenGame}
             onToggleFavorite={toggleFavorite}
             canFavorite={canFavorite}
             favoriteSet={favoriteSet}
             isMobile={isMobile}
+            onPrefetch={prefetchGame}
           />
+        </Suspense>
+
+        {/* New Releases - Lazy loaded */}
+        <Suspense fallback={<GameSectionSkeleton />}>
+          <GameSection
+            title="New Releases"
+            subtitle="Fresh games just added"
+            icon="🆕"
+            games={latest}
+            badge="new"
+            onOpenGame={handleOpenGame}
+            onToggleFavorite={toggleFavorite}
+            canFavorite={canFavorite}
+            favoriteSet={favoriteSet}
+            isMobile={isMobile}
+            onPrefetch={prefetchGame}
+          />
+        </Suspense>
+
+        {/* All Games / Filtered Games - Lazy loaded */}
+        {activeCategory !== "all" && (
+          <Suspense fallback={<GameSectionSkeleton />}>
+            <GameSection
+              title={`${categoryFilters.find((c) => c.value === activeCategory)?.label || "Games"}`}
+              subtitle={`Browse all ${activeCategory} games`}
+              icon="🎮"
+              games={filteredGames.slice(0, 12)}
+              onOpenGame={handleOpenGame}
+              onToggleFavorite={toggleFavorite}
+              canFavorite={canFavorite}
+              favoriteSet={favoriteSet}
+              isMobile={isMobile}
+              onPrefetch={prefetchGame}
+            />
+          </Suspense>
+        )}
+
+        {/* Favorites Section - Lazy loaded */}
+        {canFavorite && favoriteGames.length > 0 && (
+          <Suspense fallback={<GameSectionSkeleton />}>
+            <GameSection
+              title="Your Favorites"
+              subtitle="Games you've starred"
+              icon="❤️"
+              games={favoriteGames.slice(0, 8)}
+              viewAllLink="/category/favorites"
+              viewAllText="View All"
+              onOpenGame={handleOpenGame}
+              onToggleFavorite={toggleFavorite}
+              canFavorite={canFavorite}
+              favoriteSet={favoriteSet}
+              isMobile={isMobile}
+              onPrefetch={prefetchGame}
+            />
+          </Suspense>
         )}
 
         {/* Quick Actions */}
@@ -582,8 +695,6 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-
-
     </div>
   );
 }

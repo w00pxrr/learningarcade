@@ -1,11 +1,20 @@
 import "./globals.css";
 import React, { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
+import { Poppins } from "next/font/google";
 import { ThemeRoot } from "../components/ThemeRoot";
 import { Footer } from "../components/Footer";
 import RouteAnalytics from "./route-analytics";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-poppins",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://learningarcade.vercel.app"),
@@ -76,11 +85,23 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/img/Learning Arcade Background Removed.png", sizes: "32x32", type: "image/png" },
-      { url: "/img/Learning Arcade Background Removed.png", sizes: "16x16", type: "image/png" },
+      {
+        url: "/img/Learning Arcade Background Removed.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/img/Learning Arcade Background Removed.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
     ],
     apple: [
-      { url: "/img/Learning Arcade Background Removed.png", sizes: "180x180", type: "image/png" },
+      {
+        url: "/img/Learning Arcade Background Removed.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
     ],
     other: [
       {
@@ -128,7 +149,8 @@ export default function RootLayout({
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://learningarcade.vercel.app/search?q={search_term_string}",
+        urlTemplate:
+          "https://learningarcade.vercel.app/search?q={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
@@ -144,34 +166,23 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={poppins.variable}
+      data-scroll-behavior="smooth"
+    >
       <head>
-        {/* Preconnect to external origins for faster connections on Chromebooks */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        {/* Resource hints for faster loading */}
+        <link rel="preconnect" href="https://learningarcade.vercel.app" />
+        <link rel="dns-prefetch" href="https://learningarcade.vercel.app" />
+
         {/* FontAwesome icons */}
         <link
           rel="stylesheet"
           href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css"
         />
-        {/* DNS prefetch for game resources */}
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        {/* Preload critical resources */}
-        <link
-          rel="preload"
-          href="/img/Learning Arcade Background Removed.png"
-          as="image"
-          type="image/png"
-        />
-        {/* Preload critical game iframe resources */}
-        <link rel="preload" href="/games/" as="document" crossOrigin="anonymous" />
-        {/* Preconnect to game hosting origins */}
-        <link rel="preconnect" href="https://learningarcade.vercel.app" crossOrigin="anonymous" />
+
         {/* Structured data */}
         <script
           type="application/ld+json"

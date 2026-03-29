@@ -4,7 +4,7 @@ import { gamesByCategory } from "../../../data/games";
 import ClientCategoryPage from "./client";
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -19,8 +19,11 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = params.slug;
-  const categoryItem = categoryMeta.items.find((item) => item.value === category);
+  const { slug } = await params;
+  const category = slug;
+  const categoryItem = categoryMeta.items.find(
+    (item) => item.value === category,
+  );
   const label = categoryItem?.label ?? category ?? "Games";
   const gameCount = (gamesByCategory[category] ?? []).length;
 

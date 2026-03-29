@@ -7,12 +7,27 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, Slider, Switch } from "../components/ui";
+import dynamic from "next/dynamic";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../components/ui";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { gamesById, gamesData } from "../data/games";
 import { useDisguise } from "../hooks/useDisguise";
 import filterControls from "../data/gameEmbedFilters.json";
 import { useSearchParams } from "next/navigation";
+
+const GameSettingsDialog = dynamic(
+  () => import("../components/GameSettingsDialog"),
+  { loading: () => null },
+);
+
+const MobileControls = dynamic(() => import("../components/MobileControls"), {
+  loading: () => null,
+});
 
 type FilterState = {
   brightness: number;
@@ -81,7 +96,6 @@ export default function GameEmbedPage() {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
-  const [activeButton, setActiveButton] = useState<string | null>(null);
   const [loadStartTime, setLoadStartTime] = useState<number | null>(null);
 
   useDisguise(currentName, currentIcon);
@@ -201,7 +215,7 @@ export default function GameEmbedPage() {
     return () => window.removeEventListener("pointerdown", handler);
   }, [isFullscreen]);
 
-  const filterStyle = '';
+  const filterStyle = "";
 
   const openFullscreen = () => {
     const element = document.getElementById("frame");
@@ -287,17 +301,6 @@ export default function GameEmbedPage() {
     [],
   );
 
-  // Handle button press with visual feedback
-  const handleButtonPress = (key: string) => {
-    setActiveButton(key);
-    sendVirtualKey("keydown", key);
-  };
-
-  const handleButtonRelease = (key: string) => {
-    setActiveButton(null);
-    sendVirtualKey("keyup", key);
-  };
-
   return (
     <div className="ui-page ui-page-embed">
       {!isFullscreen ? (
@@ -332,15 +335,18 @@ export default function GameEmbedPage() {
               <div className="nav-game-mobile">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="btn btn-outline btn-sm" style={{
-                      padding: "8px 16px",
-                      fontSize: "0.85rem",
-                      fontWeight: 600,
-                      borderRadius: "50px",
-                      background: "var(--cg-bg-card)",
-                      border: "2px solid var(--cg-border-color)",
-                      color: "var(--cg-text-primary)"
-                    }}>
+                    <button
+                      className="btn btn-outline btn-sm"
+                      style={{
+                        padding: "8px 16px",
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                        borderRadius: "50px",
+                        background: "var(--cg-bg-card)",
+                        border: "2px solid var(--cg-border-color)",
+                        color: "var(--cg-text-primary)",
+                      }}
+                    >
                       ⚙️ Menu
                     </button>
                   </DropdownMenuTrigger>
@@ -395,32 +401,34 @@ export default function GameEmbedPage() {
                   // Log performance metrics
                   if (loadStartTime) {
                     const loadTime = performance.now() - loadStartTime;
-                    console.log(`[Performance] Game iframe loaded in ${loadTime.toFixed(2)}ms`);
+                    console.log(
+                      `[Performance] Game iframe loaded in ${loadTime.toFixed(2)}ms`,
+                    );
                     // Report to analytics if available
-                    if (typeof window !== 'undefined' && (window as any).gtag) {
-                      (window as any).gtag('event', 'game_load', {
-                        event_category: 'performance',
+                    if (typeof window !== "undefined" && (window as any).gtag) {
+                      (window as any).gtag("event", "game_load", {
+                        event_category: "performance",
                         event_label: currentName,
                         value: Math.round(loadTime),
                       });
                     }
                   }
                 }}
-                className={`embed-iframe ${isIframeLoaded ? 'loaded' : 'loading'}`}
-                style={{ 
+                className={`embed-iframe ${isIframeLoaded ? "loaded" : "loading"}`}
+                style={{
                   filter: filterStyle,
                   // Hide iframe content until loaded to prevent flickering
                   opacity: isIframeLoaded ? 1 : 0,
-                  transition: 'opacity 0.2s ease-in-out',
+                  transition: "opacity 0.2s ease-in-out",
                   // GPU acceleration hints for smoother rendering
-                  willChange: 'transform, opacity',
-                  transform: 'translateZ(0)',
-                  backfaceVisibility: 'hidden',
+                  willChange: "transform, opacity",
+                  transform: "translateZ(0)",
+                  backfaceVisibility: "hidden",
                   // Optimize rendering performance
-                  contain: 'layout style paint',
+                  contain: "layout style paint",
                 }}
                 // Performance optimizations for Chromebooks
-                loading="lazy"
+                loading="eager"
                 referrerPolicy="no-referrer"
                 // Reduce memory usage and improve performance
                 allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
@@ -437,113 +445,17 @@ export default function GameEmbedPage() {
         </div>
       ) : null}
 
-      <div className="mobile-controls" aria-label="Mobile game controls">
-        <div className="mobile-dpad">
-          <button
-            className={`arrow-btn ${activeButton === "ArrowUp" ? "active" : ""}`}
-            style={{ gridColumn: 2, gridRow: 1 }}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              handleButtonPress("ArrowUp");
-            }}
-            onPointerUp={(event) => {
-              event.preventDefault();
-              handleButtonRelease("ArrowUp");
-            }}
-            onPointerLeave={(event) => {
-              event.preventDefault();
-              handleButtonRelease("ArrowUp");
-            }}
-          >
-            ▲
-          </button>
-          {(
-            [
-              ["ArrowLeft", "◀", 1, 2],
-              ["ArrowDown", "▼", 2, 2],
-              ["ArrowRight", "▶", 3, 2],
-            ] as Array<[string, string, number, number]>
-          ).map(([keyValue, label, col, row]) => (
-            <button
-              key={keyValue}
-              className={`arrow-btn ${activeButton === keyValue ? "active" : ""}`}
-              style={{ gridColumn: col, gridRow: row }}
-              onPointerDown={(event) => {
-                event.preventDefault();
-                handleButtonPress(keyValue);
-              }}
-              onPointerUp={(event) => {
-                event.preventDefault();
-                handleButtonRelease(keyValue);
-              }}
-              onPointerLeave={(event) => {
-                event.preventDefault();
-                handleButtonRelease(keyValue);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <button
-          className={`space-btn ${activeButton === " " ? "active" : ""}`}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            handleButtonPress(" ");
-          }}
-          onPointerUp={(event) => {
-            event.preventDefault();
-            handleButtonRelease(" ");
-          }}
-          onPointerLeave={(event) => {
-            event.preventDefault();
-            handleButtonRelease(" ");
-          }}
-        >
-          Space
-        </button>
-      </div>
+      <MobileControls onSendKey={sendVirtualKey} />
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="dialog-content">
-          <DialogHeader className="dialog-header">
-            <DialogTitle className="dialog-title">
-              ⚙️ Game Settings
-            </DialogTitle>
-            <DialogClose asChild>
-              <button className="btn btn-ghost btn-sm">✕</button>
-            </DialogClose>
-          </DialogHeader>
-            <div className="ui-stack">
-              <label className="switch-row">
-                <Switch
-                  className="switch-root"
-                  checked={windowLock}
-                  onCheckedChange={setWindowLock}
-                />
-                <span>Ask before closing window</span>
-              </label>
-              {typedFilterControls.map(({ label, key, min, max, step }) => (
-                <div key={key} className="slider-block">
-                  <div className="slider-row">
-                    <span className="slider-label">{label}</span>
-                    <span className="slider-value">{filters[key]}</span>
-                  </div>
-                  <Slider
-                    className="slider-root"
-                    value={[filters[key]]}
-                    min={min}
-                    max={max}
-                    step={step}
-                    onValueChange={(value: number[]) =>
-                      updateFilter(key, value[0] ?? min)
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-        </DialogContent>
-      </Dialog>
+      <GameSettingsDialog
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        windowLock={windowLock}
+        onWindowLockChange={setWindowLock}
+        filters={filters}
+        filterControls={typedFilterControls}
+        onFilterChange={updateFilter}
+      />
     </div>
   );
 }

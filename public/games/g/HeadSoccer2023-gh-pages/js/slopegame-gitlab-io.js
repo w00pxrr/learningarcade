@@ -1,1 +1,0 @@
-// UBG backlinks functionality removed

@@ -1,8 +1,8 @@
 {
-  "name": "ubg235",
-  "description": "ubg235",
-  "short_name": "ubg235",
-  "icons": [    
+  "name": "Subway Surfers",
+  "description": "Subway Surfers",
+  "short_name": "SubwaySurfers",
+  "icons": [
     {
       "src": "/patch/images/null.png",
       "sizes": "512x512",

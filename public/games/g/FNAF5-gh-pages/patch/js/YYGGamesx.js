@@ -1,9 +1,1 @@
-function YYGGames () {
-  this.showSplash = function (data= null) {
-    console.log("--fx--YYGGames--showSplash--");
-  }
-  this.startupByYad= function (obj) {
-    console.log("--fx--YYGGames--startupByYad--", obj);
-  }
-}
-YYGGames= new YYGGames();
+function YYGGames(){this.showSplash=function(s=null){console.log("--fx--YYGGames--showSplash--")},this.startupByYad=function(s){console.log("--fx--YYGGames--startupByYad--",s)}}YYGGames=new YYGGames;

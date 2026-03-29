@@ -133,6 +133,18 @@ export default function CategoryPage() {
     );
   };
 
+  const prefetchGame = (game: GameData) => {
+    const href = new URL(game.href, window.location.origin).href;
+    router.prefetch(
+      `/game-embed?${new URLSearchParams({
+        id: game.id,
+        icon: new URL(game.img, window.location.origin).href,
+        name: game.name,
+        src: href,
+      }).toString()}`,
+    );
+  };
+
   return (
     <div className="ui-page">
       <PrimaryNav
@@ -149,7 +161,9 @@ export default function CategoryPage() {
                 <span className="section-title-icon">🎮</span>
                 {label} Games
               </h1>
-              <p className="section-subtitle">{filtered.length} games available</p>
+              <p className="section-subtitle">
+                {filtered.length} games available
+              </p>
             </div>
             <Link className="btn btn-outline" href="/">
               ← Back to Home
@@ -174,6 +188,7 @@ export default function CategoryPage() {
                     onClick={() => {
                       if (!desktopOnly) openGame(game);
                     }}
+                    onMouseEnter={() => prefetchGame(game)}
                     disabled={desktopOnly}
                   >
                     <div className="game-card-image-container">
@@ -223,7 +238,10 @@ export default function CategoryPage() {
         {/* Empty State */}
         {filtered.length === 0 && (
           <section className="section">
-            <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
+            <div
+              className="panel"
+              style={{ textAlign: "center", padding: "48px 24px" }}
+            >
               <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🎮</div>
               <h3 className="panel-heading">No games found</h3>
               <p className="muted" style={{ marginBottom: "24px" }}>

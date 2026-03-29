@@ -2,7 +2,16 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Select, SelectTrigger, SelectValue, SelectIcon, SelectContent, SelectViewport, SelectItem, SelectItemText } from "../components/ui";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectIcon,
+  SelectContent,
+  SelectViewport,
+  SelectItem,
+  SelectItemText,
+} from "../components/ui";
 import { gamesData, GameData } from "../data/games";
 import { normalizeSearchText } from "../utils/search";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
@@ -155,6 +164,18 @@ export default function SearchPage() {
     );
   };
 
+  const prefetchGame = (game: GameData) => {
+    const href = new URL(game.href, window.location.origin).href;
+    router.prefetch(
+      `/game-embed?${new URLSearchParams({
+        id: game.id,
+        icon: new URL(game.img, window.location.origin).href,
+        name: game.name,
+        src: href,
+      }).toString()}`,
+    );
+  };
+
   return (
     <div className="ui-page">
       <PrimaryNav
@@ -183,8 +204,18 @@ export default function SearchPage() {
         {/* Search Controls */}
         <section className="section">
           <div className="panel">
-            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
-              <div className="search-container" style={{ flex: 1, minWidth: "250px" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "16px",
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              <div
+                className="search-container"
+                style={{ flex: 1, minWidth: "250px" }}
+              >
                 <span className="search-icon">🔍</span>
                 <input
                   className="search-input"
@@ -201,41 +232,57 @@ export default function SearchPage() {
                   setSortMode(value as "relevance" | "views")
                 }
               >
-                <SelectTrigger className="select-trigger" aria-label="Sort by" style={{
-                  padding: "12px 20px",
-                  background: "var(--cg-bg-card)",
-                  border: "2px solid var(--cg-border-color)",
-                  borderRadius: "50px",
-                  color: "var(--cg-text-primary)",
-                  fontSize: "0.95rem",
-                  cursor: "pointer",
-                  minWidth: "150px"
-                }}>
+                <SelectTrigger
+                  className="select-trigger"
+                  aria-label="Sort by"
+                  style={{
+                    padding: "12px 20px",
+                    background: "var(--cg-bg-card)",
+                    border: "2px solid var(--cg-border-color)",
+                    borderRadius: "50px",
+                    color: "var(--cg-text-primary)",
+                    fontSize: "0.95rem",
+                    cursor: "pointer",
+                    minWidth: "150px",
+                  }}
+                >
                   <SelectValue />
                   <SelectIcon className="select-icon">▾</SelectIcon>
                 </SelectTrigger>
-                <SelectContent className="select-content" position="popper" style={{
-                  background: "var(--cg-bg-card)",
-                  border: "1px solid var(--cg-border-color)",
-                  borderRadius: "12px",
-                  padding: "8px",
-                  boxShadow: "var(--cg-shadow-card)"
-                }}>
+                <SelectContent
+                  className="select-content"
+                  position="popper"
+                  style={{
+                    background: "var(--cg-bg-card)",
+                    border: "1px solid var(--cg-border-color)",
+                    borderRadius: "12px",
+                    padding: "8px",
+                    boxShadow: "var(--cg-shadow-card)",
+                  }}
+                >
                   <SelectViewport className="select-viewport">
-                    <SelectItem value="relevance" className="select-item" style={{
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      color: "var(--cg-text-secondary)"
-                    }}>
+                    <SelectItem
+                      value="relevance"
+                      className="select-item"
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        color: "var(--cg-text-secondary)",
+                      }}
+                    >
                       <SelectItemText>Relevance</SelectItemText>
                     </SelectItem>
-                    <SelectItem value="views" className="select-item" style={{
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      color: "var(--cg-text-secondary)"
-                    }}>
+                    <SelectItem
+                      value="views"
+                      className="select-item"
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        color: "var(--cg-text-secondary)",
+                      }}
+                    >
                       <SelectItemText>Views</SelectItemText>
                     </SelectItem>
                   </SelectViewport>
@@ -251,7 +298,10 @@ export default function SearchPage() {
         {/* Search Results */}
         {results.length === 0 ? (
           <section className="section">
-            <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
+            <div
+              className="panel"
+              style={{ textAlign: "center", padding: "48px 24px" }}
+            >
               <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🔍</div>
               <h3 className="panel-heading">No results found</h3>
               <p className="muted" style={{ marginBottom: "24px" }}>
@@ -279,6 +329,7 @@ export default function SearchPage() {
                       onClick={() => {
                         if (!desktopOnly) openGame(game);
                       }}
+                      onMouseEnter={() => prefetchGame(game)}
                       disabled={desktopOnly}
                     >
                       <div className="game-card-image-container">

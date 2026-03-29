@@ -37,7 +37,10 @@ export default function ClientGamePage({ gameId }: Props) {
   const isMobile = useIsMobile();
   const game = gamesById[gameId];
 
-  useDisguise(game ? `${game.name} - LearningArcade` : "LearningArcade", baseIcon);
+  useDisguise(
+    game ? `${game.name} - LearningArcade` : "LearningArcade",
+    baseIcon,
+  );
 
   useEffect(() => {
     setBaseIcon(
@@ -84,6 +87,19 @@ export default function ClientGamePage({ gameId }: Props) {
     }).toString();
     router.push(`/game-embed?${gameShellQuery}`);
   };
+
+  // Prefetch game embed on mount for faster navigation
+  useEffect(() => {
+    if (!game) return;
+    const href = new URL(game.href, window.location.origin).href;
+    const gameShellQuery = new URLSearchParams({
+      id: game.id,
+      icon: new URL(game.img, window.location.origin).href,
+      name: game.name,
+      src: href,
+    }).toString();
+    router.prefetch(`/game-embed?${gameShellQuery}`);
+  }, [game, router]);
 
   // Generate structured data for the game
   const structuredData = {
@@ -201,7 +217,10 @@ export default function ClientGamePage({ gameId }: Props) {
         <section className="panel">
           <h3 className="panel-title">More Games</h3>
           <div className="ui-row">
-            <Link className="btn btn-outline" href={`/category/${game.category}`}>
+            <Link
+              className="btn btn-outline"
+              href={`/category/${game.category}`}
+            >
               More {game.category} games
             </Link>
             <Link className="btn btn-outline" href="/category/all">

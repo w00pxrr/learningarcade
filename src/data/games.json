@@ -13,7 +13,12 @@
   {
     "name": "2048"
   },
-  {"name": "FNAF5","href":"/games/g/FNAF5-gh-pages/index.html","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fi.ytimg.com%2Fvi%2Ff-zqS2CiZqw%2Fmaxresdefault.jpg&sp=1774746471Tf3bdbd39c826f45d622be8ac8df248dd559c5b32449d9a2095feedcf31b05bfc"},
+  {
+    "name": "FNAF5",
+    "href": "/games/g/FNAF5-gh-pages/index.html",
+    "img": "/img/fnaf5.webp"
+  },
+  {"name":"Fruit Ninja", "href": "/games/g/FruitNinja-gh-pages/index.html", "img": "/games/g/FruitNinja-gh-pages/proxy-image_75.jpg"},
   {
     "name": "Cookie Clicker",
     "href": "/games/g/cookie/index.html"
@@ -80,50 +85,66 @@
     "href": "https://guitheengineer.github.io/betteraim/",
     "desktopOnly": true
   },
-  {    "name": "Krunker.io",
+  {
+    "name": "Krunker.io",
     "href": "https://krunker.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fi.ytimg.com%2Fvi%2FWD9wkh7l8bA%2Fmaxresdefault.jpg&sp=1774742711Tcfb045f7495fc0982a4d49a9df505cd6505344d22b8bda4da1cafedaea919070"
+    "img": "/img/krunker.webp"
   },
- 
-  {"name": "Venge.io",
+
+  {
+    "name": "Venge.io",
     "href": "https://venge.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.w3gm2Q4OFjsK3CrS3bbU9wHaD4%3Fpid%3DApi&sp=1774742901Ta0e4fe161efc2b7d3ee517328966fecfea01ac589e7a33ed49bc2bd7157e920d"
+    "img": "/img/venge.webp"
   },
-  {"name": "Deeeep.io",
+  {
+    "name": "Deeeep.io",
     "href": "https://deeeep.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse2.mm.bing.net%2Fth%2Fid%2FOIP.MADYw6-SVJLQE__7L_LodgHaEK%3Fpid%3DApi&sp=1774742990Td0854dc9443b0bb04b6210b5c67b940b49b37492508fc16d6d7713c3a16d2a32"
+    "img": "/img/deeeep.webp"
   },
-  {"name": "diep.io",
+  {
+    "name": "diep.io",
     "href": "https://diep.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Flh3.googleusercontent.com%2FZO273tMsvSiHDEQLyPM0g-FqwvRDGKyHssQA9ORNjUgqtzFf2ieC3y4UpZpqP4sitQ%3Dh900&sp=1774742853T86421542a6d37ff68a76995c7c47cdedc0312ffed0b02c313ae26fc654ceea81"
+    "img": "/img/diep.webp"
   },
-  {    "name": "Shell Shockers.io",
+  {
+    "name": "Shell Shockers.io",
     "href": "https://shellshock.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fmedia.indiedb.com%2Fimages%2Fgames%2F1%2F72%2F71967%2Fshellshockers_keyart_800x600.jpg&sp=1774742680Td3705502b56148c79a7d7971a717e10a1bc9915c085b8b79fb44b55bc76dc3cb"
+    "img": "/img/shellshockers.webp"
   },
-  {    "name": "Zombs Royale.io",
+  {
+    "name": "Zombs Royale.io",
     "href": "https://zombsroyale.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fstatic.wixstatic.com%2Fmedia%2F6f9add_8c77c5a7c77a4f31bbe7082d1ca1c9a9~mv2.jpg%2Fv1%2Ffill%2Fw_1280%2Ch_720%2Cal_c%2Cq_85%2Fmaxresdefault.jpg&sp=1774743509T1747e94921c8fd9904905bc9ed1ac716bee707b94de1f67a17b770645a5bb394"
+    "img": "/img/zombsroyale.webp"
   },
-  {    "name": "Paper.io",
+  {
+    "name": "Paper.io",
     "href": "https://paper-io.com/",
     "desktopOnly": true,
-    "img":"/img/paperio2.jpeg"
+    "img": "/img/paperio2.webp"
   },
-  {    "name": "Slither.io",
+  {
+    "name": "Slither.io",
     "href": "https://gulper.io/",
     "desktopOnly": true,
-    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.j6q6EWtdB1vWsrs6-ZggXgHaFD%3Fpid%3DApi&sp=1774743172T74ab6a4742ddc52e0f9d5cb4ef3d51f5380742352aaa7ee101089cbd8e794f7c"
+    "img": "/img/slither.webp"
   },
-  {"name": "Head Soccer","href":"/games/g/HeadSoccer2023-gh-pages/index.html","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.ws4FTqsl1whntbx_yYGM0gHaHa%3Fpid%3DApi&sp=1774745136Tc4c518ad5be8c87b788591440927c7558c3a8fbd7a89e5e45802115764874a58"},
-  {"name":"among us","href":"/games/g/AmongUs-gh-pages/index.html","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse4.mm.bing.net%2Fth%2Fid%2FOIP.P6wX6LtF2B7JssJGVXWAdQHaEK%3Fpid%3DApi&sp=1774745398T91c51e41d74fe91e421dc907313a6f4637457d2ccbf4e99cc378606557b81a33"}
-  ,{
+  {
+    "name": "Head Soccer",
+    "href": "/games/g/HeadSoccer2023-gh-pages/index.html",
+    "img": "/img/headsoccer.webp"
+  },
+  {
+    "name": "among us",
+    "href": "/games/g/AmongUs-gh-pages/index.html",
+    "img": "/img/amongus.webp"
+  },
+  {
     "name": "Snake",
     "href": "/games/snake.html"
   },
@@ -341,9 +362,11 @@
   {
     "name": "Portal",
     "href": "/games/g/Ruffle/player.html?swf=../../flash/portal.swf"
-  },  {
+  },
+  {
     "name": "Happy Wheels",
-    "href": "/games/g/Ruffle/player.html?swf=../../flash/happywheels.swf","img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fwww.pockettactics.com%2Fwp-content%2Fsites%2Fpockettactics%2F2022%2F08%2Fhappy-wheels-download-logo.jpg&sp=1774745986T0fbef686d2db14a7c95a0058746b276c82d4026f64b1fe107cd1240a4759bc38"
+    "href": "/games/g/Ruffle/player.html?swf=../../flash/happywheels.swf",
+    "img": "/img/happywheels.webp"
   },
   {
     "title": "Tools",

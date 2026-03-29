@@ -204,7 +204,7 @@
             window._currentGameScore = foundScore;
             // Also store in localStorage
             try {
-              localStorage.setItem("_ubg235_score", String(foundScore));
+              localStorage.setItem("_currentGameScore", String(foundScore));
             } catch (e) {}
             try {
               localStorage.setItem("_currentGameScore", String(foundScore));
@@ -222,6 +222,5 @@
     </div>
     <script src="js/loading.js"></script>
     <script src="js/boot.js"></script>
-    <!-- Analytics and ubg235 client scripts disabled to prevent redirects -->
   </body>
 </html>

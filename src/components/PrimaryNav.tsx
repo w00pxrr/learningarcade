@@ -1,9 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import Link from "next/link";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, Switch } from "./ui";
-import { CategorySidebar } from "./CategorySidebar";
+import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Switch,
+} from "./ui";
+
+const CategorySidebar = lazy(() =>
+  import("./CategorySidebar").then((mod) => ({ default: mod.CategorySidebar })),
+);
 
 type CategoryLink = {
   value: string;
@@ -58,7 +68,11 @@ export function PrimaryNav({
                   ☰
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="dropdown-content" sideOffset={8} align="start">
+              <DropdownMenuContent
+                className="dropdown-content"
+                sideOffset={8}
+                align="start"
+              >
                 <DropdownMenuItem className="dropdown-item" asChild>
                   <Link href="/">Home</Link>
                 </DropdownMenuItem>
@@ -101,7 +115,14 @@ export function PrimaryNav({
             </DropdownMenu>
 
             <Link href="/" className="nav-brand">
-              <img src="/img/Learning Arcade Background Removed.png" alt="LearningArcade" className="nav-logo" />
+              <Image
+                src="/img/Learning Arcade Background Removed.png"
+                alt="LearningArcade"
+                className="nav-logo"
+                width={40}
+                height={40}
+                priority
+              />
               <span className="nav-title">LearningArcade</span>
             </Link>
           </div>
@@ -136,8 +157,18 @@ export function PrimaryNav({
 
           <div className="nav-actions">
             {onToggleTheme ? (
-              <label className="switch-inline" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "0.9rem", color: "var(--cg-text-secondary)" }}>Dark</span>
+              <label
+                className="switch-inline"
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <span
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "var(--cg-text-secondary)",
+                  }}
+                >
+                  Dark
+                </span>
                 <Switch
                   className="switch-root"
                   checked={!!isDark}
@@ -145,7 +176,9 @@ export function PrimaryNav({
                 />
               </label>
             ) : null}
-            {extraActions ? <div className="nav-extra">{extraActions}</div> : null}
+            {extraActions ? (
+              <div className="nav-extra">{extraActions}</div>
+            ) : null}
           </div>
         </div>
 
@@ -172,22 +205,26 @@ export function PrimaryNav({
 
       {/* Category Sidebar */}
       {showSidebarNav && (
-        <CategorySidebar
-          categoryLinks={categoryLinks}
-          activeCategory={activeCategory}
-          isMobile={false}
-        />
+        <Suspense fallback={null}>
+          <CategorySidebar
+            categoryLinks={categoryLinks}
+            activeCategory={activeCategory}
+            isMobile={false}
+          />
+        </Suspense>
       )}
 
       {/* Mobile Sidebar */}
       {showSidebarNav && (
-        <CategorySidebar
-          categoryLinks={categoryLinks}
-          activeCategory={activeCategory}
-          isMobile={true}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <CategorySidebar
+            categoryLinks={categoryLinks}
+            activeCategory={activeCategory}
+            isMobile={true}
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+          />
+        </Suspense>
       )}
     </>
   );
