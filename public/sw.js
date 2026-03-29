@@ -55,10 +55,11 @@ self.addEventListener('fetch', (event) => {
 
   // Handle different types of requests
   if (url.pathname.startsWith('/games/')) {
-    // Game files - cache first, then network
+    // Game files - cache first, then network with performance optimizations
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         if (cachedResponse) {
+          // Return cached response immediately for faster loading
           return cachedResponse;
         }
         return fetch(request).then((networkResponse) => {
@@ -70,6 +71,9 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return networkResponse;
+        }).catch(() => {
+          // Return offline fallback if available
+          return caches.match('/offline.html');
         });
       })
     );

@@ -43,6 +43,11 @@ function getAutoCategories(name: string, section: string): string[] {
   const lower = name.toLowerCase();
   const categories = new Set<string>();
 
+  // Check if game name ends with .io
+  if (lower.endsWith('.io')) {
+    categories.add('io');
+  }
+
   if (section === "Retro") categories.add("retro");
   if (section === "Flash") categories.add("flash");
   if (

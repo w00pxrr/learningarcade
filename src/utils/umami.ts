@@ -34,7 +34,9 @@ function loadCookieConsent(): CookieConsent | null {
 }
 
 function hasAnalyticsConsent(): boolean {
-  return loadCookieConsent()?.analytics === true;
+  const consent = loadCookieConsent();
+  if (!consent) return true; // Default to all enabled
+  return consent.analytics === true;
 }
 
 function flushQueuedEvents(): void {

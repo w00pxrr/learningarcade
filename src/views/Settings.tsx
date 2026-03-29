@@ -53,8 +53,7 @@ export default function SettingsPage() {
   );
 
   const [popoutMode, setPopoutMode] = useState("top");
-  const [consent, setConsent] = useState<CookieConsent | null>(null);
-  const [cookieStatus, setCookieStatus] = useState("Not saved yet.");
+  const [consent, setConsent] = useState<CookieConsent>({ settings: true, analytics: true });
   const [tabName, setTabName] = useState("");
 
   useEffect(() => {
@@ -65,7 +64,15 @@ export default function SettingsPage() {
     setPopoutMode(
       (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top",
     );
-    setConsent(loadCookieConsent());
+    const loadedConsent = loadCookieConsent();
+    if (loadedConsent) {
+      setConsent(loadedConsent);
+    } else {
+      // Default to all enabled
+      const defaultConsent = { settings: true, analytics: true };
+      setConsent(defaultConsent);
+      saveCookieConsent(defaultConsent);
+    }
   }, []);
 
   useEffect(() => {
@@ -146,17 +153,7 @@ export default function SettingsPage() {
     requestAnimationFrame(() => apply());
   };
 
-  const saveConsent = () => {
-    if (!consent) return;
-    saveCookieConsent(consent);
-    setCookieStatus("Preferences saved.");
-  };
 
-  const resetConsent = () => {
-    removeStoredItem(consentStorageKey);
-    setConsent(null);
-    setCookieStatus("Consent reset.");
-  };
 
   return (
     <div className="ui-page">
@@ -262,12 +259,14 @@ export default function SettingsPage() {
                 <Checkbox
                   className="checkbox-root"
                   checked={!!consent?.settings}
-                  onCheckedChange={(checked) =>
-                    setConsent((prev) => ({
-                      ...(prev || {}),
+                  onCheckedChange={(checked) => {
+                    const next = {
+                      ...consent,
                       settings: checked === true,
-                    }))
-                  }
+                    };
+                    setConsent(next);
+                    saveCookieConsent(next);
+                  }}
                 />
                 <span>Settings cookies (favorites/preferences)</span>
               </label>
@@ -275,25 +274,19 @@ export default function SettingsPage() {
                 <Checkbox
                   className="checkbox-root"
                   checked={!!consent?.analytics}
-                  onCheckedChange={(checked) =>
-                    setConsent((prev) => ({
-                      ...(prev || {}),
+                  onCheckedChange={(checked) => {
+                    const next = {
+                      ...consent,
                       analytics: checked === true,
-                    }))
-                  }
+                    };
+                    setConsent(next);
+                    saveCookieConsent(next);
+                  }}
                 />
                 <span>Analytics cookies (Umami)</span>
               </label>
             </div>
-            <div className="ui-row">
-              <button className="btn btn-primary" onClick={saveConsent}>
-                Save cookie preferences
-              </button>
-              <button className="btn btn-outline" onClick={resetConsent}>
-                Reset consent
-              </button>
-            </div>
-            <p className="muted small">{cookieStatus}</p>
+
           </section>
 
           <section className="panel">

@@ -38,12 +38,12 @@ const categoryLinks = categoryMeta.items
 
 function hasSettingsCookieConsent(): boolean {
   const raw = getStoredItem(consentStorageKey);
-  if (!raw) return false;
+  if (!raw) return true; // Default to all enabled
   try {
     const parsed = JSON.parse(raw) as { settings?: boolean };
     return parsed?.settings === true;
   } catch {
-    return false;
+    return true; // Default to all enabled
   }
 }
 
@@ -138,7 +138,7 @@ export default function CategoryPage() {
       <PrimaryNav
         categoryLinks={categoryLinks}
         activeCategory={category}
-        showCategoryBar
+        showSidebar
       />
       <main className="main-container">
         {/* Header Section */}

@@ -82,6 +82,7 @@ export default function GameEmbedPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
   const [activeButton, setActiveButton] = useState<string | null>(null);
+  const [loadStartTime, setLoadStartTime] = useState<number | null>(null);
 
   useDisguise(currentName, currentIcon);
 
@@ -95,6 +96,11 @@ export default function GameEmbedPage() {
     setCurrentName(nextName);
     setCurrentIcon(nextIcon);
     setFrameSrc(nextSrc || null);
+    // Track load start time for performance monitoring
+    if (nextSrc) {
+      setLoadStartTime(performance.now());
+      setIsIframeLoaded(false);
+    }
   }, [searchParams]);
 
   const activeGame = useMemo(() => {
@@ -386,6 +392,19 @@ export default function GameEmbedPage() {
                 onLoad={() => {
                   setIsIframeLoaded(true);
                   frameRef.current?.focus();
+                  // Log performance metrics
+                  if (loadStartTime) {
+                    const loadTime = performance.now() - loadStartTime;
+                    console.log(`[Performance] Game iframe loaded in ${loadTime.toFixed(2)}ms`);
+                    // Report to analytics if available
+                    if (typeof window !== 'undefined' && (window as any).gtag) {
+                      (window as any).gtag('event', 'game_load', {
+                        event_category: 'performance',
+                        event_label: currentName,
+                        value: Math.round(loadTime),
+                      });
+                    }
+                  }
                 }}
                 className={`embed-iframe ${isIframeLoaded ? 'loaded' : 'loading'}`}
                 style={{ 
@@ -393,13 +412,19 @@ export default function GameEmbedPage() {
                   // Hide iframe content until loaded to prevent flickering
                   opacity: isIframeLoaded ? 1 : 0,
                   transition: 'opacity 0.2s ease-in-out',
+                  // GPU acceleration hints for smoother rendering
+                  willChange: 'transform, opacity',
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden',
+                  // Optimize rendering performance
+                  contain: 'layout style paint',
                 }}
                 // Performance optimizations for Chromebooks
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                // Reduce memory usage
-                allow="autoplay; fullscreen; gamepad"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                // Reduce memory usage and improve performance
+                allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"
               />
             </>
           ) : null}

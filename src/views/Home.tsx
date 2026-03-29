@@ -96,12 +96,69 @@ function getLatestGames(): GameData[] {
   const allowedSections = ["HTML5/unity Webgl", "Flash"];
   const filtered = gamesData.filter((g) => allowedSections.includes(g.section));
   const sorted = [...filtered].sort((a, b) => b.index - a.index);
-  return sorted.slice(0, 6);
+  return sorted.slice(0, 8);
+}
+
+function getRandomFeaturedGames(): GameData[] {
+  const allowedSections = ["HTML5/unity Webgl", "Flash"];
+  const filtered = gamesData.filter((g) => allowedSections.includes(g.section));
+  
+  // Calculate 12-hour window (43200000 ms = 12 hours)
+  // Use a deterministic seed based on date to ensure server/client consistency
+  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+  const now = Date.now();
+  const windowIndex = Math.floor(now / TWELVE_HOURS_MS);
+  
+  // Check if we have a cached selection for this window (client-side only)
+  if (typeof window !== 'undefined') {
+    const cached = getStoredItem("gams_featured_games");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as { windowIndex: number; gameIds: string[] };
+        if (parsed.windowIndex === windowIndex && Array.isArray(parsed.gameIds)) {
+          const games = parsed.gameIds
+            .map((id) => gamesById[id])
+            .filter(Boolean) as GameData[];
+          if (games.length === 8) return games;
+        }
+      } catch {
+        // Invalid cache, regenerate
+      }
+    }
+  }
+  
+  // Generate new random selection using window index as seed
+  // Use a deterministic shuffle that produces the same result on server and client
+  const shuffled = [...filtered].sort((a, b) => {
+    // Create a deterministic hash from game IDs and window index
+    const hashA = (a.id + windowIndex.toString()).split('').reduce((acc, char) => {
+      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+    }, 0);
+    const hashB = (b.id + windowIndex.toString()).split('').reduce((acc, char) => {
+      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+    }, 0);
+    return hashA - hashB;
+  });
+  
+  const selected = shuffled.slice(0, 8);
+  
+  // Cache the selection (client-side only)
+  if (typeof window !== 'undefined') {
+    setStoredItem(
+      "gams_featured_games",
+      JSON.stringify({
+        windowIndex,
+        gameIds: selected.map((g) => g.id),
+      }),
+    );
+  }
+  
+  return selected;
 }
 
 function getTopVisitedGamesFromVisits(
   visits: Record<string, { count: number; lastVisit: number; name: string }>,
-  limit = 6,
+  limit = 8,
 ): GameData[] {
   const entries = Object.entries(visits);
   if (entries.length === 0) return getLatestGames();
@@ -274,7 +331,6 @@ export default function HomePage() {
   const { isDark, toggleTheme } = useThemeContext();
   const router = useRouter();
   const [consent, setConsent] = useState<CookieConsent | null>(null);
-  const [showConsent, setShowConsent] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [localVisits, setLocalVisits] = useState<GameVisits>({});
@@ -287,8 +343,15 @@ export default function HomePage() {
   useEffect(() => {
     hydrateServerStorage();
     const loadedConsent = loadCookieConsent();
-    setConsent(loadedConsent);
-    setShowConsent(!loadedConsent);
+    if (loadedConsent) {
+      setConsent(loadedConsent);
+    } else {
+      // Default to all enabled
+      const defaultConsent = { settings: true, analytics: true };
+      setConsent(defaultConsent);
+      saveCookieConsent(defaultConsent);
+    }
+
     setFavorites(getFavoriteIds(loadedConsent));
     setLocalVisits(getGameVisits());
     setBaseIcon(
@@ -312,6 +375,7 @@ export default function HomePage() {
     [localVisits],
   );
   const latest = useMemo(() => getLatestGames(), []);
+  const featuredGames = useMemo(() => getRandomFeaturedGames(), []);
   const popularGames = useMemo(() => {
     const scored = gamesData.map((game) => {
       const score = getCombinedCount(localVisits, game.id, viewCounts);
@@ -378,7 +442,7 @@ export default function HomePage() {
         onToggleTheme={toggleTheme}
         showHomeLinks={false}
         categoryLinks={categoryLinks}
-        showCategoryBar
+        showSidebar
       />
 
       <main className="main-container">
@@ -417,28 +481,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Category Filters */}
-        <section className="section">
-          <div className="category-filters">
-            {categoryFilters.map((cat) => (
-              <button
-                key={cat.value}
-                className={`category-btn ${activeCategory === cat.value ? "active" : ""}`}
-                onClick={() => setActiveCategory(cat.value)}
-              >
-                <span style={{ marginRight: "6px" }}>{cat.icon}</span>
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
         {/* Featured Games */}
         <GameSection
           title="Featured Games"
-          subtitle="Hand-picked games you'll love"
+          subtitle="Random selection that changes every 12 hours"
           icon="⭐"
-          games={recommended.slice(0, 6)}
+          games={featuredGames}
           badge="featured"
           viewAllLink="/category/popular"
           viewAllText="View All"
@@ -454,7 +502,7 @@ export default function HomePage() {
           title="Trending Now"
           subtitle="Most popular games this week"
           icon="🔥"
-          games={popularGames.slice(0, 6)}
+          games={popularGames.slice(0, 8)}
           badge="trending"
           viewAllLink="/category/popular"
           viewAllText="View All"
@@ -500,7 +548,7 @@ export default function HomePage() {
             title="Your Favorites"
             subtitle="Games you've starred"
             icon="❤️"
-            games={favoriteGames.slice(0, 6)}
+            games={favoriteGames.slice(0, 8)}
             viewAllLink="/category/favorites"
             viewAllText="View All"
             onOpenGame={handleOpenGame}
@@ -535,78 +583,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Cookie Consent */}
-      {showConsent ? (
-        <div className="consent-panel">
-          <div className="consent-card">
-            <h3 className="panel-title">Cookie preferences</h3>
-            <p className="muted">
-              Choose whether to allow analytics cookies and settings cookies.
-            </p>
-            <div className="ui-row">
-              <label className="checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={!!consent?.settings}
-                  onChange={(event) =>
-                    setConsent((prev) => ({
-                      ...(prev || {}),
-                      settings: event.target.checked,
-                    }))
-                  }
-                />
-                <span>Settings cookies</span>
-              </label>
-              <label className="checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={!!consent?.analytics}
-                  onChange={(event) =>
-                    setConsent((prev) => ({
-                      ...(prev || {}),
-                      analytics: event.target.checked,
-                    }))
-                  }
-                />
-                <span>Analytics cookies</span>
-              </label>
-            </div>
-            <div className="ui-row">
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  const next = { settings: true, analytics: true };
-                  saveCookieConsent(next);
-                  setConsent(next);
-                  setShowConsent(false);
-                }}
-              >
-                Accept all
-              </button>
-              <button
-                className="btn btn-outline"
-                onClick={() => {
-                  if (consent) saveCookieConsent(consent);
-                  setShowConsent(false);
-                }}
-              >
-                Save choices
-              </button>
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  const next = { settings: false, analytics: false };
-                  saveCookieConsent(next);
-                  setConsent(next);
-                  setShowConsent(false);
-                }}
-              >
-                Reject all
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+
     </div>
   );
 }

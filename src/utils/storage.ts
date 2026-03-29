@@ -322,12 +322,12 @@ function setCookieStore(store: Record<string, CookieStoreEntry>) {
 
 function hasSettingsConsent(): boolean {
   const raw = getStoredItem("gams_cookie_consent_v1");
-  if (!raw) return false;
+  if (!raw) return true; // Default to all enabled
   try {
     const parsed = JSON.parse(raw) as { settings?: boolean };
     return parsed?.settings === true;
   } catch {
-    return false;
+    return true; // Default to all enabled
   }
 }
 

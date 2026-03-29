@@ -2,6 +2,7 @@ import "./globals.css";
 import React, { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { ThemeRoot } from "../components/ThemeRoot";
+import { Footer } from "../components/Footer";
 import RouteAnalytics from "./route-analytics";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -152,6 +153,11 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* FontAwesome icons */}
+        <link
+          rel="stylesheet"
+          href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css"
+        />
         {/* DNS prefetch for game resources */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
@@ -162,6 +168,10 @@ export default function RootLayout({
           as="image"
           type="image/png"
         />
+        {/* Preload critical game iframe resources */}
+        <link rel="preload" href="/games/" as="document" crossOrigin="anonymous" />
+        {/* Preconnect to game hosting origins */}
+        <link rel="preconnect" href="https://learningarcade.vercel.app" crossOrigin="anonymous" />
         {/* Structured data */}
         <script
           type="application/ld+json"
@@ -188,9 +198,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeRoot>
           {children}
+          <Footer />
           <Suspense fallback={null}>
             <RouteAnalytics />
           </Suspense>

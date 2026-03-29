@@ -7,6 +7,16 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
+  // Enable React compiler optimizations
+  reactCompiler: false,
+  
+  // Optimize bundle size
+  modularizeImports: {
+    '@fortawesome/fontawesome-free': {
+      transform: '@fortawesome/fontawesome-free/{{member}}',
+    },
+  },
+  
   // Optimize package imports for smaller bundle sizes
   experimental: {
     optimizePackageImports: [
@@ -101,6 +111,19 @@ const nextConfig = {
           {
             key: 'Content-Encoding',
             value: 'gzip',
+          },
+        ],
+      },
+      {
+        source: '/games/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
           },
         ],
       },

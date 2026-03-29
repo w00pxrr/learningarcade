@@ -76,8 +76,49 @@
   },
   {
     "name": "Aim Trainer",
-    "href": "/games/g/aimtrainer/aimtrainer.html",
+    "href": "https://guitheengineer.github.io/betteraim/",
     "desktopOnly": true
+  },
+  {    "name": "Krunker.io",
+    "href": "https://krunker.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fi.ytimg.com%2Fvi%2FWD9wkh7l8bA%2Fmaxresdefault.jpg&sp=1774742711Tcfb045f7495fc0982a4d49a9df505cd6505344d22b8bda4da1cafedaea919070"
+  },
+ 
+  {"name": "Venge.io",
+    "href": "https://venge.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.w3gm2Q4OFjsK3CrS3bbU9wHaD4%3Fpid%3DApi&sp=1774742901Ta0e4fe161efc2b7d3ee517328966fecfea01ac589e7a33ed49bc2bd7157e920d"
+  },
+  {"name": "Deeeep.io",
+    "href": "https://deeeep.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse2.mm.bing.net%2Fth%2Fid%2FOIP.MADYw6-SVJLQE__7L_LodgHaEK%3Fpid%3DApi&sp=1774742990Td0854dc9443b0bb04b6210b5c67b940b49b37492508fc16d6d7713c3a16d2a32"
+  },
+  {"name": "diep.io",
+    "href": "https://diep.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Flh3.googleusercontent.com%2FZO273tMsvSiHDEQLyPM0g-FqwvRDGKyHssQA9ORNjUgqtzFf2ieC3y4UpZpqP4sitQ%3Dh900&sp=1774742853T86421542a6d37ff68a76995c7c47cdedc0312ffed0b02c313ae26fc654ceea81"
+  },
+  {    "name": "Shell Shockers.io",
+    "href": "https://shellshock.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fmedia.indiedb.com%2Fimages%2Fgames%2F1%2F72%2F71967%2Fshellshockers_keyart_800x600.jpg&sp=1774742680Td3705502b56148c79a7d7971a717e10a1bc9915c085b8b79fb44b55bc76dc3cb"
+  },
+  {    "name": "Zombs Royale.io",
+    "href": "https://zombsroyale.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fstatic.wixstatic.com%2Fmedia%2F6f9add_8c77c5a7c77a4f31bbe7082d1ca1c9a9~mv2.jpg%2Fv1%2Ffill%2Fw_1280%2Ch_720%2Cal_c%2Cq_85%2Fmaxresdefault.jpg&sp=1774743509T1747e94921c8fd9904905bc9ed1ac716bee707b94de1f67a17b770645a5bb394"
+  },
+  {    "name": "Paper.io",
+    "href": "https://paper-io.com/",
+    "desktopOnly": true,
+    "img":"/img/paperio2.jpeg"
+  },
+  {    "name": "Slither.io",
+    "href": "https://gulper.io/",
+    "desktopOnly": true,
+    "img":"https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.j6q6EWtdB1vWsrs6-ZggXgHaFD%3Fpid%3DApi&sp=1774743172T74ab6a4742ddc52e0f9d5cb4ef3d51f5380742352aaa7ee101089cbd8e794f7c"
   },
   {
     "name": "Snake",
@@ -96,6 +137,11 @@
   {
     "name": "Madalin Stunt Cars",
     "href": "/games/g/madalinstuntcars/madalinstuntcars.html",
+    "desktopOnly": true
+  },
+  {
+    "name": "Librerama",
+    "href": "/games/g/librerama_web/index.html",
     "desktopOnly": true
   },
   {

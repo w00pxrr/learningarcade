@@ -18,6 +18,7 @@
     { "value": "sports", "label": "Sports", "showOnCategory": true, "showOnHome": true },
     { "value": "flash", "label": "Flash", "showOnCategory": true, "showOnHome": true },
     { "value": "tools", "label": "Tools", "showOnCategory": true, "showOnHome": true },
-    { "value": "runner", "label": "Runner", "showOnCategory": true, "showOnHome": true }
+    { "value": "runner", "label": "Runner", "showOnCategory": true, "showOnHome": true },
+    { "value": "io", "label": ".io", "showOnCategory": true, "showOnHome": true }
   ]
 }
