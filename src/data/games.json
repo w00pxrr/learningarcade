@@ -135,6 +135,9 @@
     "img": "/img/slither.webp"
   },
   {
+"name":"Minecraft","href":"https://w00pxrr.github.io/MinecraftClone/","desktopOnly":true,"img":"/img/maxresdefault.jpg"
+  },
+  {
     "name": "Head Soccer",
     "href": "/games/g/HeadSoccer2023-gh-pages/index.html",
     "img": "/img/headsoccer.webp"
@@ -386,7 +389,7 @@
   },
   {
     "name": "Proxy Browser",
-    "href": "/games/proxybrowser.html"
+    "href": "https://proxy-iota-black.vercel.app/"
   },
   {
     "name": "Calculator",
