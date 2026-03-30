@@ -118,15 +118,23 @@
     "href": "/games/g/madalinstuntcars/madalinstuntcars.html",
     "desktopOnly": true
   },
-  {    "name": "Paper Minecraft",
-    "href": "/games/g/papermc/index.html","img":"/img/maxresdefault.jpg","desktopOnly": true
+  {
+    "name": "Paper Minecraft",
+    "href": "/games/g/papermc/index.html",
+    "img": "/img/maxresdefault.jpg",
+    "desktopOnly": true
   },
   {
-    "name":"getting over it",
+    "name": "getting over it",
     "href": "/games/g/goit/index.html",
     "desktopOnly": true
   },
-  {"name":"Mini Golf","href":"/games/g/golf/index.html","desktopOnly": true,"img":"/img/wii.jpg"},
+  {
+    "name": "Mini Golf",
+    "href": "/games/g/golf/index.html",
+    "desktopOnly": true,
+    "img": "/img/wii.jpg"
+  },
   {
     "name": "Librerama",
     "href": "/games/g/librerama_web/index.html",

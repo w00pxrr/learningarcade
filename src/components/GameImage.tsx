@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 
 type GameImageProps = {
@@ -19,18 +19,16 @@ export function GameImage({
   priority = false,
 }: GameImageProps) {
   const sourceKey = sources.join("|");
-  const sourceList = useMemo(
-    () =>
-      sources.filter((value) => typeof value === "string" && value.length > 0),
-    [sourceKey],
-  );
+  const sourceList = sources.filter((value) => typeof value === "string" && value.length > 0);
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [prevSourceKey, setPrevSourceKey] = useState(sourceKey);
 
-  useEffect(() => {
+  if (sourceKey !== prevSourceKey) {
+    setPrevSourceKey(sourceKey);
     setIndex(0);
     setFailed(false);
-  }, [sourceKey]);
+  }
 
   // Pick the best source: prefer avif, then webp, then others
   const activeSource = sourceList[index] ?? sourceList[0] ?? "";

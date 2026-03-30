@@ -20,7 +20,9 @@ This repository contains a collection of offline games that can be played when y
 6. This will give you access to a wide range of games, including Flash games.
 
 ### Credits
+
 sources are archive.org and flashpoint archive, and vimms lair
+
 - The offline Flash games utilize the [Ruffle Flash Player](https://ruffle.rs) emulator.
 - The clean and stylish user interface of the site is made possible by the [new.css](https://github.com/xz/new.css-site/tree/master) classless css library.
 
@@ -35,13 +37,15 @@ The offline games repository offers the following features:
 ### Fun Game List
 
 Here are some of the most fun games available in this repository:
+
 1. Cookie Clicker
 2. Slope
 3. Tube Jumpers
 4. Super Mario 64
-...and more!
+   ...and more!
 
-[Games](https://learningarcade.vercel.app/offlinegames/Gams.html)   
+[Games](https://learningarcade.vercel.app/offlinegames/Gams.html)
+
 ### For Coders :)
 
 Making games available offline can be a challenging task due to security restrictions. When running games locally using the `file://` protocol, fetching external resources is not allowed for security reasons. However, there is a workaround that enables loading JavaScript files locally.
@@ -53,7 +57,11 @@ The JavaScript files in this repository contain the game data encoded as data UR
 By using this technique, the repository includes various games, including those built with Flash. The Flash games utilize the Ruffle Flash Player emulator, allowing them to be played offline without requiring an internet connection.
 
 I that this approach provides an enjoyable offline gaming experience for coders and gamers alike.
+
 ###### helped by alec ponce and jacob kern
+
 ###### Forked by w00pxr
+
 ###### Repository created by mountain658 this README, with the assistance of ChatGPT.
+
 ###### Please check out mountain658's profile: [mountain658](https://github.com/mountain658) and [Mountain Game Games](https://github.com/mountain658/mountain658.github.io) at https://mountain658.github.io

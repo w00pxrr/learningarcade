@@ -68,11 +68,7 @@ export function PrimaryNav({
                   ☰
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="dropdown-content"
-                sideOffset={8}
-                align="start"
-              >
+              <DropdownMenuContent className="dropdown-content" sideOffset={8} align="start">
                 <DropdownMenuItem className="dropdown-item" asChild>
                   <Link href="/">Home</Link>
                 </DropdownMenuItem>
@@ -157,7 +153,7 @@ export function PrimaryNav({
 
           <div className="nav-actions">
             {onToggleTheme ? (
-              <label
+              <div
                 className="switch-inline"
                 style={{ display: "flex", alignItems: "center", gap: "8px" }}
               >
@@ -174,11 +170,9 @@ export function PrimaryNav({
                   checked={!!isDark}
                   onCheckedChange={onToggleTheme}
                 />
-              </label>
+              </div>
             ) : null}
-            {extraActions ? (
-              <div className="nav-extra">{extraActions}</div>
-            ) : null}
+            {extraActions ? <div className="nav-extra">{extraActions}</div> : null}
           </div>
         </div>
 

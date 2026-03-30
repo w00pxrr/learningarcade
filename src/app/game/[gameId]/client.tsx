@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { gamesById, GameData } from "../../../data/games";
+import { gamesById } from "../../../data/games";
 import { PrimaryNav } from "../../../components/PrimaryNav";
 import { GameImage } from "../../../components/GameImage";
 import { useThemeContext } from "../../../components/ThemeRoot";
@@ -37,17 +37,28 @@ export default function ClientGamePage({ gameId }: Props) {
   const isMobile = useIsMobile();
   const game = gamesById[gameId];
 
-  useDisguise(
-    game ? `${game.name} - LearningArcade` : "LearningArcade",
-    baseIcon,
-  );
+  useDisguise(game ? `${game.name} - LearningArcade` : "LearningArcade", baseIcon);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing favicon from DOM on mount
     setBaseIcon(
-      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
-        ?.href || "/img/gams-g.png",
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+        "/img/gams-g.png",
     );
   }, []);
+
+  // Prefetch game embed on mount for faster navigation
+  useEffect(() => {
+    if (!game) return;
+    const href = new URL(game.href, window.location.origin).href;
+    const gameShellQuery = new URLSearchParams({
+      id: game.id,
+      icon: new URL(game.img, window.location.origin).href,
+      name: game.name,
+      src: href,
+    }).toString();
+    router.prefetch(`/game-embed?${gameShellQuery}`);
+  }, [game, router]);
 
   if (!game) {
     return (
@@ -87,19 +98,6 @@ export default function ClientGamePage({ gameId }: Props) {
     }).toString();
     router.push(`/game-embed?${gameShellQuery}`);
   };
-
-  // Prefetch game embed on mount for faster navigation
-  useEffect(() => {
-    if (!game) return;
-    const href = new URL(game.href, window.location.origin).href;
-    const gameShellQuery = new URLSearchParams({
-      id: game.id,
-      icon: new URL(game.img, window.location.origin).href,
-      name: game.name,
-      src: href,
-    }).toString();
-    router.prefetch(`/game-embed?${gameShellQuery}`);
-  }, [game, router]);
 
   // Generate structured data for the game
   const structuredData = {
@@ -142,8 +140,7 @@ export default function ClientGamePage({ gameId }: Props) {
           <div>
             <h1 className="panel-heading">{game.name}</h1>
             <p className="muted">
-              Play {game.name} online for free on LearningArcade.{" "}
-              {game.categories.join(", ")} game.
+              Play {game.name} online for free on LearningArcade. {game.categories.join(", ")} game.
             </p>
           </div>
           <Link className="btn btn-outline" href="/">
@@ -178,9 +175,7 @@ export default function ClientGamePage({ gameId }: Props) {
               <div className="game-info-list">
                 <div className="game-info-item">
                   <span className="game-info-label">Category</span>
-                  <span className="game-info-value">
-                    {game.categories.join(", ")}
-                  </span>
+                  <span className="game-info-value">{game.categories.join(", ")}</span>
                 </div>
                 <div className="game-info-item">
                   <span className="game-info-label">Type</span>
@@ -188,9 +183,7 @@ export default function ClientGamePage({ gameId }: Props) {
                 </div>
                 <div className="game-info-item">
                   <span className="game-info-label">Mobile Friendly</span>
-                  <span className="game-info-value">
-                    {game.mobileFriendly ? "Yes" : "No"}
-                  </span>
+                  <span className="game-info-value">{game.mobileFriendly ? "Yes" : "No"}</span>
                 </div>
               </div>
             </section>
@@ -198,17 +191,16 @@ export default function ClientGamePage({ gameId }: Props) {
             <section className="panel">
               <h3 className="panel-title">How to Play</h3>
               <p className="muted">
-                Click the "Play Now" button to start playing {game.name}. The
-                game will open in an embedded player for the best experience.
+                Click the &quot;Play Now&quot; button to start playing {game.name}. The game will
+                open in an embedded player for the best experience.
               </p>
             </section>
 
             <section className="panel">
               <h3 className="panel-title">About {game.name}</h3>
               <p className="muted">
-                {game.name} is a free online {game.categories[0]} game available
-                on LearningArcade. Play it directly in your browser without any
-                downloads. Safe and school-friendly!
+                {game.name} is a free online {game.categories[0]} game available on LearningArcade.
+                Play it directly in your browser without any downloads. Safe and school-friendly!
               </p>
             </section>
           </aside>
@@ -217,10 +209,7 @@ export default function ClientGamePage({ gameId }: Props) {
         <section className="panel">
           <h3 className="panel-title">More Games</h3>
           <div className="ui-row">
-            <Link
-              className="btn btn-outline"
-              href={`/category/${game.category}`}
-            >
+            <Link className="btn btn-outline" href={`/category/${game.category}`}>
               More {game.category} games
             </Link>
             <Link className="btn btn-outline" href="/category/all">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 
 interface MobileControlsProps {
   onSendKey: (eventType: "keydown" | "keyup", key: string) => void;

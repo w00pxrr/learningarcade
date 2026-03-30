@@ -16,7 +16,7 @@ const checks = [
   },
   {
     file: "src/index.css",
-    required: ["html[data-contrast=\"high\"]"],
+    required: ['html[data-contrast="high"]'],
   },
 ];
 

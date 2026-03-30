@@ -38,13 +38,13 @@ export function Slider({
       <div
         className="slider-track"
         style={{
-          width: `${((value[0] ?? min) - min) / (max - min) * 100}%`,
+          width: `${(((value[0] ?? min) - min) / (max - min)) * 100}%`,
         }}
       />
       <div
         className="slider-thumb"
         style={{
-          left: `${((value[0] ?? min) - min) / (max - min) * 100}%`,
+          left: `${(((value[0] ?? min) - min) / (max - min)) * 100}%`,
         }}
       />
     </div>

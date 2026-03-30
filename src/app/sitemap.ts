@@ -1,37 +1,52 @@
-import { MetadataRoute } from 'next';
-import { gamesData } from '../data/games';
+import { MetadataRoute } from "next";
+import { gamesData } from "../data/games";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://learningarcade.vercel.app';
-  
+  const baseUrl = "https://learningarcade.vercel.app";
+
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'daily',
+      changeFrequency: "daily",
       priority: 1,
     },
     {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/search`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: "weekly",
       priority: 0.6,
     },
   ];
 
   // Category pages
-  const categories = ['action', 'adventure', 'puzzle', 'racing', 'sports', 'strategy', 'simulation', 'platformer', 'runner', 'idle', 'tools', 'horror', 'retro', 'flash'];
+  const categories = [
+    "action",
+    "adventure",
+    "puzzle",
+    "racing",
+    "sports",
+    "strategy",
+    "simulation",
+    "platformer",
+    "runner",
+    "idle",
+    "tools",
+    "horror",
+    "retro",
+    "flash",
+  ];
   const categoryPages: MetadataRoute.Sitemap = categories.map((category) => ({
     url: `${baseUrl}/category/${category}`,
     lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    changeFrequency: "weekly" as const,
     priority: 0.7,
   }));
 
@@ -39,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const gamePages: MetadataRoute.Sitemap = gamesData.map((game) => ({
     url: `${baseUrl}/game/${game.id}`,
     lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
 

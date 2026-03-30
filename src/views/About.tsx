@@ -5,29 +5,26 @@ import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
 import aboutContent from "../data/aboutContent.json";
+function getBaseIcon(): string {
+  if (typeof window === "undefined") return "/img/gams-g.png";
+  return (
+    (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+    "/img/gams-g.png"
+  );
+}
+
 export default function AboutPage() {
   const { isDark, toggleTheme } = useThemeContext();
-  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
-
-  useEffect(() => {
-    setBaseIcon(
-      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
-        ?.href || "/img/gams-g.png",
-    );
-  }, []);
+  const [baseIcon, _setBaseIcon] = useState(getBaseIcon);
 
   useDisguise("About - LearningArcade", baseIcon);
 
   useEffect(() => {
-    const existing = document.querySelector(
-      "script[data-about-secrets='true']",
-    );
+    const existing = document.querySelector("script[data-about-secrets='true']");
     if (existing) return;
 
     const loadSecrets = () => {
-      const present = document.querySelector(
-        "script[data-about-secrets='true']",
-      );
+      const present = document.querySelector("script[data-about-secrets='true']");
       if (present) return;
       const script = document.createElement("script");
       script.src = "/assets/about-secrets.js";

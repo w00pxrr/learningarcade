@@ -12,11 +12,7 @@ import { useUmamiViews } from "../hooks/useUmamiViews";
 import { trackGameView } from "../utils/umami";
 import { getCookie, getStoredItem, setCookie } from "../utils/storage";
 import categoryMeta from "../data/categoryMeta.json";
-import {
-  getCombinedCount,
-  getGameVisits,
-  recordGameVisit,
-} from "../utils/visits";
+import { getCombinedCount, getGameVisits, recordGameVisit } from "../utils/visits";
 import { useParams, useRouter } from "next/navigation";
 
 const categoryLabels = Object.fromEntries(
@@ -69,10 +65,15 @@ export default function CategoryPage() {
   const router = useRouter();
   const rawCategory = typeof params?.slug === "string" ? params.slug : "all";
   const category = rawCategory || "all";
-  const [localVisits, setLocalVisits] = useState({});
-  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
+  const [localVisits, _setLocalVisits] = useState(getGameVisits);
+  const [baseIcon, _setBaseIcon] = useState(() => {
+    if (typeof window === "undefined") return "/img/gams-g.png";
+    return (
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+      "/img/gams-g.png"
+    );
+  });
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const [mounted, setMounted] = useState(false);
   const label = categoryLabels[category] || category;
   const isMobile = useIsMobile();
   const { counts: viewCounts } = useUmamiViews();
@@ -81,12 +82,7 @@ export default function CategoryPage() {
   useDisguise(`${label} - LearningArcade`, baseIcon);
 
   useEffect(() => {
-    setMounted(true);
-    setLocalVisits(getGameVisits());
-    setBaseIcon(
-      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
-        ?.href || "/img/gams-g.png",
-    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loading favorites from storage
     setFavoriteIds(new Set(getFavoriteIds()));
   }, []);
 
@@ -147,11 +143,7 @@ export default function CategoryPage() {
 
   return (
     <div className="ui-page">
-      <PrimaryNav
-        categoryLinks={categoryLinks}
-        activeCategory={category}
-        showSidebar
-      />
+      <PrimaryNav categoryLinks={categoryLinks} activeCategory={category} showSidebar />
       <main className="main-container">
         {/* Header Section */}
         <section className="section animate-fade-in">
@@ -161,9 +153,7 @@ export default function CategoryPage() {
                 <span className="section-title-icon">🎮</span>
                 {label} Games
               </h1>
-              <p className="section-subtitle">
-                {filtered.length} games available
-              </p>
+              <p className="section-subtitle">{filtered.length} games available</p>
             </div>
             <Link className="btn btn-outline" href="/">
               ← Back to Home
@@ -175,13 +165,9 @@ export default function CategoryPage() {
         <section className="section">
           <div className="games-grid">
             {filtered.map((game) => {
-              const desktopOnly =
-                isMobile && (game.desktopOnly || !game.mobileFriendly);
+              const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
               return (
-                <div
-                  className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}
-                  key={game.id}
-                >
+                <div className={`game-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
                   <button
                     className="tile-action"
                     type="button"
@@ -205,9 +191,7 @@ export default function CategoryPage() {
                       <div className="game-card-title" title={game.name}>
                         {game.name}
                       </div>
-                      <div className="game-card-category">
-                        {game.category || "Game"}
-                      </div>
+                      <div className="game-card-category">{game.category || "Game"}</div>
                     </div>
                   </button>
                   <DesktopOnlyOverlay visible={desktopOnly} />
@@ -221,9 +205,7 @@ export default function CategoryPage() {
                     }}
                     disabled={!canFavorite}
                     title={
-                      canFavorite
-                        ? "Toggle favorite"
-                        : "Enable settings cookies to save favorites"
+                      canFavorite ? "Toggle favorite" : "Enable settings cookies to save favorites"
                     }
                     aria-label="Toggle favorite"
                   >
@@ -238,10 +220,7 @@ export default function CategoryPage() {
         {/* Empty State */}
         {filtered.length === 0 && (
           <section className="section">
-            <div
-              className="panel"
-              style={{ textAlign: "center", padding: "48px 24px" }}
-            >
+            <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
               <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🎮</div>
               <h3 className="panel-heading">No games found</h3>
               <p className="muted" style={{ marginBottom: "24px" }}>

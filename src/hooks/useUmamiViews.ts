@@ -53,7 +53,7 @@ export function useUmamiViews(): UmamiViewCounts {
 
         const now = Date.now();
         const statsUrl = new URL(
-          `${UMAMI_BASE}/websites/${sharePayload.websiteId}/event-data/values`
+          `${UMAMI_BASE}/websites/${sharePayload.websiteId}/event-data/values`,
         );
         statsUrl.searchParams.set("startAt", "0");
         statsUrl.searchParams.set("endAt", `${now}`);

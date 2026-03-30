@@ -46,7 +46,7 @@ type SelectItemTextProps = {
   children: React.ReactNode;
 };
 
-export function Select({ value, onValueChange, children }: SelectProps) {
+export function Select({ children }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 

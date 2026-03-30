@@ -22,11 +22,7 @@ import { useDisguise } from "../hooks/useDisguise";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useUmamiViews } from "../hooks/useUmamiViews";
 import { trackGameView } from "../utils/umami";
-import {
-  getCombinedCount,
-  getGameVisits,
-  recordGameVisit,
-} from "../utils/visits";
+import { getCombinedCount, getGameVisits, recordGameVisit } from "../utils/visits";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function levenshteinDistance(a: string, b: string): number {
@@ -61,10 +57,7 @@ function scoreFuzzy(term: string, candidate: string): number {
   return maxLen === 0 ? 0 : 1 - distance / maxLen;
 }
 
-function matchGame(
-  normalizedTerm: string,
-  game: GameData,
-): { match: boolean; score: number } {
+function matchGame(normalizedTerm: string, game: GameData): { match: boolean; score: number } {
   if (!normalizedTerm) return { match: true, score: 1 };
   const normalizedName = game.searchName;
   if (!normalizedName) return { match: false, score: 0 };
@@ -89,24 +82,27 @@ function matchGame(
 export default function SearchPage() {
   const { isDark, toggleTheme } = useThemeContext();
   const router = useRouter();
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const searchParams = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchParams?.get("q") ?? "");
   const [sortMode, setSortMode] = useState<"relevance" | "views">("relevance");
-  const [localVisits, setLocalVisits] = useState({});
-  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
+  const [localVisits, setLocalVisits] = useState(getGameVisits);
+  const [baseIcon, _setBaseIcon] = useState(() => {
+    if (typeof window === "undefined") return "/img/gams-g.png";
+    return (
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+      "/img/gams-g.png"
+    );
+  });
   const { counts: viewCounts } = useUmamiViews();
   const isMobile = useIsMobile();
 
   useDisguise("Search - LearningArcade", baseIcon);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from URL search params
     setSearchTerm(searchParams?.get("q") ?? "");
     setLocalVisits(getGameVisits());
-    setBaseIcon(
-      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
-        ?.href || "/img/gams-g.png",
-    );
   }, [searchParams]);
 
   const results = useMemo(() => {
@@ -178,11 +174,7 @@ export default function SearchPage() {
 
   return (
     <div className="ui-page">
-      <PrimaryNav
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        showHomeLinks={false}
-      />
+      <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} showHomeLinks={false} />
 
       <main className="main-container">
         {/* Search Header */}
@@ -212,10 +204,7 @@ export default function SearchPage() {
                 alignItems: "center",
               }}
             >
-              <div
-                className="search-container"
-                style={{ flex: 1, minWidth: "250px" }}
-              >
+              <div className="search-container" style={{ flex: 1, minWidth: "250px" }}>
                 <span className="search-icon">🔍</span>
                 <input
                   className="search-input"
@@ -228,9 +217,7 @@ export default function SearchPage() {
               </div>
               <Select
                 value={sortMode}
-                onValueChange={(value: string) =>
-                  setSortMode(value as "relevance" | "views")
-                }
+                onValueChange={(value: string) => setSortMode(value as "relevance" | "views")}
               >
                 <SelectTrigger
                   className="select-trigger"
@@ -298,10 +285,7 @@ export default function SearchPage() {
         {/* Search Results */}
         {results.length === 0 ? (
           <section className="section">
-            <div
-              className="panel"
-              style={{ textAlign: "center", padding: "48px 24px" }}
-            >
+            <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
               <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🔍</div>
               <h3 className="panel-heading">No results found</h3>
               <p className="muted" style={{ marginBottom: "24px" }}>
@@ -316,13 +300,9 @@ export default function SearchPage() {
           <section className="section">
             <div className="games-grid">
               {results.map((game) => {
-                const desktopOnly =
-                  isMobile && (game.desktopOnly || !game.mobileFriendly);
+                const desktopOnly = isMobile && (game.desktopOnly || !game.mobileFriendly);
                 return (
-                  <div
-                    className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}
-                    key={game.id}
-                  >
+                  <div className={`game-card ${desktopOnly ? "tile-disabled" : ""}`} key={game.id}>
                     <button
                       className="tile-action"
                       type="button"
@@ -346,9 +326,7 @@ export default function SearchPage() {
                         <div className="game-card-title" title={game.name}>
                           {game.name}
                         </div>
-                        <div className="game-card-category">
-                          {game.category || "Game"}
-                        </div>
+                        <div className="game-card-category">{game.category || "Game"}</div>
                       </div>
                     </button>
                     <DesktopOnlyOverlay visible={desktopOnly} />

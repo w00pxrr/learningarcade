@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Checkbox, Select, SelectTrigger, SelectValue, SelectIcon, SelectContent, SelectViewport, SelectItem, SelectItemText, Switch } from "../components/ui";
+import {
+  Checkbox,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectIcon,
+  SelectContent,
+  SelectViewport,
+  SelectItem,
+  SelectItemText,
+  Switch,
+} from "../components/ui";
 import { PrimaryNav } from "../components/PrimaryNav";
 import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
@@ -10,7 +21,6 @@ import {
   getStoredItem,
   getStoredJSON,
   removeJSON,
-  removeStoredItem,
   setStoredItem,
   storeJSON,
 } from "../utils/storage";
@@ -46,33 +56,27 @@ export default function SettingsPage() {
     setAccentColor,
     resetAccentColor,
   } = useThemeContext();
-  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
-  const { broadcast, apply } = useDisguise(
-    "Settings - LearningArcade",
-    baseIcon,
-  );
+  const [baseIcon, _setBaseIcon] = useState(() => {
+    if (typeof window === "undefined") return "/img/gams-g.png";
+    return (
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+      "/img/gams-g.png"
+    );
+  });
+  const { broadcast, apply } = useDisguise("Settings - LearningArcade", baseIcon);
 
-  const [popoutMode, setPopoutMode] = useState("top");
-  const [consent, setConsent] = useState<CookieConsent>({ settings: true, analytics: true });
+  const [popoutMode, setPopoutMode] = useState(() => {
+    if (typeof window === "undefined") return "top";
+    return (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top";
+  });
+  const [consent, setConsent] = useState<CookieConsent>(() => {
+    const loaded = loadCookieConsent();
+    return loaded ?? { settings: true, analytics: true };
+  });
   const [tabName, setTabName] = useState("");
 
   useEffect(() => {
-    setBaseIcon(
-      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
-        ?.href || "/img/gams-g.png",
-    );
-    setPopoutMode(
-      (getStoredJSON<string>("gams", { key: "popoutMode" }) as string) || "top",
-    );
-    const loadedConsent = loadCookieConsent();
-    if (loadedConsent) {
-      setConsent(loadedConsent);
-    } else {
-      // Default to all enabled
-      const defaultConsent = { settings: true, analytics: true };
-      setConsent(defaultConsent);
-      saveCookieConsent(defaultConsent);
-    }
+    // noop - state initialized via lazy initializers
   }, []);
 
   useEffect(() => {
@@ -153,8 +157,6 @@ export default function SettingsPage() {
     requestAnimationFrame(() => apply());
   };
 
-
-
   return (
     <div className="ui-page">
       <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
@@ -168,9 +170,7 @@ export default function SettingsPage() {
 
           <section className="panel">
             <h3 className="panel-title">Popout menu position</h3>
-            <p className="muted">
-              Display the game info menu when using the “New Tab” popout.
-            </p>
+            <p className="muted">Display the game info menu when using the “New Tab” popout.</p>
             <Select value={popoutMode} onValueChange={setPopoutMode}>
               <SelectTrigger className="select-trigger">
                 <SelectValue />
@@ -198,14 +198,14 @@ export default function SettingsPage() {
           <section className="panel">
             <h3 className="panel-title">Accessibility</h3>
             <p className="muted">Increase contrast for text, surfaces, and controls.</p>
-            <label className="switch-row">
+            <div className="switch-row">
               <Switch
                 className="switch-root"
                 checked={isHighContrast}
                 onCheckedChange={toggleContrast}
               />
               <span>High contrast mode</span>
-            </label>
+            </div>
             <div className="ui-row">
               <label className="input-label">
                 Accent color
@@ -227,9 +227,7 @@ export default function SettingsPage() {
             <p className="muted">Pick a preset inspired by VS Code color themes.</p>
             <Select
               value={themePreset}
-              onValueChange={(value: string) =>
-                setThemePreset(value as ThemePreset)
-              }
+              onValueChange={(value: string) => setThemePreset(value as ThemePreset)}
             >
               <SelectTrigger className="select-trigger">
                 <SelectValue />
@@ -238,11 +236,7 @@ export default function SettingsPage() {
               <SelectContent className="select-content" position="popper">
                 <SelectViewport className="select-viewport">
                   {themePresets.map((preset) => (
-                    <SelectItem
-                      key={preset.value}
-                      value={preset.value}
-                      className="select-item"
-                    >
+                    <SelectItem key={preset.value} value={preset.value} className="select-item">
                       <SelectItemText>{preset.label}</SelectItemText>
                     </SelectItem>
                   ))}
@@ -255,7 +249,7 @@ export default function SettingsPage() {
             <h3 className="panel-title">Cookie preferences</h3>
             <p className="muted">Control analytics and settings cookies for LearningArcade.</p>
             <div className="ui-stack">
-              <label className="checkbox-row">
+              <div className="checkbox-row">
                 <Checkbox
                   className="checkbox-root"
                   checked={!!consent?.settings}
@@ -269,8 +263,8 @@ export default function SettingsPage() {
                   }}
                 />
                 <span>Settings cookies (favorites/preferences)</span>
-              </label>
-              <label className="checkbox-row">
+              </div>
+              <div className="checkbox-row">
                 <Checkbox
                   className="checkbox-root"
                   checked={!!consent?.analytics}
@@ -284,9 +278,8 @@ export default function SettingsPage() {
                   }}
                 />
                 <span>Analytics cookies (Umami)</span>
-              </label>
+              </div>
             </div>
-
           </section>
 
           <section className="panel">
@@ -327,6 +320,7 @@ export default function SettingsPage() {
                   key={preset.title}
                   onClick={() => applyPreset(preset.title, preset.src)}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data URI presets incompatible with next/image */}
                   <img src={preset.src} alt={preset.title} />
                   <span>{preset.title}</span>
                 </button>

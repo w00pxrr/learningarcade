@@ -58,23 +58,13 @@ export function CategorySidebar({
     return (
       <>
         {/* Backdrop */}
-        {isOpen && (
-          <div
-            className="sidebar-backdrop"
-            onClick={onClose}
-            aria-hidden="true"
-          />
-        )}
+        {isOpen && <div className="sidebar-backdrop" onClick={onClose} aria-hidden="true" />}
 
         {/* Mobile Sidebar */}
         <aside className={`category-sidebar mobile ${isOpen ? "open" : ""}`}>
           <div className="sidebar-header">
             <h2 className="sidebar-title">Categories</h2>
-            <button
-              className="sidebar-close"
-              onClick={onClose}
-              aria-label="Close sidebar"
-            >
+            <button className="sidebar-close" onClick={onClose} aria-label="Close sidebar">
               <i className="fa-solid fa-xmark" />
             </button>
           </div>

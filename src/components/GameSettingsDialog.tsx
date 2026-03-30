@@ -59,14 +59,14 @@ export default function GameSettingsDialog({
           </DialogClose>
         </DialogHeader>
         <div className="ui-stack">
-          <label className="switch-row">
+          <div className="switch-row">
             <Switch
               className="switch-root"
               checked={windowLock}
               onCheckedChange={onWindowLockChange}
             />
             <span>Ask before closing window</span>
-          </label>
+          </div>
           {filterControls.map(({ label, key, min, max, step }) => (
             <div key={key} className="slider-block">
               <div className="slider-row">
@@ -79,9 +79,7 @@ export default function GameSettingsDialog({
                 min={min}
                 max={max}
                 step={step}
-                onValueChange={(value: number[]) =>
-                  onFilterChange(key, value[0] ?? min)
-                }
+                onValueChange={(value: number[]) => onFilterChange(key, value[0] ?? min)}
               />
             </div>
           ))}

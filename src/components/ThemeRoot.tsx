@@ -44,10 +44,7 @@ export function ThemeRoot({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     hydrateServerStorage();
     void hydrateAuthStorage();
-    const cores =
-      typeof navigator !== "undefined"
-        ? navigator.hardwareConcurrency
-        : undefined;
+    const cores = typeof navigator !== "undefined" ? navigator.hardwareConcurrency : undefined;
     if (typeof cores === "number" && cores > 0 && cores < 4) {
       document.documentElement.setAttribute("data-fancy", "off");
     }

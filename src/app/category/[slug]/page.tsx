@@ -21,9 +21,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = slug;
-  const categoryItem = categoryMeta.items.find(
-    (item) => item.value === category,
-  );
+  const categoryItem = categoryMeta.items.find((item) => item.value === category);
   const label = categoryItem?.label ?? category ?? "Games";
   const gameCount = (gamesByCategory[category] ?? []).length;
 

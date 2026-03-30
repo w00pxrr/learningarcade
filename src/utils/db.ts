@@ -1,11 +1,14 @@
 import { Pool } from "@neondatabase/serverless";
 
 // Create a shared pool instance for database connections
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || "";
+const connectionString =
+  process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || "";
 
 // Debug log for connection string presence (not the actual value)
 if (!connectionString) {
-  console.warn("[db.ts] WARNING: No database connection string found! Environment variables POSTGRES_URL, DATABASE_URL, and POSTGRES_PRISMA_URL are all empty/undefined.");
+  console.warn(
+    "[db.ts] WARNING: No database connection string found! Environment variables POSTGRES_URL, DATABASE_URL, and POSTGRES_PRISMA_URL are all empty/undefined.",
+  );
 } else {
   console.log("[db.ts] Database connection string is configured");
 }
@@ -36,9 +39,13 @@ export async function ensureTables(): Promise<void> {
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS display_name TEXT;`);
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS school TEXT;`);
     await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS bio TEXT;`);
-    await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'member';`);
-    await pool.query(`ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS post_count INTEGER NOT NULL DEFAULT 0;`);
-  } catch (e) {
+    await pool.query(
+      `ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'member';`,
+    );
+    await pool.query(
+      `ALTER TABLE gams_users ADD COLUMN IF NOT EXISTS post_count INTEGER NOT NULL DEFAULT 0;`,
+    );
+  } catch {
     // Columns may already exist, ignore
   }
 
@@ -140,7 +147,7 @@ export async function ensureTables(): Promise<void> {
 export async function logSecurityEvent(
   userId: string | null,
   eventType: string,
-  details: Record<string, unknown> = {}
+  details: Record<string, unknown> = {},
 ): Promise<void> {
   try {
     const id = crypto.randomUUID();
@@ -154,31 +161,39 @@ export async function logSecurityEvent(
         details.ip_address || null,
         details.user_agent || null,
         JSON.stringify(details),
-      ]
+      ],
     );
   } catch (error) {
     // Silently fail - don't block operations for logging issues
-    console.error('[logSecurityEvent] Failed to log security event:', error);
+    console.error("[logSecurityEvent] Failed to log security event:", error);
   }
 }
 
 // Get current user from session
-export async function getCurrentUser(): Promise<{ id: string; username: string; display_name?: string; school?: string; bio?: string; role: string; post_count: number } | null> {
+export async function getCurrentUser(): Promise<{
+  id: string;
+  username: string;
+  display_name?: string;
+  school?: string;
+  bio?: string;
+  role: string;
+  post_count: number;
+} | null> {
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("gams_session")?.value;
-  
+
   if (!sessionId) return null;
-  
+
   const result = await pool.query(
     `SELECT u.id, u.username, u.display_name, u.school, u.bio, u.role, u.post_count
      FROM gams_sessions s
      JOIN gams_users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW()
      LIMIT 1;`,
-    [sessionId]
+    [sessionId],
   );
-  
+
   if (result.rows.length === 0) return null;
   return result.rows[0];
 }
@@ -187,7 +202,7 @@ export async function getCurrentUser(): Promise<{ id: string; username: string; 
 export async function getUserRole(username: string, postCount: number): Promise<string> {
   // Owner for psolo
   if (username.toLowerCase() === "psolo") return "owner";
-  
+
   // Role based on post count
   if (postCount >= 100) return "moderator";
   if (postCount >= 50) return "contributor";
@@ -198,43 +213,41 @@ export async function getUserRole(username: string, postCount: number): Promise<
 // Update user's post count and role
 export async function updateUserPostCount(userId: string): Promise<void> {
   try {
-    const result = await pool.query(
-      `SELECT username FROM gams_users WHERE id = $1`,
-      [userId]
-    );
-    
+    const result = await pool.query(`SELECT username FROM gams_users WHERE id = $1`, [userId]);
+
     if (result.rows.length === 0) return;
-    
+
     const username = result.rows[0].username;
     const countResult = await pool.query(
       `SELECT COUNT(*) as count FROM gams_forum_threads WHERE user_id = $1
        UNION ALL
        SELECT COUNT(*) as count FROM gams_forum_replies WHERE user_id = $1`,
-      [userId]
+      [userId],
     );
-    
+
     const totalPosts = countResult.rows.reduce((sum, row) => sum + parseInt(row.count), 0);
     const role = getUserRole(username, totalPosts);
-    
-    await pool.query(
-      `UPDATE gams_users SET post_count = $1, role = $2 WHERE id = $3`,
-      [totalPosts, role, userId]
-    );
+
+    await pool.query(`UPDATE gams_users SET post_count = $1, role = $2 WHERE id = $3`, [
+      totalPosts,
+      role,
+      userId,
+    ]);
   } catch (error) {
-    console.error('[updateUserPostCount] Failed to update post count:', error);
+    console.error("[updateUserPostCount] Failed to update post count:", error);
   }
 }
 
 // Update user profile
 export async function updateUserProfile(
   userId: string,
-  data: { display_name?: string; school?: string; bio?: string }
+  data: { display_name?: string; school?: string; bio?: string },
 ): Promise<void> {
   try {
     const updates: string[] = [];
     const values: (string | null)[] = [];
     let paramIndex = 1;
-    
+
     if (data.display_name !== undefined) {
       updates.push(`display_name = ${paramIndex++}`);
       values.push(data.display_name || null);
@@ -247,16 +260,16 @@ export async function updateUserProfile(
       updates.push(`bio = ${paramIndex++}`);
       values.push(data.bio || null);
     }
-    
+
     if (updates.length === 0) return;
-    
+
     values.push(userId);
     await pool.query(
       `UPDATE gams_users SET ${updates.join(", ")} WHERE id = ${paramIndex}`,
-      values
+      values,
     );
   } catch (error) {
-    console.error('[updateUserProfile] Failed to update user profile:', error);
+    console.error("[updateUserProfile] Failed to update user profile:", error);
     throw error; // Re-throw to allow caller to handle
   }
 }

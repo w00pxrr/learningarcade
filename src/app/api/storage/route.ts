@@ -4,14 +4,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { pool, ensureTables } from "@/utils/db";
 
-type StorageAction =
-  | "get"
-  | "set"
-  | "remove"
-  | "bulk_get"
-  | "bulk_all"
-  | "bulk_set"
-  | "auth";
+type StorageAction = "get" | "set" | "remove" | "bulk_get" | "bulk_all" | "bulk_set" | "auth";
 
 type StorageRequest = {
   action: StorageAction;
@@ -99,10 +92,10 @@ async function handleAction(userId: string, payload: StorageRequest) {
     }
     case "remove": {
       if (!payload.key) return { ok: false };
-      await pool.query(
-        `DELETE FROM gams_storage WHERE user_id = $1 AND key = $2;`,
-        [userId, payload.key],
-      );
+      await pool.query(`DELETE FROM gams_storage WHERE user_id = $1 AND key = $2;`, [
+        userId,
+        payload.key,
+      ]);
       return { ok: true };
     }
     case "bulk_get": {

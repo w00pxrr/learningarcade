@@ -60,16 +60,20 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
         ref={overlayRef}
         className="dialog-overlay"
         onClick={() => onOpenChange(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            onOpenChange(false);
+          }
+        }}
+        role="button"
+        tabIndex={-1}
       />
       {children}
     </div>
   );
 }
 
-export function DialogContent({
-  className = "",
-  children,
-}: DialogContentProps) {
+export function DialogContent({ className = "", children }: DialogContentProps) {
   return (
     <div className={`dialog-content ${className}`} role="dialog" aria-modal="true">
       {children}

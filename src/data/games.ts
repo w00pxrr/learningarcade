@@ -207,16 +207,9 @@ function getAutoCategories(name: string, section: string): string[] {
     lower.includes("chess")
   )
     categories.add("strategy");
-  if (
-    lower.includes("idle") ||
-    lower.includes("incremental") ||
-    lower.includes("clicker")
-  )
+  if (lower.includes("idle") || lower.includes("incremental") || lower.includes("clicker"))
     categories.add("idle");
-  if (
-    lower.includes("action-adventure") ||
-    lower.includes("action adventure")
-  ) {
+  if (lower.includes("action-adventure") || lower.includes("action adventure")) {
     categories.add("action-adventure");
     categories.add("action");
     categories.add("adventure");

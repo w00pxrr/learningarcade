@@ -27,10 +27,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const gameId = searchParams.get("gameId")?.trim();
   const limitRaw = searchParams.get("limit");
-  const limit = Math.min(
-    50,
-    Math.max(1, Number(limitRaw ?? "10") || 10),
-  );
+  const limit = Math.min(50, Math.max(1, Number(limitRaw ?? "10") || 10));
   if (!gameId) {
     return NextResponse.json({ error: "Missing gameId" }, { status: 400 });
   }

@@ -26,21 +26,21 @@ const SLUR_PATTERNS: RegExp[] = [
   /\b(s[l1]ant[e3]y[e3])\b/i,
   /\b(w[o0]g)\b/i,
   /\b(z[i1!l]p[h3]e[a@]d)\b/i,
-  
+
   // Homophobic slurs
   /\b(h[o0]m[o0])\b/i,
   /\b(qu[e3][e3]r)\b/i,
   /\b(l[e3]sb[i1!l][a@]n)\b/i,
   /\b(tr[a@]nn[yi])\b/i,
   /\b(sh[e3]m[a@]l[e3])\b/i,
-  
+
   // Sexist slurs
   /\b(b[i1!l]tch)\b/i,
   /\b(c[u@]nt)\b/i,
   /\b(wh[o0]r[e3])\b/i,
   /\b(sl[u@]t)\b/i,
   /\b(th[o0]t)\b/i,
-  
+
   // Other offensive terms
   /\b(n[a@]z[i1!l])\b/i,
   /\b(h[i1!l]tl[e3]r)\b/i,
@@ -55,11 +55,12 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Rate limit windows (in milliseconds)
-const RATE_LIMITS = {
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const RATE_LIMITS = {};
 
 /**
  * Check if content contains slurs or inappropriate language
@@ -67,29 +68,29 @@ const RATE_LIMITS = {
  * @returns true if content is clean, false if it contains slurs
  */
 export function isContentClean(content: string): boolean {
-  if (!content || typeof content !== 'string') {
+  if (!content || typeof content !== "string") {
     return true;
   }
-  
+
   // Normalize the content to catch leetspeak and variations
   const normalizedContent = content
-    .replace(/0/g, 'o')
-    .replace(/1/g, 'i')
-    .replace(/3/g, 'e')
-    .replace(/4/g, 'a')
-    .replace(/5/g, 's')
-    .replace(/7/g, 't')
-    .replace(/@/g, 'a')
-    .replace(/\$/g, 's')
-    .replace(/\+/g, 't');
-  
+    .replace(/0/g, "o")
+    .replace(/1/g, "i")
+    .replace(/3/g, "e")
+    .replace(/4/g, "a")
+    .replace(/5/g, "s")
+    .replace(/7/g, "t")
+    .replace(/@/g, "a")
+    .replace(/\$/g, "s")
+    .replace(/\+/g, "t");
+
   // Check against all slur patterns
   for (const pattern of SLUR_PATTERNS) {
     if (pattern.test(content) || pattern.test(normalizedContent)) {
       return false;
     }
   }
-  
+
   return true;
 }
 

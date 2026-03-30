@@ -42,7 +42,7 @@ export function getVisitCount(visits: GameVisits, gameId: string): number {
 export function getCombinedCount(
   visits: GameVisits,
   gameId: string,
-  umamiCounts?: Record<string, number>
+  umamiCounts?: Record<string, number>,
 ): number {
   const localCount = getVisitCount(visits, gameId);
   const umamiCount = umamiCounts?.[gameId] ?? 0;

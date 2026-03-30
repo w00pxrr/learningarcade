@@ -8,11 +8,7 @@ type SwitchProps = {
   className?: string;
 };
 
-export function Switch({
-  checked = false,
-  onCheckedChange,
-  className = "",
-}: SwitchProps) {
+export function Switch({ checked = false, onCheckedChange, className = "" }: SwitchProps) {
   return (
     <button
       type="button"

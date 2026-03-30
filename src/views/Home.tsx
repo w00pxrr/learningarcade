@@ -1,6 +1,6 @@
 "use client";
 
-import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { gamesByCategory, gamesById, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
@@ -20,12 +20,7 @@ import {
   hydrateServerStorage,
 } from "../utils/storage";
 import { ensureUmamiLoaded, trackGameView } from "../utils/umami";
-import {
-  getCombinedCount,
-  getGameVisits,
-  recordGameVisit,
-  type GameVisits,
-} from "../utils/visits";
+import { getCombinedCount, getGameVisits, recordGameVisit } from "../utils/visits";
 import { useRouter } from "next/navigation";
 
 type CookieConsent = { settings?: boolean; analytics?: boolean };
@@ -39,10 +34,7 @@ function GameSectionSkeleton() {
       <div className="section-header">
         <div>
           <h2 className="section-title">
-            <span
-              className="section-title-icon"
-              style={{ background: "var(--cg-bg-tertiary)" }}
-            >
+            <span className="section-title-icon" style={{ background: "var(--cg-bg-tertiary)" }}>
               &nbsp;
             </span>
             &nbsp;
@@ -51,11 +43,7 @@ function GameSectionSkeleton() {
       </div>
       <div className="games-grid">
         {[...Array(4)].map((_, i) => (
-          <div
-            key={i}
-            className="game-card"
-            style={{ background: "var(--cg-bg-card)" }}
-          >
+          <div key={i} className="game-card" style={{ background: "var(--cg-bg-card)" }}>
             <div
               className="game-card-image-container"
               style={{ background: "var(--cg-bg-tertiary)" }}
@@ -171,13 +159,8 @@ function getRandomFeaturedGames(): GameData[] {
           windowIndex: number;
           gameIds: string[];
         };
-        if (
-          parsed.windowIndex === windowIndex &&
-          Array.isArray(parsed.gameIds)
-        ) {
-          const games = parsed.gameIds
-            .map((id) => gamesById[id])
-            .filter(Boolean) as GameData[];
+        if (parsed.windowIndex === windowIndex && Array.isArray(parsed.gameIds)) {
+          const games = parsed.gameIds.map((id) => gamesById[id]).filter(Boolean) as GameData[];
           if (games.length === 8) return games;
         }
       } catch {
@@ -190,16 +173,12 @@ function getRandomFeaturedGames(): GameData[] {
   // Use a deterministic shuffle that produces the same result on server and client
   const shuffled = [...filtered].sort((a, b) => {
     // Create a deterministic hash from game IDs and window index
-    const hashA = (a.id + windowIndex.toString())
-      .split("")
-      .reduce((acc, char) => {
-        return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-      }, 0);
-    const hashB = (b.id + windowIndex.toString())
-      .split("")
-      .reduce((acc, char) => {
-        return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-      }, 0);
+    const hashA = (a.id + windowIndex.toString()).split("").reduce((acc, char) => {
+      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+    }, 0);
+    const hashB = (b.id + windowIndex.toString()).split("").reduce((acc, char) => {
+      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+    }, 0);
     return hashA - hashB;
   });
 
@@ -292,11 +271,7 @@ function GameCard({
     <div className={`game-card ${desktopOnly ? "tile-disabled" : ""}`}>
       {badge && (
         <span className={`game-card-badge ${badge}`}>
-          {badge === "new"
-            ? "NEW"
-            : badge === "trending"
-              ? "TRENDING"
-              : "FEATURED"}
+          {badge === "new" ? "NEW" : badge === "trending" ? "TRENDING" : "FEATURED"}
         </span>
       )}
       <button
@@ -309,11 +284,7 @@ function GameCard({
         disabled={desktopOnly}
       >
         <div className="game-card-image-container">
-          <GameImage
-            className="game-card-image"
-            sources={game.imgCandidates}
-            alt={game.name}
-          />
+          <GameImage className="game-card-image" sources={game.imgCandidates} alt={game.name} />
           <div className="game-card-overlay">
             <div className="play-button">▶</div>
           </div>
@@ -335,11 +306,7 @@ function GameCard({
           onToggleFavorite(game.id);
         }}
         disabled={!canFavorite}
-        title={
-          canFavorite
-            ? "Toggle favorite"
-            : "Enable settings cookies to save favorites"
-        }
+        title={canFavorite ? "Toggle favorite" : "Enable settings cookies to save favorites"}
         aria-label="Toggle favorite"
       >
         {isFavorite ? "★" : "☆"}
@@ -418,12 +385,21 @@ function GameSection({
 export default function HomePage() {
   const { isDark, toggleTheme } = useThemeContext();
   const router = useRouter();
-  const [consent, setConsent] = useState<CookieConsent | null>(null);
+  const [consent, _setConsent] = useState<CookieConsent | null>(() => {
+    const loaded = loadCookieConsent();
+    return loaded ?? { settings: true, analytics: true };
+  });
   const [searchTerm, setSearchTerm] = useState("");
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [localVisits, setLocalVisits] = useState<GameVisits>({});
-  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [favorites, setFavorites] = useState<string[]>(() => getFavoriteIds(loadCookieConsent()));
+  const [localVisits, setLocalVisits] = useState(getGameVisits);
+  const [baseIcon, _setBaseIcon] = useState(() => {
+    if (typeof window === "undefined") return "/img/gams-g.png";
+    return (
+      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
+      "/img/gams-g.png"
+    );
+  });
+  const [activeCategory, _setActiveCategory] = useState("all");
   const isMobile = useIsMobile();
 
   useDisguise("LearningArcde", baseIcon);
@@ -431,26 +407,16 @@ export default function HomePage() {
   useEffect(() => {
     hydrateServerStorage();
     const loadedConsent = loadCookieConsent();
-    if (loadedConsent) {
-      setConsent(loadedConsent);
-    } else {
-      // Default to all enabled
+    if (!loadedConsent) {
       const defaultConsent = { settings: true, analytics: true };
-      setConsent(defaultConsent);
       saveCookieConsent(defaultConsent);
     }
-
-    setFavorites(getFavoriteIds(loadedConsent));
-    setLocalVisits(getGameVisits());
-    setBaseIcon(
-      (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)
-        ?.href || "/img/gams-g.png",
-    );
   }, []);
 
   useEffect(() => {
     if (consent?.analytics) ensureUmamiLoaded();
     if (consent && !consent.settings) clearCookie("gams_favorites");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizing derived state on consent change
     setFavorites(getFavoriteIds(consent));
   }, [consent]);
 
@@ -458,10 +424,7 @@ export default function HomePage() {
   const canFavorite = hasSettingsCookieConsent(consent);
   const { counts: viewCounts } = useUmamiViews();
 
-  const recommended = useMemo(
-    () => getTopVisitedGamesFromVisits(localVisits),
-    [localVisits],
-  );
+  const _recommended = useMemo(() => getTopVisitedGamesFromVisits(localVisits), [localVisits]);
   const latest = useMemo(() => getLatestGames(), []);
   const featuredGames = useMemo(() => getCachedFeaturedGames(), []);
   const popularGames = useMemo(() => {
@@ -550,8 +513,7 @@ export default function HomePage() {
           <div className="hero-content">
             <h1 className="hero-title">Play Free Online Games</h1>
             <p className="hero-subtitle">
-              Discover thousands of free games. Action, adventure, puzzle, and
-              more!
+              Discover thousands of free games. Action, adventure, puzzle, and more!
             </p>
             <div className="hero-search">
               <form onSubmit={handleSearchSubmit} className="search-container">

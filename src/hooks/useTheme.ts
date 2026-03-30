@@ -32,21 +32,33 @@ const PRESET_MODE: Record<ThemePreset, ThemeMode | "auto"> = {
 const isThemePreset = (value: string): value is ThemePreset =>
   THEME_PRESETS.includes(value as ThemePreset);
 
+function readAccentFromDOM(): string {
+  if (typeof window === "undefined") return "#81f0d7";
+  const value = getComputedStyle(document.documentElement).getPropertyValue("--gams-accent").trim();
+  if (/^#([0-9a-f]{3}){1,2}$/i.test(value)) {
+    return value;
+  }
+  return "#81f0d7";
+}
+
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>("light");
-  const [contrast, setContrast] = useState<ContrastMode>("normal");
-  const [themePreset, setThemePresetState] = useState<ThemePreset>("default");
-  const [accent, setAccent] = useState<string>("#81f0d7");
-
-  const readAccentFromDOM = () => {
-    const value = getComputedStyle(document.documentElement)
-      .getPropertyValue("--gams-accent")
-      .trim();
-    if (/^#([0-9a-f]{3}){1,2}$/i.test(value)) {
-      return value;
-    }
-    return "#81f0d7";
-  };
+  const [contrast, setContrast] = useState<ContrastMode>(() => {
+    if (typeof window === "undefined") return "normal";
+    const saved = getStoredJSON<string>("gams", { key: "contrast" });
+    return saved === "high" ? "high" : "normal";
+  });
+  const [themePreset, setThemePresetState] = useState<ThemePreset>(() => {
+    if (typeof window === "undefined") return "default";
+    const saved = getStoredJSON<string>("gams", { key: "themePreset" });
+    return saved && isThemePreset(saved) ? saved : "default";
+  });
+  const [accent, setAccent] = useState<string>(() => {
+    if (typeof window === "undefined") return "#81f0d7";
+    const saved = getStoredJSON<string>("gams", { key: "accent" });
+    if (saved && /^#([0-9a-f]{3}){1,2}$/i.test(saved)) return saved;
+    return readAccentFromDOM();
+  });
 
   const applyThemeMode = (nextTheme: ThemeMode) => {
     setTheme(nextTheme);
@@ -61,26 +73,17 @@ export function useTheme() {
     document.documentElement.setAttribute("data-theme", nextPreset);
   };
 
+  /* eslint-disable react-hooks/exhaustive-deps -- one-time initialization effect; reads initial state to apply stored theme/DOM attributes on mount */
   useEffect(() => {
     document.documentElement.setAttribute("data-reduced-motion", "true");
-    const savedContrast = getStoredJSON<string>("gams", { key: "contrast" });
-    if (savedContrast === "high") {
-      setContrast("high");
+    if (contrast === "high") {
       document.documentElement.setAttribute("data-contrast", "high");
     }
-    const savedAccent = getStoredJSON<string>("gams", { key: "accent" });
-    if (savedAccent && /^#([0-9a-f]{3}){1,2}$/i.test(savedAccent)) {
-      setAccent(savedAccent);
-      document.documentElement.style.setProperty("--gams-accent", savedAccent);
-    } else {
-      setAccent(readAccentFromDOM());
+    if (accent && /^#([0-9a-f]{3}){1,2}$/i.test(accent)) {
+      document.documentElement.style.setProperty("--gams-accent", accent);
     }
-    const savedPreset = getStoredJSON<string>("gams", { key: "themePreset" });
-    const resolvedPreset =
-      savedPreset && isThemePreset(savedPreset) ? savedPreset : "default";
-    setThemePresetState(resolvedPreset);
-    applyPreset(resolvedPreset);
-    const forcedMode = PRESET_MODE[resolvedPreset];
+    applyPreset(themePreset);
+    const forcedMode = PRESET_MODE[themePreset];
 
     const savedTheme = getStoredJSON<string>("gams", { key: "theme" });
     if (forcedMode !== "auto") {
@@ -92,14 +95,13 @@ export function useTheme() {
       return;
     }
 
-    const media = window.matchMedia
-      ? window.matchMedia("(prefers-color-scheme: dark)")
-      : null;
+    const media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
     if (media) {
       const applyAutoTheme = (isDark: boolean) => {
         const nextTheme: ThemeMode = isDark ? "dark" : "light";
         applyThemeMode(nextTheme);
       };
+
       applyAutoTheme(media.matches);
       const handler = (event: MediaQueryListEvent) => applyAutoTheme(event.matches);
       media.addEventListener("change", handler);
@@ -110,6 +112,7 @@ export function useTheme() {
 
     document.documentElement.classList.remove("dark");
   }, []);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const toggleTheme = (nextDark: boolean) => {
     const nextTheme: ThemeMode = nextDark ? "dark" : "light";

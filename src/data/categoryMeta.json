@@ -4,10 +4,20 @@
     { "value": "popular", "label": "Most Popular", "showOnCategory": true, "showOnHome": false },
     { "value": "favorites", "label": "Favorites", "showOnCategory": true, "showOnHome": false },
     { "value": "action", "label": "Action", "showOnCategory": true, "showOnHome": true },
-    { "value": "action-adventure", "label": "Action Adventure", "showOnCategory": true, "showOnHome": true },
+    {
+      "value": "action-adventure",
+      "label": "Action Adventure",
+      "showOnCategory": true,
+      "showOnHome": true
+    },
     { "value": "puzzle", "label": "Puzzle", "showOnCategory": true, "showOnHome": true },
     { "value": "adventure", "label": "Adventure", "showOnCategory": true, "showOnHome": true },
-    { "value": "role-playing", "label": "Role-playing", "showOnCategory": true, "showOnHome": true },
+    {
+      "value": "role-playing",
+      "label": "Role-playing",
+      "showOnCategory": true,
+      "showOnHome": true
+    },
     { "value": "horror", "label": "Horror", "showOnCategory": true, "showOnHome": true },
     { "value": "simulation", "label": "Simulation", "showOnCategory": true, "showOnHome": true },
     { "value": "strategy", "label": "Strategy", "showOnCategory": true, "showOnHome": true },

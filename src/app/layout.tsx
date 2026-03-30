@@ -133,11 +133,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Structured data for the website
   const websiteStructuredData = {
     "@context": "https://schema.org",
@@ -150,8 +146,7 @@ export default function RootLayout({
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate:
-          "https://learningarcade.vercel.app/search?q={search_term_string}",
+        urlTemplate: "https://learningarcade.vercel.app/search?q={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
@@ -191,11 +186,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://proxy-iota-black.vercel.app" />
 
         {/* Prefetch popular external game pages for instant loading */}
-        <link
-          rel="prefetch"
-          href="https://w00pxrr.github.io/funkinverc/"
-          as="document"
-        />
+        <link rel="prefetch" href="https://w00pxrr.github.io/funkinverc/" as="document" />
 
         {/* Preload critical FontAwesome font */}
         <link
@@ -207,10 +198,8 @@ export default function RootLayout({
         />
 
         {/* FontAwesome icons */}
-        <link
-          rel="stylesheet"
-          href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css"
-        />
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
+        <link rel="stylesheet" href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css" />
         {/* Override FontAwesome font-display for better performance */}
         <style
           dangerouslySetInnerHTML={{

@@ -1,12 +1,7 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import {
   DropdownMenu,
@@ -20,10 +15,9 @@ import { useDisguise } from "../hooks/useDisguise";
 import filterControls from "../data/gameEmbedFilters.json";
 import { useSearchParams } from "next/navigation";
 
-const GameSettingsDialog = dynamic(
-  () => import("../components/GameSettingsDialog"),
-  { loading: () => null },
-);
+const GameSettingsDialog = dynamic(() => import("../components/GameSettingsDialog"), {
+  loading: () => null,
+});
 
 const MobileControls = dynamic(() => import("../components/MobileControls"), {
   loading: () => null,
@@ -63,6 +57,10 @@ const typedFilterControls = filterControls as Array<{
   step: number;
 }>;
 
+interface WindowWithGtag extends Window {
+  gtag?: (...args: unknown[]) => void;
+}
+
 function resolveUrl(rawUrl?: string | null) {
   if (!rawUrl) return "";
   try {
@@ -94,7 +92,10 @@ export default function GameEmbedPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 900px)").matches;
+  });
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(true);
   const [loadStartTime, setLoadStartTime] = useState<number | null>(null);
 
@@ -106,6 +107,7 @@ export default function GameEmbedPage() {
     const nextName = params.get("name") || "Game";
     const nextIcon = resolveUrl(params.get("icon")) || "/img/gams-g.png";
     const nextSrc = resolveUrl(params.get("src"));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from URL search params
     setGameId(nextId);
     setCurrentName(nextName);
     setCurrentIcon(nextIcon);
@@ -121,20 +123,12 @@ export default function GameEmbedPage() {
         const origin = new URL(nextSrc).origin;
         if (origin !== window.location.origin) {
           const head = document.head;
-          const addLink = (
-            rel: string,
-            href: string,
-            attrs?: Record<string, string>,
-          ) => {
-            if (head.querySelector(`link[rel="${rel}"][href="${href}"]`))
-              return;
+          const addLink = (rel: string, href: string, attrs?: Record<string, string>) => {
+            if (head.querySelector(`link[rel="${rel}"][href="${href}"]`)) return;
             const link = document.createElement("link");
             link.rel = rel;
             link.href = href;
-            if (attrs)
-              Object.entries(attrs).forEach(([k, v]) =>
-                link.setAttribute(k, v),
-              );
+            if (attrs) Object.entries(attrs).forEach(([k, v]) => link.setAttribute(k, v));
             head.appendChild(link);
           };
           addLink("dns-prefetch", origin);
@@ -146,7 +140,7 @@ export default function GameEmbedPage() {
     }
   }, [searchParams]);
 
-  const activeGame = useMemo(() => {
+  const _activeGame = useMemo(() => {
     if (gameId && gamesById[gameId]) return gamesById[gameId];
     if (!frameSrc) return null;
     try {
@@ -185,10 +179,8 @@ export default function GameEmbedPage() {
     const updateFullscreenState = () => {
       const active =
         !!document.fullscreenElement ||
-        !!(document as Document & { webkitFullscreenElement?: Element })
-          .webkitFullscreenElement ||
-        !!(document as Document & { msFullscreenElement?: Element })
-          .msFullscreenElement;
+        !!(document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+        !!(document as Document & { msFullscreenElement?: Element }).msFullscreenElement;
       setIsFullscreen(active);
       document.body.classList.toggle("fullscreen-active", active);
     };
@@ -197,10 +189,7 @@ export default function GameEmbedPage() {
     document.addEventListener("msfullscreenchange", updateFullscreenState);
     return () => {
       document.removeEventListener("fullscreenchange", updateFullscreenState);
-      document.removeEventListener(
-        "webkitfullscreenchange",
-        updateFullscreenState,
-      );
+      document.removeEventListener("webkitfullscreenchange", updateFullscreenState);
       document.removeEventListener("msfullscreenchange", updateFullscreenState);
     };
   }, []);
@@ -208,7 +197,6 @@ export default function GameEmbedPage() {
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
     const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches);
-    setIsMobile(media.matches);
     if (typeof media.addEventListener === "function") {
       media.addEventListener("change", handler);
       return () => media.removeEventListener("change", handler);
@@ -226,12 +214,33 @@ export default function GameEmbedPage() {
 
   useEffect(() => {
     if (!isMobile || isFullscreen) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- UI state for fullscreen prompt
     setShowFullscreenPrompt(true);
     const handle = window.setTimeout(() => {
       setShowFullscreenPrompt(false);
     }, 3500);
     return () => window.clearTimeout(handle);
   }, [isMobile, isFullscreen]);
+
+  const openFullscreen = () => {
+    const element = document.getElementById("frame");
+    if (!element) return;
+
+    if (!document.fullscreenElement) {
+      const request =
+        element.requestFullscreen ||
+        (element as HTMLElement & { webkitRequestFullscreen?: () => void })
+          .webkitRequestFullscreen ||
+        (element as HTMLElement & { msRequestFullscreen?: () => void }).msRequestFullscreen;
+      request?.call(element);
+    } else {
+      const exit =
+        document.exitFullscreen ||
+        (document as Document & { webkitExitFullscreen?: () => void }).webkitExitFullscreen ||
+        (document as Document & { msExitFullscreen?: () => void }).msExitFullscreen;
+      exit?.call(document);
+    }
+  };
 
   useEffect(() => {
     const attemptFullscreen = () => {
@@ -246,89 +255,60 @@ export default function GameEmbedPage() {
 
   const filterStyle = "";
 
-  const openFullscreen = () => {
-    const element = document.getElementById("frame");
-    if (!element) return;
-
-    if (!document.fullscreenElement) {
-      const request =
-        element.requestFullscreen ||
-        (element as HTMLElement & { webkitRequestFullscreen?: () => void })
-          .webkitRequestFullscreen ||
-        (element as HTMLElement & { msRequestFullscreen?: () => void })
-          .msRequestFullscreen;
-      request?.call(element);
-    } else {
-      const exit =
-        document.exitFullscreen ||
-        (document as Document & { webkitExitFullscreen?: () => void })
-          .webkitExitFullscreen ||
-        (document as Document & { msExitFullscreen?: () => void })
-          .msExitFullscreen;
-      exit?.call(document);
-    }
-  };
-
   const updateFilter = (key: keyof FilterState, value: number) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const sendVirtualKey = useCallback(
-    (eventType: "keydown" | "keyup", keyValue: string) => {
-      const frame = document.getElementById(
-        "frame",
-      ) as HTMLIFrameElement | null;
-      if (!frame) return;
+  const sendVirtualKey = useCallback((eventType: "keydown" | "keyup", keyValue: string) => {
+    const frame = document.getElementById("frame") as HTMLIFrameElement | null;
+    if (!frame) return;
 
-      const keyCodeMap: Record<string, number> = {
-        ArrowUp: 38,
-        ArrowDown: 40,
-        ArrowLeft: 37,
-        ArrowRight: 39,
-        " ": 32,
-      };
-      const codeMap: Record<string, string> = {
-        ArrowUp: "ArrowUp",
-        ArrowDown: "ArrowDown",
-        ArrowLeft: "ArrowLeft",
-        ArrowRight: "ArrowRight",
-        " ": "Space",
-      };
-      const keyCode = keyCodeMap[keyValue] ?? 0;
-      const code = codeMap[keyValue] ?? keyValue;
+    const keyCodeMap: Record<string, number> = {
+      ArrowUp: 38,
+      ArrowDown: 40,
+      ArrowLeft: 37,
+      ArrowRight: 39,
+      " ": 32,
+    };
+    const codeMap: Record<string, string> = {
+      ArrowUp: "ArrowUp",
+      ArrowDown: "ArrowDown",
+      ArrowLeft: "ArrowLeft",
+      ArrowRight: "ArrowRight",
+      " ": "Space",
+    };
+    const keyCode = keyCodeMap[keyValue] ?? 0;
+    const code = codeMap[keyValue] ?? keyValue;
 
-      const dispatchArrowEvent = (target: EventTarget | null) => {
-        if (!target || typeof (target as Window).dispatchEvent !== "function")
-          return;
-        const event = new KeyboardEvent(eventType, {
-          key: keyValue,
-          code,
-          which: keyCode,
-          keyCode,
-          bubbles: true,
-          cancelable: true,
-        });
-        (target as Window).dispatchEvent(event);
-      };
+    const dispatchArrowEvent = (target: EventTarget | null) => {
+      if (!target || typeof (target as Window).dispatchEvent !== "function") return;
+      const event = new KeyboardEvent(eventType, {
+        key: keyValue,
+        code,
+        which: keyCode,
+        keyCode,
+        bubbles: true,
+        cancelable: true,
+      });
+      (target as Window).dispatchEvent(event);
+    };
 
-      dispatchArrowEvent(window);
-      try {
-        if (frame.contentWindow) {
-          frame.contentWindow.focus();
-          dispatchArrowEvent(frame.contentWindow);
-          if (frame.contentWindow.document) {
-            dispatchArrowEvent(frame.contentWindow.document);
-            if (frame.contentWindow.document.body) {
-              dispatchArrowEvent(frame.contentWindow.document.body);
-            }
+    dispatchArrowEvent(window);
+    try {
+      if (frame.contentWindow) {
+        frame.contentWindow.focus();
+        dispatchArrowEvent(frame.contentWindow);
+        if (frame.contentWindow.document) {
+          dispatchArrowEvent(frame.contentWindow.document);
+          if (frame.contentWindow.document.body) {
+            dispatchArrowEvent(frame.contentWindow.document.body);
           }
         }
-      } catch {
-        // ignore cross-origin
       }
-    },
-    [],
-  );
+    } catch {
+      // ignore cross-origin
+    }
+  }, []);
 
   return (
     <div className="ui-page ui-page-embed">
@@ -339,25 +319,21 @@ export default function GameEmbedPage() {
             <>
               <div className="nav-game-actions">
                 <div className="game-identity">
-                  <img
+                  <Image
                     src={currentIcon}
                     alt="Game icon"
                     className="game-icon"
+                    width={24}
+                    height={24}
                   />
                   <span className="game-name" title={currentName}>
                     {currentName}
                   </span>
                 </div>
-                <button
-                  className="btn btn-outline btn-sm"
-                  onClick={openFullscreen}
-                >
+                <button className="btn btn-outline btn-sm" onClick={openFullscreen}>
                   {isFullscreen ? "Exit full" : "Fullscreen"}
                 </button>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setIsModalOpen(true)}
-                >
+                <button className="btn btn-secondary btn-sm" onClick={() => setIsModalOpen(true)}>
                   Settings
                 </button>
               </div>
@@ -379,15 +355,8 @@ export default function GameEmbedPage() {
                       ⚙️ Menu
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="dropdown-content"
-                    sideOffset={8}
-                    align="end"
-                  >
-                    <DropdownMenuItem
-                      className="dropdown-item"
-                      onSelect={() => openFullscreen()}
-                    >
+                  <DropdownMenuContent className="dropdown-content" sideOffset={8} align="end">
+                    <DropdownMenuItem className="dropdown-item" onSelect={() => openFullscreen()}>
                       {isFullscreen ? "⛶ Exit Fullscreen" : "⛶ Fullscreen"}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -430,12 +399,10 @@ export default function GameEmbedPage() {
                   // Log performance metrics
                   if (loadStartTime) {
                     const loadTime = performance.now() - loadStartTime;
-                    console.log(
-                      `[Performance] Game iframe loaded in ${loadTime.toFixed(2)}ms`,
-                    );
+                    console.log(`[Performance] Game iframe loaded in ${loadTime.toFixed(2)}ms`);
                     // Report to analytics if available
-                    if (typeof window !== "undefined" && (window as any).gtag) {
-                      (window as any).gtag("event", "game_load", {
+                    if (typeof window !== "undefined" && (window as WindowWithGtag).gtag) {
+                      (window as WindowWithGtag).gtag!("event", "game_load", {
                         event_category: "performance",
                         event_label: currentName,
                         value: Math.round(loadTime),

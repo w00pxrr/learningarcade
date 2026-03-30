@@ -21,13 +21,17 @@ export function useDisguise(baseTitle: string, baseIcon: string) {
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
 
-    if (channel) channel.onmessage = () => apply();
+    const ch = channel;
+    if (ch) {
+      const handler = () => apply();
+      ch.addEventListener("message", handler);
+    }
 
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
-      if (channel) channel.close();
+      if (ch) ch.close();
     };
   }, [apply, channel]);
 

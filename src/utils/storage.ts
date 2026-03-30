@@ -1,12 +1,7 @@
 export type StoredJSONKeyOpt = { key: string };
 
 const STORAGE_ENDPOINT = "/api/storage";
-const STORAGE_KEYS = [
-  "gams",
-  "gams_cookie_consent_v1",
-  "gams_game_visits",
-  "gams_cookie_store",
-];
+const STORAGE_KEYS = ["gams", "gams_cookie_consent_v1", "gams_game_visits", "gams_cookie_store"];
 const COOKIE_STORE_KEY = "gams_cookie_store";
 const refreshQueue = new Map<string, Promise<void>>();
 let hydrated = false;
@@ -92,9 +87,7 @@ function patchLocalStorageSync(): void {
   }
 }
 
-async function pushServerBulkUpdate(
-  entries: Record<string, string>,
-): Promise<void> {
+async function pushServerBulkUpdate(entries: Record<string, string>): Promise<void> {
   if (Object.keys(entries).length === 0) return;
   await postStorage({ action: "bulk_set", entries });
 }
@@ -211,10 +204,7 @@ export function getStoredJSON<T = string | object | boolean | null>(
   if (data?.key && ls[key] !== "null") {
     try {
       const inStore = JSON.parse(ls[key]) as Record<string, unknown>;
-      if (
-        typeof inStore === "object" &&
-        Object.prototype.hasOwnProperty.call(inStore, data.key)
-      ) {
+      if (typeof inStore === "object" && Object.prototype.hasOwnProperty.call(inStore, data.key)) {
         return inStore[data.key] as T;
       }
     } catch {
@@ -231,10 +221,7 @@ export function getStoredJSON<T = string | object | boolean | null>(
   return null;
 }
 
-export function storeJSON(
-  key: string,
-  data: { key: string; value: string },
-): string {
+export function storeJSON(key: string, data: { key: string; value: string }): string {
   const ls = getLocalStorage();
   if (!ls) return "";
   let inStore: Record<string, unknown>;
@@ -340,13 +327,7 @@ export function setCookie(name: string, value: string, days?: number): void {
     expires = "; expires=" + date.toUTCString();
   }
   const secure = win.location.protocol === "https:" ? "; Secure" : "";
-  doc.cookie =
-    name +
-    "=" +
-    encodeURIComponent(value) +
-    expires +
-    "; path=/; SameSite=Lax" +
-    secure;
+  doc.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax" + secure;
   const store = getCookieStore();
   store[name] = { value, days };
   setCookieStore(store);
@@ -355,8 +336,7 @@ export function setCookie(name: string, value: string, days?: number): void {
 export function clearCookie(name: string): void {
   const doc = getDocument();
   if (!doc) return;
-  doc.cookie =
-    name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
+  doc.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
   const store = getCookieStore();
   if (store[name]) {
     delete store[name];

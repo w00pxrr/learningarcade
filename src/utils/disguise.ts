@@ -4,9 +4,7 @@ export function setFavicon(href: string): void {
   if (typeof document === "undefined" || !href) return;
   const head = document.head || document.getElementsByTagName("head")[0];
   if (!head) return;
-  const existing = document.getElementById("gams-favicon") as
-    | HTMLLinkElement
-    | null;
+  const existing = document.getElementById("gams-favicon") as HTMLLinkElement | null;
   if (existing) {
     existing.href = href;
     return;

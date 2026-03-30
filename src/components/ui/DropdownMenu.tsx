@@ -58,10 +58,7 @@ export function DropdownMenu({ children }: DropdownMenuProps) {
   );
 }
 
-export function DropdownMenuTrigger({
-  asChild,
-  children,
-}: DropdownMenuTriggerProps) {
+export function DropdownMenuTrigger({ asChild, children }: DropdownMenuTriggerProps) {
   if (asChild && React.isValidElement(children)) {
     return children;
   }
@@ -96,9 +93,12 @@ export function DropdownMenuItem({
   };
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>, {
-      onClick: handleClick,
-    });
+    return React.cloneElement(
+      children as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>,
+      {
+        onClick: handleClick,
+      },
+    );
   }
 
   return (
