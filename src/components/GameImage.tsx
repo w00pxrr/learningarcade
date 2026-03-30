@@ -32,7 +32,7 @@ export function GameImage({
     setFailed(false);
   }, [sourceKey]);
 
-  // Pick the best source: prefer webp, then png, then others
+  // Pick the best source: prefer avif, then webp, then others
   const activeSource = sourceList[index] ?? sourceList[0] ?? "";
 
   if (!activeSource || failed) {

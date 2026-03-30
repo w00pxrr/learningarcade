@@ -337,11 +337,11 @@ export const gamesById: Record<string, GameData> = {};
 export const gamesByCategory: Record<string, GameData[]> = {};
 
 const imageExtensions: string[] = [
+  "avif",
   "webp",
   "png",
   "jpg",
   "jpeg",
-  "avif",
   "gif",
   "apng",
   "svg",

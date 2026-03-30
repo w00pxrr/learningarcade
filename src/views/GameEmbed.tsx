@@ -114,6 +114,35 @@ export default function GameEmbedPage() {
     if (nextSrc) {
       setLoadStartTime(performance.now());
       setIsIframeLoaded(false);
+
+      // Inject preconnect/prefetch for external origins to warm DNS+connection
+      // before the iframe starts loading (critical for Chromebook perf)
+      try {
+        const origin = new URL(nextSrc).origin;
+        if (origin !== window.location.origin) {
+          const head = document.head;
+          const addLink = (
+            rel: string,
+            href: string,
+            attrs?: Record<string, string>,
+          ) => {
+            if (head.querySelector(`link[rel="${rel}"][href="${href}"]`))
+              return;
+            const link = document.createElement("link");
+            link.rel = rel;
+            link.href = href;
+            if (attrs)
+              Object.entries(attrs).forEach(([k, v]) =>
+                link.setAttribute(k, v),
+              );
+            head.appendChild(link);
+          };
+          addLink("dns-prefetch", origin);
+          addLink("preconnect", origin);
+        }
+      } catch {
+        // invalid URL, skip
+      }
     }
   }, [searchParams]);
 

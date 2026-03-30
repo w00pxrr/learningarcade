@@ -16,9 +16,13 @@
   {
     "name": "FNAF5",
     "href": "/games/g/FNAF5-gh-pages/index.html",
-    "img": "/img/fnaf5.webp"
+    "img": "/img/fnaf5.avif"
   },
-  {"name":"Fruit Ninja", "href": "/games/g/FruitNinja-gh-pages/index.html", "img": "/games/g/FruitNinja-gh-pages/proxy-image_75.jpg"},
+  {
+    "name": "Fruit Ninja",
+    "href": "/games/g/FruitNinja-gh-pages/index.html",
+    "img": "/games/g/FruitNinja-gh-pages/proxy-image_75.jpg"
+  },
   {
     "name": "Cookie Clicker",
     "href": "/games/g/cookie/index.html"
@@ -86,66 +90,14 @@
     "desktopOnly": true
   },
   {
-    "name": "Krunker.io",
-    "href": "https://krunker.io/",
-    "desktopOnly": true,
-    "img": "/img/krunker.webp"
-  },
-
-  {
-    "name": "Venge.io",
-    "href": "https://venge.io/",
-    "desktopOnly": true,
-    "img": "/img/venge.webp"
-  },
-  {
-    "name": "Deeeep.io",
-    "href": "https://deeeep.io/",
-    "desktopOnly": true,
-    "img": "/img/deeeep.webp"
-  },
-  {
-    "name": "diep.io",
-    "href": "https://diep.io/",
-    "desktopOnly": true,
-    "img": "/img/diep.webp"
-  },
-  {
-    "name": "Shell Shockers.io",
-    "href": "https://shellshock.io/",
-    "desktopOnly": true,
-    "img": "/img/shellshockers.webp"
-  },
-  {
-    "name": "Zombs Royale.io",
-    "href": "https://zombsroyale.io/",
-    "desktopOnly": true,
-    "img": "/img/zombsroyale.webp"
-  },
-  {
-    "name": "Paper.io",
-    "href": "https://paper-io.com/",
-    "desktopOnly": true,
-    "img": "/img/paperio2.webp"
-  },
-  {
-    "name": "Slither.io",
-    "href": "https://gulper.io/",
-    "desktopOnly": true,
-    "img": "/img/slither.webp"
-  },
-  {
-"name":"Minecraft","href":"https://w00pxrr.github.io/MinecraftClone/","desktopOnly":true,"img":"/img/maxresdefault.jpg"
-  },
-  {
     "name": "Head Soccer",
     "href": "/games/g/HeadSoccer2023-gh-pages/index.html",
-    "img": "/img/headsoccer.webp"
+    "img": "/img/headsoccer.avif"
   },
   {
     "name": "among us",
     "href": "/games/g/AmongUs-gh-pages/index.html",
-    "img": "/img/amongus.webp"
+    "img": "/img/amongus.avif"
   },
   {
     "name": "Snake",
@@ -166,6 +118,15 @@
     "href": "/games/g/madalinstuntcars/madalinstuntcars.html",
     "desktopOnly": true
   },
+  {    "name": "Paper Minecraft",
+    "href": "/games/g/papermc/index.html","img":"/img/maxresdefault.jpg","desktopOnly": true
+  },
+  {
+    "name":"getting over it",
+    "href": "/games/g/goit/index.html",
+    "desktopOnly": true
+  },
+  {"name":"Mini Golf","href":"/games/g/golf/index.html","desktopOnly": true,"img":"/img/wii.jpg"},
   {
     "name": "Librerama",
     "href": "/games/g/librerama_web/index.html",
@@ -308,7 +269,11 @@
   {
     "name": "Pacman"
   },
-  {"name": "Friday Night Funkin'", "href": "https://w00pxrr.github.io/funkinverc/", "img": "/img/OIP.jpg"},
+  {
+    "name": "Friday Night Funkin'",
+    "href": "https://w00pxrr.github.io/funkinverc/",
+    "img": "/img/OIP.jpg"
+  },
   {
     "name": "1 on 1 Soccer"
   },
@@ -370,7 +335,7 @@
   {
     "name": "Happy Wheels",
     "href": "/games/g/Ruffle/player.html?swf=../../flash/happywheels.swf",
-    "img": "/img/happywheels.webp"
+    "img": "/img/happywheels.avif"
   },
   {
     "title": "Tools",

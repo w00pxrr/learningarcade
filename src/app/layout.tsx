@@ -180,6 +180,23 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://cloud.umami.is" />
         <link rel="dns-prefetch" href="https://api-gateway.umami.dev" />
 
+        {/* Preconnect to external game hosts for faster iframe loading (esp. Chromebooks) */}
+        <link rel="preconnect" href="https://w00pxrr.github.io" />
+        <link rel="dns-prefetch" href="https://w00pxrr.github.io" />
+        <link rel="preconnect" href="https://guitheengineer.github.io" />
+        <link rel="dns-prefetch" href="https://guitheengineer.github.io" />
+        <link rel="preconnect" href="https://krunker.io" />
+        <link rel="dns-prefetch" href="https://krunker.io" />
+        <link rel="preconnect" href="https://proxy-iota-black.vercel.app" />
+        <link rel="dns-prefetch" href="https://proxy-iota-black.vercel.app" />
+
+        {/* Prefetch popular external game pages for instant loading */}
+        <link
+          rel="prefetch"
+          href="https://w00pxrr.github.io/funkinverc/"
+          as="document"
+        />
+
         {/* Preload critical FontAwesome font */}
         <link
           rel="preload"

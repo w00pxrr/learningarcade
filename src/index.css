@@ -321,6 +321,8 @@ select {
 .category-sidebar.desktop {
   width: 50px;
   padding-top: 80px;
+  display: flex;
+  flex-direction: column;
 }
 
 .category-sidebar.mobile {
@@ -373,8 +375,19 @@ select {
   height: calc(100vh - 80px);
 }
 
+.category-sidebar.desktop .sidebar-nav {
+  overflow-y: visible;
+  height: auto;
+  flex: 1;
+}
+
 .sidebar-item {
   position: relative;
+}
+
+.category-sidebar.desktop .sidebar-item {
+  flex: 1;
+  display: flex;
 }
 
 .sidebar-link {
@@ -385,6 +398,11 @@ select {
   color: var(--cg-text-secondary);
   transition: all var(--cg-transition-fast);
   text-decoration: none;
+}
+
+.category-sidebar.desktop .sidebar-link {
+  padding: 0;
+  flex: 1;
 }
 
 .category-sidebar.mobile .sidebar-link {
@@ -486,6 +504,13 @@ select {
   }
 
   .has-sidebar .nav-categories {
+    display: none;
+  }
+}
+
+/* Hide desktop sidebar on smaller screens */
+@media (max-width: 768px) {
+  .category-sidebar.desktop {
     display: none;
   }
 }
