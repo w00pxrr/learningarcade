@@ -1,1 +1,2 @@
-console.log("No Service Worker");
+// No Service Worker
+console.log("No Service Worker")
