@@ -1,159 +1,179 @@
-((document.xURL = "https://poki.com/"),
-  "undefined" == typeof consoleLog && (consoleLog = console.log));
-var originalEval = eval;
-((eval = function () {
+document.xURL= "https://poki.com/";
+
+if (typeof consoleLog== 'undefined') {
+  consoleLog= console.log;
+}
+
+var originalEval= eval;
+eval= function() {  
+  // consoleLog("--fx--eval--", arguments[0]);  
+  // debugger;  
+  arguments[0]= arguments[0].replace("aHR0cHM6Ly9wb2tpLmNvbS9zaXRlbG9jaw==", "I3ViZzIzNQ==");
+  arguments[0]= arguments[0].replace("'location'", "'xlocation'");
+  arguments[0]= arguments[0].replace("] = _0x3296f7;", "]==_0x3296f7;");
+  arguments[0]= arguments[0].replace("] = window[_0xcdc9(", "]==window[_0xcdc9(");
+  
+  
   return originalEval.apply(this, arguments);
-}),
-  (navigator.sendBeacon = function () {
-    consoleLog("--fx--navigator.sendBeacon--", arguments);
-  }),
-  (WebSocket = function () {}),
-  (PokiSDK = function () {
-    ((this.getURLParam = function (o) {
-      return "";
-    }),
-      (this.init = function () {
-        return new Promise((o, e) => {
-          o("InitDone");
-        });
-      }),
-      (this.setDebug = function (o) {
-        consoleLog("--fx--PokiSDK--setDebug--", o);
-      }),
-      (this.setDebugTouchOverlayController = function (o) {
-        consoleLog("--fx--PokiSDK--setDebugTouchOverlayController--", o);
-      }),
-      (this.isAdBlocked = function () {
-        return (consoleLog("--fx--PokiSDK--isAdBlocked--"), !1);
-      }),
-      (this.happyTime = function (o) {
-        consoleLog("--fx--PokiSDK--happyTime--", o);
-      }),
-      (this.gameLoadingStart = function () {
-        consoleLog("--fx--PokiSDK--gameLoadingStart--");
-      }),
-      (this.gameLoadingProgress = function (o) {
-        consoleLog("--fx--PokiSDK--gameLoadingProgress--", o);
-      }),
-      (this.gameLoadingFinished = function () {
-        consoleLog("--fx--PokiSDK--gameLoadingFinished--");
-      }),
-      (this.gameplayStart = function () {
-        consoleLog("--fx--PokiSDK--gameplayStart--");
-      }),
-      (this.gameplayStop = function () {
-        consoleLog("--fx--PokiSDK--gameplayStop--");
-      }),
-      (this.commercialBreak = function () {
-        return (
-          consoleLog("--fx--PokiSDK--commercialBreak-- (bypassed)"),
-          new Promise((o, e) => {
-            o(!0);
-          })
-        );
-      }),
-      (this.rewardedBreak = function () {
-        return (
-          consoleLog(
-            "--fx--PokiSDK--rewardedBreak-- (bypassed - granting free reward)",
-          ),
-          new Promise((o, e) => {
-            o(!0);
-          })
-        );
-      }),
-      (this.displayAd = function () {
-        consoleLog("--fx--PokiSDK--displayAd--", arguments);
-      }),
-      (this.destroyAd = function () {
-        consoleLog("--fx--PokiSDK--destroyAd--", arguments);
-      }));
-  }),
-  (PokiSDK.prototype.initWithVideoHB = function () {
-    return (
-      consoleLog("--fx--PokiSDK--initWithVideoHB--"),
-      new Promise((o, e) => {
-        o("");
-      })
-    );
-  }),
-  (PokiSDK.prototype.customEvent = function () {
-    consoleLog("--fx--PokiSDK--customEvent--");
-  }),
-  (PokiSDK.prototype.sendHighscore = function (o) {
-    (consoleLog("--fx--PokiSDK--sendHighscore--", o), (window.gameScore = o));
-    try {
-      window.parent.postMessage({ type: "gameScore", score: o }, "*");
-    } catch (o) {}
-  }),
-  (function () {
-    var o = localStorage.setItem;
-    localStorage.setItem = function (e, n) {
-      if (/score|highscore|points/i.test(e))
-        try {
-          window.parent.postMessage(
-            { type: "gameScore", score: Number(n) },
-            "*",
-          );
-        } catch (o) {}
-      return o.apply(this, arguments);
-    };
-    var e = console.log;
-    ((console.log = function () {
-      var o = Array.prototype.slice.call(arguments).join(" ");
-      if (o.match(/score/i)) {
-        var n = o.match(/\d+/g);
-        if (n && n.length > 0) {
-          var t = parseInt(n[n.length - 1], 10);
-          if (!isNaN(t) && t > 0)
-            try {
-              window.parent.postMessage({ type: "gameScore", score: t }, "*");
-            } catch (o) {}
-        }
+}
+
+navigator.sendBeacon= function() {
+  consoleLog("--fx--navigator.sendBeacon--", arguments);
+}
+
+WebSocket= function() {
+  
+}
+
+xlocation= new Proxy(location, {
+  get: function(target, property, receiver) {
+    consoleLog("--fx--xlocation--get--property--", property);
+    let targetObj = target[property];
+    if (typeof targetObj == "function") {
+      return (...args) => target[property].apply(target, args);
+    } else {
+      if (property== "host" || property=="hostname") {
+        return "localhost";
       }
-      return e.apply(this, arguments);
-    }),
-      setInterval(function () {
-        var o = null;
-        if (window.game && window.game.scene && window.game.scene.keys) {
-          var e = window.game.scene.keys;
-          for (var n in e) {
-            for (
-              var t = e[n],
-                i = [
-                  t.score,
-                  t.Score,
-                  t.runScore,
-                  t.currentScore,
-                  t.points,
-                  t.highScore,
-                  t.highscore,
-                  t.playerScore,
-                  t.myScore,
-                  t.bestScore,
-                ],
-                r = 0;
-              r < i.length;
-              r++
-            ) {
-              var c = i[r];
-              if ("number" == typeof c && !isNaN(c) && c > 0) {
-                o = c;
-                break;
-              }
-            }
-            if (o) break;
-          }
-        }
-        if (o)
-          try {
-            (localStorage.setItem("_currentGameScore", String(o)),
-              window.parent.postMessage({ type: "gameScore", score: o }, "*"),
-              window.parent.localStorage.setItem(
-                "_currentGameScore",
-                String(o),
-              ));
-          } catch (o) {}
-      }, 500));
-  })(),
-  (PokiSDK = new PokiSDK()));
+      if (property== "href") {
+        return "https://localhost/";
+      }
+      if (property== "origin") {
+        return "https://localhost/";
+      }
+      return targetObj;
+    }
+  },
+  set: function(target, property, receiver) {
+    consoleLog("--fx--xlocation--set--property--", property, receiver);
+    return true;
+  }
+});
+
+xwindow = new Proxy(window, {
+  get: function(target, property, receiver) {
+    // consoleLog("--fx--xWindow--property--", property, receiver);    
+    if (typeof target[property] == "function") {
+      return (...args) => target[property].apply(target,args);
+    } else {
+      if (property== "location") {
+        return target["xlocation"];        
+      }
+      // consoleLog("--fx--xwindow--targetObj--", targetObj);
+      return target[property];
+    }
+  }
+});
+// consoleLog(xwindow.location.href);
+// consoleLog("window.xlocation.href", window.xlocation.href);
+
+PokiSDK= function() {
+  // ***** UTILS *****
+  function loadJS(FILE_URL, callback) {
+    let scriptEle = document.createElement("script");
+  
+    scriptEle.setAttribute("src", FILE_URL);
+    scriptEle.setAttribute("type", "text/javascript");
+    scriptEle.setAttribute("async", true);
+  
+    document.body.appendChild(scriptEle);
+    
+    // Success
+    scriptEle.addEventListener("load", () => {
+      consoleLog("--fx--PokiSDK--loadJS Done--");
+      callback(true);
+    });
+    
+     // Error
+    scriptEle.addEventListener("error", () => {
+      consoleLog("--fx--PokiSDK--loadJS Error--");
+      callback(false);
+    });
+  }
+
+  this.getURLParam= function(name) {
+    return "";
+  }
+  
+  // ***** INIT *****
+  this.init= function() {
+    return new Promise((resolve, reject)=> {
+      resolve("InitDone");
+    });
+  }
+  
+  this.setDebug= function(debug) {
+    consoleLog("--fx--PokiSDK--setDebug--", debug);
+  }
+
+  this.setDebugTouchOverlayController= function (debug) {
+    consoleLog("--fx--PokiSDK--setDebugTouchOverlayController--", debug);
+  }
+  
+  this.isAdBlocked= function() {
+    consoleLog("--fx--PokiSDK--isAdBlocked--");    
+    return false;
+  }
+
+  this.happyTime= function(scale) {
+    consoleLog("--fx--PokiSDK--happyTime--", scale);    
+  }
+
+  // ***** LOADING *****  
+  this.gameLoadingStart= function(){
+    consoleLog("--fx--PokiSDK--gameLoadingStart--");
+  }
+  
+  this.gameLoadingProgress= function(progress){
+    consoleLog("--fx--PokiSDK--gameLoadingProgress--", progress);
+  }
+  
+  this.gameLoadingFinished= function(){
+    consoleLog("--fx--PokiSDK--gameLoadingFinished--");
+  }
+
+  // ***** GAME CONTROL *****
+  this.gameplayStart= function(){
+    consoleLog("--fx--PokiSDK--gameplayStart--");
+  }
+
+  this.gameplayStop= function() {
+    consoleLog("--fx--PokiSDK--gameplayStop--");
+  }
+
+  // ***** ADS CONTROL *****
+  this.commercialBreak= function(){
+    consoleLog("--fx--PokiSDK--commercialBreak--");
+    return new Promise((resolve, reject)=> {
+      loadJS("https://www.ubg235.com/ads/commercial.js", resolve);  
+    });
+  }
+
+  this.rewardedBreak= function() {
+   consoleLog("--fx--PokiSDK--rewardedBreak--");
+    return new Promise((resolve, reject)=> {
+      loadJS("https://www.ubg235.com/ads/rewarded.js", resolve);
+    }); 
+  }
+
+  this.displayAd= function() {
+    consoleLog("--fx--PokiSDK--displayAd--", arguments);
+  }
+
+  this.destroyAd= function() {
+    consoleLog("--fx--PokiSDK--destroyAd--", arguments);
+  }
+}
+
+PokiSDK.prototype.initWithVideoHB= function() {
+  consoleLog("--fx--PokiSDK--initWithVideoHB--");
+  return new Promise((resolve, reject)=> {
+    resolve("")
+  });
+}
+
+PokiSDK.prototype.customEvent= function() {
+  consoleLog("--fx--PokiSDK--customEvent--");
+}
+
+PokiSDK= new PokiSDK();
