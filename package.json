@@ -17,9 +17,9 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "9",
+    "@eslint/js": "10",
     "@next/eslint-plugin-next": "^16.2.1",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -39,7 +39,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@neondatabase/serverless": "^1.0.2",
-    "@ruffle-rs/ruffle": "0.2.0-nightly.2026.3.28",
+    "@ruffle-rs/ruffle": "0.2.0-nightly.2026.4.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.14.0",
