@@ -11,6 +11,9 @@ type GameImageProps = {
   priority?: boolean;
 };
 
+const shimmerSvg =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3QgZmlsbD0iIzJkMmQ0YSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIi8+PC9zdmc+";
+
 export function GameImage({
   sources = [],
   alt,
@@ -22,15 +25,16 @@ export function GameImage({
   const sourceList = sources.filter((value) => typeof value === "string" && value.length > 0);
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [prevSourceKey, setPrevSourceKey] = useState(sourceKey);
 
   if (sourceKey !== prevSourceKey) {
     setPrevSourceKey(sourceKey);
     setIndex(0);
     setFailed(false);
+    setLoaded(false);
   }
 
-  // Pick the best source: prefer avif, then webp, then others
   const activeSource = sourceList[index] ?? sourceList[0] ?? "";
 
   if (!activeSource || failed) {
@@ -55,23 +59,41 @@ export function GameImage({
   }
 
   return (
-    <Image
-      key={activeSource}
-      className={className}
-      src={activeSource}
-      alt={alt}
-      fill
-      sizes="(max-width: 600px) 50vw, (max-width: 900px) 33vw, (max-width: 1200px) 25vw, 280px"
-      loading={priority ? "eager" : loading}
-      decoding="async"
-      fetchPriority={priority ? "high" : "auto"}
-      onError={() => {
-        if (index + 1 < sourceList.length) {
-          setIndex(index + 1);
-        } else {
-          setFailed(true);
-        }
-      }}
-    />
+    <div className={className} style={{ position: "relative", width: "100%", height: "100%" }}>
+      {!loaded && (
+        <img
+          src={shimmerSvg}
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "blur(8px)",
+          }}
+        />
+      )}
+      <Image
+        key={activeSource}
+        src={activeSource}
+        alt={alt}
+        fill
+        sizes="(max-width: 600px) 50vw, (max-width: 900px) 33vw, (max-width: 1200px) 25vw, 280px"
+        loading={priority ? "eager" : loading}
+        decoding="async"
+        fetchPriority={priority ? "high" : "auto"}
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          if (index + 1 < sourceList.length) {
+            setIndex(index + 1);
+          } else {
+            setFailed(true);
+          }
+        }}
+        style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.2s ease-in" }}
+      />
+    </div>
   );
 }

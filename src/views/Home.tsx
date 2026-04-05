@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { gamesByCategory, gamesById, gamesData, GameData } from "../data/games";
 import { DesktopOnlyOverlay } from "../components/DesktopOnlyOverlay";
@@ -26,52 +26,6 @@ import { useRouter } from "next/navigation";
 type CookieConsent = { settings?: boolean; analytics?: boolean };
 
 const consentStorageKey = "gams_cookie_consent_v1";
-
-// Loading skeleton for game sections
-function GameSectionSkeleton() {
-  return (
-    <section className="section">
-      <div className="section-header">
-        <div>
-          <h2 className="section-title">
-            <span className="section-title-icon" style={{ background: "var(--cg-bg-tertiary)" }}>
-              &nbsp;
-            </span>
-            &nbsp;
-          </h2>
-        </div>
-      </div>
-      <div className="games-grid">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="game-card" style={{ background: "var(--cg-bg-card)" }}>
-            <div
-              className="game-card-image-container"
-              style={{ background: "var(--cg-bg-tertiary)" }}
-            />
-            <div className="game-card-content">
-              <div
-                style={{
-                  height: "1rem",
-                  background: "var(--cg-bg-tertiary)",
-                  borderRadius: "4px",
-                  marginBottom: "8px",
-                }}
-              />
-              <div
-                style={{
-                  height: "0.8rem",
-                  width: "60%",
-                  background: "var(--cg-bg-tertiary)",
-                  borderRadius: "4px",
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 const categoryLinks = categoryMeta.items
   .filter((item) => {
@@ -560,15 +514,62 @@ export default function HomePage() {
           onPrefetch={prefetchGame}
         />
 
-        {/* Trending Games - Lazy loaded */}
-        <Suspense fallback={<GameSectionSkeleton />}>
+        {/* Trending Games */}
+        <GameSection
+          title="Trending Now"
+          subtitle="Most popular games this week"
+          icon="🔥"
+          games={popularGames.slice(0, 8)}
+          badge="trending"
+          viewAllLink="/category/popular"
+          viewAllText="View All"
+          onOpenGame={handleOpenGame}
+          onToggleFavorite={toggleFavorite}
+          canFavorite={canFavorite}
+          favoriteSet={favoriteSet}
+          isMobile={isMobile}
+          onPrefetch={prefetchGame}
+        />
+
+        {/* New Releases */}
+        <GameSection
+          title="New Releases"
+          subtitle="Fresh games just added"
+          icon="🆕"
+          games={latest}
+          badge="new"
+          onOpenGame={handleOpenGame}
+          onToggleFavorite={toggleFavorite}
+          canFavorite={canFavorite}
+          favoriteSet={favoriteSet}
+          isMobile={isMobile}
+          onPrefetch={prefetchGame}
+        />
+
+        {/* All Games / Filtered Games */}
+        {activeCategory !== "all" && (
           <GameSection
-            title="Trending Now"
-            subtitle="Most popular games this week"
-            icon="🔥"
-            games={popularGames.slice(0, 8)}
-            badge="trending"
-            viewAllLink="/category/popular"
+            title={`${categoryFilters.find((c) => c.value === activeCategory)?.label || "Games"}`}
+            subtitle={`Browse all ${activeCategory} games`}
+            icon="🎮"
+            games={filteredGames.slice(0, 12)}
+            onOpenGame={handleOpenGame}
+            onToggleFavorite={toggleFavorite}
+            canFavorite={canFavorite}
+            favoriteSet={favoriteSet}
+            isMobile={isMobile}
+            onPrefetch={prefetchGame}
+          />
+        )}
+
+        {/* Favorites Section */}
+        {canFavorite && favoriteGames.length > 0 && (
+          <GameSection
+            title="Your Favorites"
+            subtitle="Games you've starred"
+            icon="❤️"
+            games={favoriteGames.slice(0, 8)}
+            viewAllLink="/category/favorites"
             viewAllText="View All"
             onOpenGame={handleOpenGame}
             onToggleFavorite={toggleFavorite}
@@ -577,61 +578,6 @@ export default function HomePage() {
             isMobile={isMobile}
             onPrefetch={prefetchGame}
           />
-        </Suspense>
-
-        {/* New Releases - Lazy loaded */}
-        <Suspense fallback={<GameSectionSkeleton />}>
-          <GameSection
-            title="New Releases"
-            subtitle="Fresh games just added"
-            icon="🆕"
-            games={latest}
-            badge="new"
-            onOpenGame={handleOpenGame}
-            onToggleFavorite={toggleFavorite}
-            canFavorite={canFavorite}
-            favoriteSet={favoriteSet}
-            isMobile={isMobile}
-            onPrefetch={prefetchGame}
-          />
-        </Suspense>
-
-        {/* All Games / Filtered Games - Lazy loaded */}
-        {activeCategory !== "all" && (
-          <Suspense fallback={<GameSectionSkeleton />}>
-            <GameSection
-              title={`${categoryFilters.find((c) => c.value === activeCategory)?.label || "Games"}`}
-              subtitle={`Browse all ${activeCategory} games`}
-              icon="🎮"
-              games={filteredGames.slice(0, 12)}
-              onOpenGame={handleOpenGame}
-              onToggleFavorite={toggleFavorite}
-              canFavorite={canFavorite}
-              favoriteSet={favoriteSet}
-              isMobile={isMobile}
-              onPrefetch={prefetchGame}
-            />
-          </Suspense>
-        )}
-
-        {/* Favorites Section - Lazy loaded */}
-        {canFavorite && favoriteGames.length > 0 && (
-          <Suspense fallback={<GameSectionSkeleton />}>
-            <GameSection
-              title="Your Favorites"
-              subtitle="Games you've starred"
-              icon="❤️"
-              games={favoriteGames.slice(0, 8)}
-              viewAllLink="/category/favorites"
-              viewAllText="View All"
-              onOpenGame={handleOpenGame}
-              onToggleFavorite={toggleFavorite}
-              canFavorite={canFavorite}
-              favoriteSet={favoriteSet}
-              isMobile={isMobile}
-              onPrefetch={prefetchGame}
-            />
-          </Suspense>
         )}
 
         {/* Quick Actions */}

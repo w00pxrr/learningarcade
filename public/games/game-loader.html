@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Loading...</title>
+  <script>
+    async function loadPart(path) {
+      const resp = await fetch(path);
+      return new Uint8Array(await resp.arrayBuffer());
+    }
+    
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const game = params.get('game') || 'holeio';
+      
+      const [partA, partB] = await Promise.all([
+        loadPart(game + '.html.part-aa'),
+        loadPart(game + '.html.part-ab').catch(() => null)
+      ]);
+      
+      let combined;
+      if (partB) {
+        combined = new Uint8Array(partA.length + partB.length);
+        combined.set(partA, 0);
+        combined.set(partB, partA.length);
+      } else {
+        combined = partA;
+      }
+      
+      const decoder = new TextDecoder('utf-8');
+      const htmlContent = decoder.decode(combined);
+      document.open();
+      document.write(htmlContent);
+      document.close();
+    }
+    
+    init();
+  </script>
+</head>
+<body>Loading game...</body>
+</html>

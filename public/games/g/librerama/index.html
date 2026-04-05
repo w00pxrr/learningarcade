@@ -140,10 +140,31 @@ for the JavaScript code in this page.
 
 		<script src="librerama.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"librerama","experimentalVK":false,"fileSizes":{"librerama.pck":33419684,"librerama.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"librerama","experimentalVK":false,"fileSizes":{"librerama.pck":33419684,"librerama.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,locateFile:(path)=>{
+	if(path.endsWith('.pck')) return window.libreramaPCK || 'librerama.pck';
+	if(path.endsWith('.wasm')) return window.libreramaWASM || 'librerama.wasm';
+	return path;
+}};
 const GODOT_THREADS_ENABLED = false;
-const engine = new Engine(GODOT_CONFIG);
 
+async function concatenateAndLoad() {
+	const loadPart = async (base, part) => {
+		const r = await fetch(base + part);
+		return new Uint8Array(await r.arrayBuffer());
+	};
+	const [pckA, pckB] = await Promise.all([loadPart('librerama.pck','.part-aa'), loadPart('librerama.pck','.part-ab').catch(()=>null)]);
+	const pckArr = pckB ? [...pckA,...pckB] : [...pckA];
+	const [wasmA, wasmB] = await Promise.all([loadPart('librerama.wasm','.part-aa'), loadPart('librerama.wasm','.part-ab').catch(()=>null)]);
+	const wasmArr = wasmB ? [...wasmA,...wasmB] : [...wasmA];
+	window.libreramaPCK = URL.createObjectURL(new Blob([new Uint8Array(pckArr)], {type: 'application/octet-stream'}));
+	window.libreramaWASM = URL.createObjectURL(new Blob([new Uint8Array(wasmArr)], {type: 'application/wasm'}));
+}
+concatenateAndLoad().then(() => {
+	const engine = new Engine(GODOT_CONFIG);
+	engine.startGame();
+});
+		</script>
+		<script>
 (function () {
 	const statusOverlay = document.getElementById('status');
 	const statusProgress = document.getElementById('status-progress');
@@ -203,7 +224,6 @@ const engine = new Engine(GODOT_CONFIG);
 			} catch (err) {
 				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
 			}
-			// There's a chance that installing the service worker would fix the issue
 			Promise.race([
 				serviceWorkerRegistrationPromise.then((registration) => {
 					if (registration != null) {
@@ -211,36 +231,20 @@ const engine = new Engine(GODOT_CONFIG);
 					}
 					return registration;
 				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
 				new Promise((resolve) => {
 					setTimeout(() => resolve(), 2000);
 				}),
 			]).then(() => {
-				// Reload if there was no error.
 				window.location.reload();
 			}).catch((err) => {
 				console.error('Error while registering service worker:', err);
 			});
 		} else {
-			// Display the message as usual
 			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
 			displayFailureNotice(missingMsg + missing.join('\n'));
 		}
 	} else {
 		setStatusMode('progress');
-		engine.startGame({
-			'onProgress': function (current, total) {
-				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
-				}
-			},
-		}).then(() => {
-			setStatusMode('hidden');
-		}, displayFailureNotice);
 	}
 }());
 		</script>

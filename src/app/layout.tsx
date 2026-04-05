@@ -6,15 +6,13 @@ import { ThemeRoot } from "../components/ThemeRoot";
 import { Footer } from "../components/Footer";
 import { AntiInspect } from "../components/AntiInspect";
 import RouteAnalytics from "./route-analytics";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "600"],
   display: "swap",
   variable: "--font-poppins",
-  preload: false,
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -197,16 +195,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         />
 
-        {/* FontAwesome icons */}
+        {/* FontAwesome icons - defer loading for faster FCP */}
         {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link rel="stylesheet" href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css" />
-        {/* Override FontAwesome font-display for better performance */}
+        <link
+          rel="preload"
+          href="/vendor/fontawesome-6/fontawesome-free/webfonts/fa-solid-900.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="stylesheet"
+          href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css"
+          media="print"
+          onload="this.media='all'"
+        />
+        <noscript>
+          <link rel="stylesheet" href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css" />
+        </noscript>
         <style
           dangerouslySetInnerHTML={{
             __html: `
               @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:900;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-solid-900.woff2") format("woff2")}
               @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-regular-400.woff2") format("woff2")}
               @font-face{font-family:"Font Awesome 7 Brands";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-brands-400.woff2") format("woff2")}
+              .fa,i[class^="fa-"]{font-family:var(--fa-style-family,"Font Awesome 7 Free");font-feature-settings:normal;font-style:normal;font-variant:normal;text-rendering:auto;-webkit-font-smoothing:antialiased}
             `,
           }}
         />
@@ -268,9 +281,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <RouteAnalytics />
           </Suspense>
         </ThemeRoot>
-        {/* Load analytics after page is interactive to reduce impact on Chromebooks */}
-        <Analytics />
-        <SpeedInsights />
+        {/* Defer analytics loading until after page is interactive for better TTI on Chromebooks */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('load', function() {
+                requestIdleCallback(function() {
+                  var script = document.createElement('script');
+                  script.src = '/_vercel/insights/script.js';
+                  script.async = true;
+                  script.defer = true;
+                  document.head.appendChild(script);
+                }, { timeout: 3000 });
+              });
+              window.requestIdleCallback = window.requestIdleCallback || function(cb) {
+                return setTimeout(function() { cb({ didTimeout: false, timeRemaining: function() { return 25; } }); }, 1);
+              };
+            `,
+          }}
+        />
       </body>
     </html>
   );

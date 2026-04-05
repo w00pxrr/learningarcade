@@ -105,13 +105,15 @@
   },
   {
     "name": "Slope",
+    "href": "/games/game-loader.html?game=slope",
     "desktopOnly": true
   },
   {
     "name": "Tube Jumpers"
   },
   {
-    "name": "Hole IO"
+    "name": "Hole IO",
+    "href": "/games/game-loader.html?game=holeio"
   },
   {
     "name": "Madalin Stunt Cars",
