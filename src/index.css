@@ -1,11 +1,36 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @font-face {
   font-family: "facon";
   src: url("./assets/facon.ttf") format("truetype");
   font-display: swap;
+}
+
+@theme {
+  --font-display: "facon", "system-ui", "sans-serif";
+  --font-body: "'Avenir Next'", "'Segoe UI Variable Text'", "'Segoe UI'", "sans-serif";
+
+  --color-base: var(--gams-bg);
+  --color-panel: var(--gams-panel);
+  --color-panel-border: var(--gams-panel-border);
+  --color-text-primary: var(--gams-tx-1);
+  --color-text-secondary: var(--gams-tx-2);
+  --color-accent: var(--gams-accent);
+
+  --shadow-glass: 0 22px 54px rgba(18, 33, 62, 0.18);
+  --shadow-soft: 0 12px 32px rgba(25, 49, 92, 0.12);
+
+  --animate-floaty: floaty 10s ease-in-out infinite;
+
+  @keyframes floaty {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
+  }
 }
 
 :root {
