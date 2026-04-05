@@ -1,0 +1,35 @@
+---
+import "../index.css"; // @ts-ignore
+
+interface Props {
+  title?: string;
+  description?: string;
+  children?: any;
+}
+
+const {
+  title = "LearningArcade | Free Online Games for School",
+  description = "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more. Works on any device - no downloads required.",
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, "https://learningarcade.qzz.io");
+---
+
+<!doctype html>
+<html lang="en" data-scroll-behavior="smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="icon" type="image/png" href="/img/Learning Arcade Background Removed.png" />
+    <link rel="preconnect" href="https://cloud.umami.is" />
+    <link rel="preconnect" href="https://api-gateway.umami.dev" />
+    <title>{title}</title>
+    <link rel="stylesheet" href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

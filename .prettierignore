@@ -1,7 +1,9 @@
 public
 .next
 node_modules
-bun.lock
+pnpm-lock.yaml
 package-lock.json
+bun.lock
 *.min.js
 *.min.css
+.astro

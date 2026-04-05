@@ -1,4 +1,5 @@
 {
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -6,15 +7,11 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "strict": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "noEmit": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "allowJs": true,
     "incremental": true,
     "esModuleInterop": true,
@@ -22,12 +19,22 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.astro"],
+  "exclude": [
+    "node_modules",
+    "public",
+    "src/app",
+    "next.config.mjs",
+    "src/utils/db.ts",
+    "src/views",
+    "src/components",
+    "src/utils/umami.ts",
+    "src/layouts/Base.astro",
+    "src/pages/about.astro",
+    "src/pages/index.astro",
+    "src/pages/search.astro",
+    "src/pages/settings.astro",
+    "src/pages/game-embed.astro",
+    "src/pages/category"
+  ]
 }

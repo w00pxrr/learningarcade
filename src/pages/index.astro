@@ -1,0 +1,16 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base>
+  <div id="root"></div>
+</Base>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import Home from "../views/Home";
+  const container = document.getElementById("root");
+  if (container) {
+    createRoot(container).render(Home);
+  }
+</script>

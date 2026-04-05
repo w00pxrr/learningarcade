@@ -1,0 +1,34 @@
+---
+import Base from "../../layouts/Base.astro";
+import { gamesByCategory, sectionOrder } from "../../data/games";
+
+export function getStaticPaths() {
+  const allSlugs = [...new Set([...Object.keys(gamesByCategory), ...sectionOrder])];
+  // Filter out slugs with / since that's not valid in URLs
+  const slugs = allSlugs.filter(s => !s.includes("/"));
+  return slugs.map((slug) => ({
+    params: { slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const games = slug ? gamesByCategory[slug] ?? [] : [];
+
+const title = `${slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : ""} Games | LearningArcade`;
+const description = `Play free ${slug} games on LearningArcade. Safe, school-friendly unblocked games. Works on any device.`;
+---
+
+<Base title={title} description={description}>
+  <div id="root" data-category={slug}></div>
+</Base>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import ClientCategoryPage from "../../app/category/[slug]/client";
+  import React from "react";
+  const container = document.getElementById("root");
+  const category = container?.dataset.category;
+  if (container && category) {
+    createRoot(container).render(React.createElement(ClientCategoryPage, { category }));
+  }
+</script>

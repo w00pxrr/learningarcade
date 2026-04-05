@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-bun install
-bun run prebuild
-bun run build
+pnpm audit --fix
+pnpm install
+pnpm copy-vendor
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm build
+echo "All checks passed and build completed successfully."

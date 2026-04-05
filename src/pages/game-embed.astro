@@ -1,0 +1,16 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Game Embed | LearningArcade">
+  <div id="root"></div>
+</Base>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import GameEmbed from "../views/GameEmbed";
+  const container = document.getElementById("root");
+  if (container) {
+    createRoot(container).render(GameEmbed);
+  }
+</script>
