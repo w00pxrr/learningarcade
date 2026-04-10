@@ -1,8 +1,12 @@
 {
   "name": "learningarcade",
   "private": true,
+  "packageManager": "bun@1.3.11",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
-    "prebuild": "bun -e \"require('fs').rmSync('public/vendor', { recursive: true, force: true });\" && mkdir -p public/vendor public/vendor/axios public/vendor/fontawesome-6 public/vendor/material-symbols && cp -R node_modules/@ruffle-rs/ruffle public/vendor/ruffle && cp node_modules/axios/dist/axios.min.js public/vendor/axios/axios.min.js && cp -R node_modules/@fortawesome/fontawesome-free public/vendor/fontawesome-6 && cp -R node_modules/material-symbols public/vendor/material-symbols",
+    "prebuild": "bun scripts/prebuild.mjs",
     "detect-leaderboards": "bun scripts/detect-leaderboards.cjs",
     "compress-games": "bun scripts/compress-games.cjs",
     "dev": "bun run --bun next dev",
@@ -18,12 +22,13 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "10",
-    "@next/eslint-plugin-next": "^16.2.1",
+    "@next/eslint-plugin-next": "^16.2.3",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.27",
+    "bun": "^1.3.11",
     "eslint": "10",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -44,11 +49,9 @@
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",
-    "bun": "^1.3.11",
     "material-symbols": "^0.43.0",
-    "next": "^16.2.2",
+    "next": "^16.2.3",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "webfontloader": "^1.6.28"
+    "react-dom": "^19.2.4"
   }
 }
