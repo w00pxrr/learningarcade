@@ -47,7 +47,7 @@
     "@ruffle-rs/ruffle": "0.2.0-nightly.2026.4.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "material-symbols": "^0.43.0",
     "next": "^16.2.3",
