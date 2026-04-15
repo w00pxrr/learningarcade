@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${label} Games - Play Free Online | LearningArcade`;
   const description = `Play ${gameCount}+ free ${(label ?? "games").toLowerCase()} games online on LearningArcade. Safe, school-friendly, and works on any device. No downloads required.`;
-  const url = `https://learningarcade.vercel.app/category/${category}`;
+  const url = `https://learningarcade.qzz.io/category/${category}`;
 
   return {
     title,

@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { gamesData } from "../data/games";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://learningarcade.vercel.app";
+  const baseUrl = "https://learningarcade.qzz.io";
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

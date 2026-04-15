@@ -19,6 +19,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/settings/"],
       },
     ],
-    sitemap: "https://learningarcade.vercel.app/sitemap.xml",
+    sitemap: "https://learningarcade.qzz.io/sitemap.xml",
   };
 }

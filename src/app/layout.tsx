@@ -18,7 +18,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://learningarcade.vercel.app"),
+  metadataBase: new URL("https://learningarcade.qzz.io"),
   title: {
     default: "LearningArcade | Free Online Games for School",
     template: "%s | LearningArcade",
@@ -49,15 +49,15 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    url: "https://learningarcade.vercel.app/",
-    title: "LearningArcade | Free Online Games for School",
+    url: "https://learningarcade.qzz.io/",
+    title: "Educational Games 67 | Free Online Games for School",
     description:
-      "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more. Works on any device.",
+      "Play free online games on Educational Games 67. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more. Works on any device.",
     siteName: "LearningArcade",
     locale: "en_US",
     images: [
       {
-        url: "/img/Learning Arcade Background Removed.png",
+        url: "/icons/apple-touch-icon.png",
         width: 1200,
         height: 630,
         alt: "LearningArcade - Free Online Games",
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     title: "LearningArcade | Free Online Games for School",
     description:
       "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more.",
-    images: ["/img/Learning Arcade Background Removed.png"],
+    images: ["/icons/apple-touch-icon.png"],
     creator: "@learningarcade",
     site: "@learningarcade",
   },
@@ -87,19 +87,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/img/Learning Arcade Background Removed.png",
+        url: "/icons/favicon.ico",
         sizes: "32x32",
-        type: "image/png",
+        type: "image/x-icon",
       },
       {
-        url: "/img/Learning Arcade Background Removed.png",
+        url: "/icons/favicon.ico",
         sizes: "16x16",
-        type: "image/png",
+        type: "image/x-icon",
       },
     ],
     apple: [
       {
-        url: "/img/Learning Arcade Background Removed.png",
+        url: "/icons/apple-touch-icon.png",
         sizes: "180x180",
         type: "image/png",
       },
@@ -107,13 +107,13 @@ export const metadata: Metadata = {
     other: [
       {
         rel: "mask-icon",
-        url: "/img/Learning Arcade Background Removed.png",
+        url: "/icons/favicon.ico",
       },
     ],
   },
   manifest: "/manifest.json",
   alternates: {
-    canonical: "https://learningarcade.vercel.app",
+    canonical: "https://learningarcade.qzz.io",
   },
   other: {
     "theme-color": "#0f172a",
@@ -139,14 +139,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "LearningArcade",
-    url: "https://learningarcade.vercel.app",
+    url: "https://learningarcade.qzz.io",
     description:
       "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more.",
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://learningarcade.vercel.app/search?q={search_term_string}",
+        urlTemplate: "https://learningarcade.qzz.io/search?q={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
@@ -156,8 +156,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "LearningArcade",
-    url: "https://learningarcade.vercel.app",
-    logo: "https://learningarcade.vercel.app/img/Learning Arcade Background Removed.png",
+    url: "https://learningarcade.qzz.io",
+    logo: "https://learningarcade.qzz.io/icons/apple-touch-icon.png",
     sameAs: [],
   };
 

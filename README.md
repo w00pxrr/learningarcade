@@ -44,7 +44,7 @@ Here are some of the most fun games available in this repository:
 4. Super Mario 64
    ...and more!
 
-[Games](https://learningarcade.vercel.app/offlinegames/Gams.html)
+[Games](https://edug67.qzz.io/offlinegames/Gams.html)
 
 ### For Coders :)
 

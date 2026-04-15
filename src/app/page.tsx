@@ -36,13 +36,13 @@ export const metadata: Metadata = {
     title: "LearningArcade | Free Online Games for School",
     description:
       "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more. Works on any device.",
-    url: "https://learningarcade.vercel.app/",
+    url: "https://learningarcade.qzz.io/",
     siteName: "LearningArcade",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "/img/Learning Arcade Background Removed.png",
+        url: "/icons/apple-touch-icon.png",
         width: 1200,
         height: 630,
         alt: "LearningArcade - Free Online Games",
@@ -54,11 +54,11 @@ export const metadata: Metadata = {
     title: "LearningArcade | Free Online Games for School",
     description:
       "Play free online games on LearningArcade. Safe, school-friendly unblocked games including action, puzzle, racing, sports, and more.",
-    images: ["/img/Learning Arcade Background Removed.png"],
+    images: ["/icons/apple-touch-icon.png"],
   },
   robots: "index, follow",
   alternates: {
-    canonical: "https://learningarcade.vercel.app",
+    canonical: "https://learningarcade.qzz.io",
   },
 };
 
