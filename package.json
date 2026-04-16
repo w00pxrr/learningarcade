@@ -44,7 +44,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@neondatabase/serverless": "^1.0.2",
-    "@ruffle-rs/ruffle": "0.2.0-nightly.2026.4.4",
+    "@ruffle-rs/ruffle": "0.2.0-nightly.2026.4.15",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.15.0",
