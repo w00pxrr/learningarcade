@@ -7,14 +7,14 @@
       "dependencies": {
         "@fortawesome/fontawesome-free": "^7.2.0",
         "@neondatabase/serverless": "^1.0.2",
-        "@ruffle-rs/ruffle": "0.2.0-nightly.2026.4.4",
+        "@ruffle-rs/ruffle": "0.2.0-nightly.2026.4.15",
         "@vercel/analytics": "^2.0.1",
         "@vercel/speed-insights": "^2.0.0",
         "axios": "^1.15.0",
         "bcryptjs": "^3.0.3",
-        "material-symbols": "^0.43.0",
+        "material-symbols": "^0.44.2",
         "next": "^16.2.3",
-        "react": "^19.2.4",
+        "react": "^19.2.5",
         "react-dom": "^19.2.4",
       },
       "devDependencies": {
@@ -226,7 +226,7 @@
 
     "@playwright/test": ["@playwright/test@1.59.1", "", { "dependencies": { "playwright": "1.59.1" }, "bin": { "playwright": "cli.js" } }, "sha512-PG6q63nQg5c9rIi4/Z5lR5IVF7yU5MqmKaPOe0HSc0O2cX1fPi96sUQu5j7eo4gKCkB2AnNGoWt7y4/Xx3Kcqg=="],
 
-    "@ruffle-rs/ruffle": ["@ruffle-rs/ruffle@0.2.0-nightly.2026.4.4", "", {}, "sha512-oz+3MJPtjiCSFRwTmAO0UwxJXOL2eYpfy4WxFIkmABlOGBXzX7Bu+WHSeHq+9B+faWoEY1yPFylooseQOcPMDw=="],
+    "@ruffle-rs/ruffle": ["@ruffle-rs/ruffle@0.2.0-nightly.2026.4.15", "", {}, "sha512-SP71TEdgfDkItyavuQ40xwGV6rpOmQIbfKHlo8Uxxr/7lY3Oj9XpfU9ltuUgnJY1JK2OBfN9eM0cEUIloOdj3Q=="],
 
     "@swc/helpers": ["@swc/helpers@0.5.15", "", { "dependencies": { "tslib": "^2.8.0" } }, "sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g=="],
 
@@ -658,7 +658,7 @@
 
     "lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
 
-    "material-symbols": ["material-symbols@0.43.0", "", {}, "sha512-40zgnHCv6d+Nx/9WQ6vhZitQoqtntgZNXN1YJGyn1NJRQLoB7lWWD8vpu/i68nKtZs8OxHyMudBEkS2mrUHiqQ=="],
+    "material-symbols": ["material-symbols@0.44.2", "", {}, "sha512-FAOO8/VB+zMUA84jDJnRc/BPNLr3PPaZAXUUnsd/zkBcPZQyyMl8ECb68xWiYSn7w9OZbhUmyEwLIcfNgkakAg=="],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 
@@ -776,7 +776,7 @@
 
     "queue-microtask": ["queue-microtask@1.2.3", "", {}, "sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A=="],
 
-    "react": ["react@19.2.4", "", {}, "sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ=="],
+    "react": ["react@19.2.5", "", {}, "sha512-llUJLzz1zTUBrskt2pwZgLq59AemifIftw4aB7JxOqf1HY2FDaGDxgwpAPVzHU1kdWabH7FauP4i1oEeer2WCA=="],
 
     "react-dom": ["react-dom@19.2.4", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.4" } }, "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ=="],
 
