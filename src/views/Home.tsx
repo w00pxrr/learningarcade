@@ -144,22 +144,19 @@ function getRandomFeaturedGames(): GameData[] {
   const allowedSections = ["HTML5/unity Webgl", "Flash"];
   const filtered = gamesData.filter((g) => allowedSections.includes(g.section));
 
-  // Calculate 12-hour window (43200000 ms = 12 hours)
-  // Use a deterministic seed based on date to ensure server/client consistency
-  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-  const now = Date.now();
-  const windowIndex = Math.floor(now / TWELVE_HOURS_MS);
+  // Use date string (YYYY-MM-DD) as deterministic seed for consistent server/client
+  const dateKey = new Date().toISOString().split("T")[0];
 
-  // Check if we have a cached selection for this window (client-side only)
+  // Check if we have a cached selection for this date (client-side only)
   if (typeof window !== "undefined") {
     const cached = getStoredItem("gams_featured_games");
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as {
-          windowIndex: number;
+          dateKey: string;
           gameIds: string[];
         };
-        if (parsed.windowIndex === windowIndex && Array.isArray(parsed.gameIds)) {
+        if (parsed.dateKey === dateKey && Array.isArray(parsed.gameIds)) {
           const games = parsed.gameIds.map((id) => gamesById[id]).filter(Boolean) as GameData[];
           if (games.length === 8) return games;
         }
@@ -169,14 +166,14 @@ function getRandomFeaturedGames(): GameData[] {
     }
   }
 
-  // Generate new random selection using window index as seed
+  // Generate new random selection using date key as seed
   // Use a deterministic shuffle that produces the same result on server and client
   const shuffled = [...filtered].sort((a, b) => {
-    // Create a deterministic hash from game IDs and window index
-    const hashA = (a.id + windowIndex.toString()).split("").reduce((acc, char) => {
+    // Create a deterministic hash from game IDs and date key
+    const hashA = (a.id + dateKey).split("").reduce((acc, char) => {
       return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
     }, 0);
-    const hashB = (b.id + windowIndex.toString()).split("").reduce((acc, char) => {
+    const hashB = (b.id + dateKey).split("").reduce((acc, char) => {
       return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
     }, 0);
     return hashA - hashB;
@@ -189,7 +186,7 @@ function getRandomFeaturedGames(): GameData[] {
     setStoredItem(
       "gams_featured_games",
       JSON.stringify({
-        windowIndex,
+        dateKey,
         gameIds: selected.map((g) => g.id),
       }),
     );
@@ -200,18 +197,19 @@ function getRandomFeaturedGames(): GameData[] {
 
 // Cached featured games to avoid recomputation
 let cachedFeaturedGames: GameData[] | null = null;
-let cachedFeaturedGamesWindowIndex: number | null = null;
+let cachedFeaturedGamesDateKey: string | null = null;
 
 function getCachedFeaturedGames(): GameData[] {
-  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-  const windowIndex = Math.floor(Date.now() / TWELVE_HOURS_MS);
+  // Use date string (YYYY-MM-DD) as key for consistent server/client rendering
+  // This changes at midnight UTC, providing daily rotation
+  const dateKey = new Date().toISOString().split("T")[0];
 
-  if (cachedFeaturedGames && cachedFeaturedGamesWindowIndex === windowIndex) {
+  if (cachedFeaturedGames && cachedFeaturedGamesDateKey === dateKey) {
     return cachedFeaturedGames;
   }
 
   cachedFeaturedGames = getRandomFeaturedGames();
-  cachedFeaturedGamesWindowIndex = windowIndex;
+  cachedFeaturedGamesDateKey = dateKey;
   return cachedFeaturedGames;
 }
 
@@ -390,19 +388,23 @@ export default function HomePage() {
     return loaded ?? { settings: true, analytics: true };
   });
   const [searchTerm, setSearchTerm] = useState("");
-  const [favorites, setFavorites] = useState<string[]>(() => getFavoriteIds(loadCookieConsent()));
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const stored = loadCookieConsent();
+    return getFavoriteIds(stored) || [];
+  });
   const [localVisits, setLocalVisits] = useState(getGameVisits);
   const [baseIcon, _setBaseIcon] = useState(() => {
-    if (typeof window === "undefined") return "/img/gams-g.png";
+    if (typeof window === "undefined") return "/icons/favicon.ico";
     return (
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-      "/img/gams-g.png"
+      "/icons/favicon.ico"
     );
   });
   const [activeCategory, _setActiveCategory] = useState("all");
+  const deferredActiveCategory = React.useDeferredValue(activeCategory);
   const isMobile = useIsMobile();
 
-  useDisguise("LearningArcde", baseIcon);
+  useDisguise("LearningArcade", baseIcon);
 
   useEffect(() => {
     hydrateServerStorage();
@@ -416,8 +418,6 @@ export default function HomePage() {
   useEffect(() => {
     if (consent?.analytics) ensureUmamiLoaded();
     if (consent && !consent.settings) clearCookie("gams_favorites");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizing derived state on consent change
-    setFavorites(getFavoriteIds(consent));
   }, [consent]);
 
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
@@ -427,6 +427,7 @@ export default function HomePage() {
   const _recommended = useMemo(() => getTopVisitedGamesFromVisits(localVisits), [localVisits]);
   const latest = useMemo(() => getLatestGames(), []);
   const featuredGames = useMemo(() => getCachedFeaturedGames(), []);
+
   const popularGames = useMemo(() => {
     const scored = gamesData.map((game) => {
       const score = getCombinedCount(localVisits, game.id, viewCounts);
@@ -443,13 +444,12 @@ export default function HomePage() {
     [favorites],
   );
 
-  // Filter games by category
   const filteredGames = useMemo(() => {
-    if (activeCategory === "all") return gamesData;
+    if (deferredActiveCategory === "all") return gamesData;
     return gamesData.filter(
-      (game) => game.category?.toLowerCase() === activeCategory.toLowerCase(),
+      (game) => game.category?.toLowerCase() === deferredActiveCategory.toLowerCase(),
     );
-  }, [activeCategory]);
+  }, [deferredActiveCategory]);
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -472,7 +472,7 @@ export default function HomePage() {
 
   const handleOpenGame = (game: GameData) => {
     const href = new URL(game.href, window.location.origin).href;
-    const pic = new URL(game.img, window.location.origin).href;
+    const pic = game.img ? new URL(game.img, window.location.origin).href : "/icons/favicon.ico";
     recordGameVisit(game.id, game.name);
     setLocalVisits(getGameVisits());
     trackGameView(game);
@@ -597,11 +597,11 @@ export default function HomePage() {
         </Suspense>
 
         {/* All Games / Filtered Games - Lazy loaded */}
-        {activeCategory !== "all" && (
+        {deferredActiveCategory !== "all" && (
           <Suspense fallback={<GameSectionSkeleton />}>
             <GameSection
-              title={`${categoryFilters.find((c) => c.value === activeCategory)?.label || "Games"}`}
-              subtitle={`Browse all ${activeCategory} games`}
+              title={`${categoryFilters.find((c) => c.value === deferredActiveCategory)?.label || "Games"}`}
+              subtitle={`Browse all ${deferredActiveCategory} games`}
               icon="🎮"
               games={filteredGames.slice(0, 12)}
               onOpenGame={handleOpenGame}

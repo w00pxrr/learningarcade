@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const authUserId = await getAuthenticatedUserId();
   const { id: anonId, isNew } = await getOrCreateUserId();
   const userId = authUserId ?? anonId;
-  let payload: StorageRequest | null = null;
+  let payload: StorageRequest | null;
   try {
     payload = (await req.json()) as StorageRequest;
   } catch {

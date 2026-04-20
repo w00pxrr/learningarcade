@@ -6,8 +6,6 @@ import { ThemeRoot } from "../components/ThemeRoot";
 import { Footer } from "../components/Footer";
 import { AntiInspect } from "../components/AntiInspect";
 import RouteAnalytics from "./route-analytics";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -98,11 +96,15 @@ export const metadata: Metadata = {
       },
     ],
     apple: [
-      {
-        url: "/icons/apple-touch-icon.png",
-        sizes: "180x180",
-        type: "image/png",
-      },
+      { url: "/icons/apple-touch-icon.png" },
+      { url: "/icons/apple-touch-icon-57x57.png", sizes: "57x57" },
+      { url: "/icons/apple-touch-icon-72x72.png", sizes: "72x72" },
+      { url: "/icons/apple-touch-icon-76x76.png", sizes: "76x76" },
+      { url: "/icons/apple-touch-icon-114x114.png", sizes: "114x114" },
+      { url: "/icons/apple-touch-icon-120x120.png", sizes: "120x120" },
+      { url: "/icons/apple-touch-icon-144x144.png", sizes: "144x144" },
+      { url: "/icons/apple-touch-icon-152x152.png", sizes: "152x152" },
+      { url: "/icons/apple-touch-icon-180x180.png", sizes: "180x180" },
     ],
     other: [
       {
@@ -116,8 +118,8 @@ export const metadata: Metadata = {
     canonical: "https://learningarcade.qzz.io",
   },
   other: {
-    "theme-color": "#0f172a",
-    "msapplication-TileColor": "#0f172a",
+    "theme-color": "#000000",
+    "msapplication-TileColor": "#000000",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "apple-mobile-web-app-title": "LearningArcade",
@@ -127,7 +129,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -180,18 +182,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://w00pxrr.github.io" />
         <link rel="preconnect" href="https://guitheengineer.github.io" />
         <link rel="dns-prefetch" href="https://guitheengineer.github.io" />
-        <link rel="preconnect" href="https://krunker.io" />
-        <link rel="dns-prefetch" href="https://krunker.io" />
-        <link rel="preconnect" href="https://proxy-iota-black.vercel.app" />
-        <link rel="dns-prefetch" href="https://proxy-iota-black.vercel.app" />
-
-        {/* Prefetch popular external game pages for instant loading */}
-        <link rel="prefetch" href="https://w00pxrr.github.io/funkinverc/" as="document" />
 
         {/* Preload critical FontAwesome font */}
         <link
           rel="preload"
-          href="/vendor/fontawesome-6/fontawesome-free/webfonts/fa-solid-900.woff2"
+          href="/vendor/fontawesome-7/webfonts/fa-solid-900.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
@@ -199,14 +194,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* FontAwesome icons */}
         {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link rel="stylesheet" href="/vendor/fontawesome-6/fontawesome-free/css/all.min.css" />
+        <link rel="stylesheet" href="/vendor/fontawesome-7/css/all.min.css" />
         {/* Override FontAwesome font-display for better performance */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:900;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-solid-900.woff2") format("woff2")}
-              @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-regular-400.woff2") format("woff2")}
-              @font-face{font-family:"Font Awesome 7 Brands";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-6/fontawesome-free/webfonts/fa-brands-400.woff2") format("woff2")}
+              @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:900;font-display:swap;src:url("/vendor/fontawesome-7/webfonts/fa-solid-900.woff2") format("woff2")}
+              @font-face{font-family:"Font Awesome 7 Free";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-7/webfonts/fa-regular-400.woff2") format("woff2")}
+              @font-face{font-family:"Font Awesome 7 Brands";font-style:normal;font-weight:400;font-display:swap;src:url("/vendor/fontawesome-7/webfonts/fa-brands-400.woff2") format("woff2")}
             `,
           }}
         />
@@ -268,9 +263,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <RouteAnalytics />
           </Suspense>
         </ThemeRoot>
-        {/* Load analytics after page is interactive to reduce impact on Chromebooks */}
-        <Analytics />
-        <SpeedInsights />
+        {/* Defer analytics after FCP to improve Lighthouse score - optimized for Chromebooks */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function loadDeferred() {
+                  if (window.__deferredAnalyticsLoaded) return;
+                  window.__deferredAnalyticsLoaded = true;
+                  var ana = document.createElement('script');
+                  ana.src = 'https://cdn.vercel.com/analytics/2.0.0/vanilla.js';
+                  ana.async = true;
+                  ana.setAttribute('data-website-id', 'xPrP4O');
+                  ana.setAttribute('auto', 'true');
+                  (document.head || document.documentElement).appendChild(ana);
+                  var spd = document.createElement('script');
+                  spd.src = 'https://vercel.com/speed-insights@1/script.js';
+                  spd.setAttribute('data-dns', 'https://vitals.vercel.com');
+                  spd.async = true;
+                  (document.head || document.documentElement).appendChild(spd);
+                }
+                if ('requestIdleCallback' in window) {
+                  requestIdleCallback(loadDeferred, { timeout: 4000 });
+                } else {
+                  setTimeout(loadDeferred, 2500);
+                }
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );

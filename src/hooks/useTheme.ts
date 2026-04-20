@@ -33,16 +33,16 @@ const isThemePreset = (value: string): value is ThemePreset =>
   THEME_PRESETS.includes(value as ThemePreset);
 
 function readAccentFromDOM(): string {
-  if (typeof window === "undefined") return "#81f0d7";
+  if (typeof window === "undefined") return "#2563eb";
   const value = getComputedStyle(document.documentElement).getPropertyValue("--gams-accent").trim();
   if (/^#([0-9a-f]{3}){1,2}$/i.test(value)) {
     return value;
   }
-  return "#81f0d7";
+  return "#2563eb";
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<ThemeMode>("light");
+  const [theme, setTheme] = useState<ThemeMode>("dark");
   const [contrast, setContrast] = useState<ContrastMode>(() => {
     if (typeof window === "undefined") return "normal";
     const saved = getStoredJSON<string>("gams", { key: "contrast" });
@@ -54,7 +54,7 @@ export function useTheme() {
     return saved && isThemePreset(saved) ? saved : "default";
   });
   const [accent, setAccent] = useState<string>(() => {
-    if (typeof window === "undefined") return "#81f0d7";
+    if (typeof window === "undefined") return "#2563eb";
     const saved = getStoredJSON<string>("gams", { key: "accent" });
     if (saved && /^#([0-9a-f]{3}){1,2}$/i.test(saved)) return saved;
     return readAccentFromDOM();
@@ -83,41 +83,12 @@ export function useTheme() {
       document.documentElement.style.setProperty("--gams-accent", accent);
     }
     applyPreset(themePreset);
-    const forcedMode = PRESET_MODE[themePreset];
-
-    const savedTheme = getStoredJSON<string>("gams", { key: "theme" });
-    if (forcedMode !== "auto") {
-      applyThemeMode(forcedMode);
-      return;
-    }
-    if (savedTheme === "light" || savedTheme === "dark") {
-      applyThemeMode(savedTheme);
-      return;
-    }
-
-    const media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-    if (media) {
-      const applyAutoTheme = (isDark: boolean) => {
-        const nextTheme: ThemeMode = isDark ? "dark" : "light";
-        applyThemeMode(nextTheme);
-      };
-
-      applyAutoTheme(media.matches);
-      const handler = (event: MediaQueryListEvent) => applyAutoTheme(event.matches);
-      media.addEventListener("change", handler);
-      return () => {
-        media.removeEventListener("change", handler);
-      };
-    }
-
-    document.documentElement.classList.remove("dark");
+    applyThemeMode("dark");
   }, []);
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  const toggleTheme = (nextDark: boolean) => {
-    const nextTheme: ThemeMode = nextDark ? "dark" : "light";
-    applyThemeMode(nextTheme);
-    storeJSON("gams", { key: "theme", value: nextTheme });
+  const toggleTheme = (_nextDark: boolean) => {
+    // Theme permanently dark - do nothing
   };
 
   const toggleContrast = (nextHigh: boolean) => {

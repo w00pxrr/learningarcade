@@ -70,6 +70,11 @@ function resolveUrl(rawUrl?: string | null) {
   }
 }
 
+function isValidImageUrl(url: string): boolean {
+  if (!url) return false;
+  return url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://");
+}
+
 // Loading skeleton component for the iframe
 function GameLoadingSkeleton() {
   return (
@@ -84,7 +89,7 @@ export default function GameEmbedPage() {
   const searchParams = useSearchParams();
   const [gameId, setGameId] = useState<string | null>(null);
   const [currentName, setCurrentName] = useState("Game");
-  const [currentIcon, setCurrentIcon] = useState("/img/gams-g.png");
+  const [currentIcon, setCurrentIcon] = useState("/icons/favicon.ico");
   const [frameSrc, setFrameSrc] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [windowLock, setWindowLock] = useState(false);
@@ -105,7 +110,8 @@ export default function GameEmbedPage() {
     const params = new URLSearchParams(searchParams?.toString());
     const nextId = params.get("id");
     const nextName = params.get("name") || "Game";
-    const nextIcon = resolveUrl(params.get("icon")) || "/img/gams-g.png";
+    const rawIcon = params.get("icon");
+    const nextIcon = isValidImageUrl(rawIcon || "") ? resolveUrl(rawIcon) : "/icons/favicon.ico";
     const nextSrc = resolveUrl(params.get("src"));
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from URL search params
     setGameId(nextId);
@@ -319,13 +325,6 @@ export default function GameEmbedPage() {
             <>
               <div className="nav-game-actions">
                 <div className="game-identity">
-                  <Image
-                    src={currentIcon}
-                    alt="Game icon"
-                    className="game-icon"
-                    width={24}
-                    height={24}
-                  />
                   <span className="game-name" title={currentName}>
                     {currentName}
                   </span>

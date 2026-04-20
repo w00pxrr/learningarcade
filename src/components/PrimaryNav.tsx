@@ -3,13 +3,7 @@
 import React, { useState, lazy, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  Switch,
-} from "./ui";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "./ui";
 
 const CategorySidebar = lazy(() =>
   import("./CategorySidebar").then((mod) => ({ default: mod.CategorySidebar })),
@@ -22,8 +16,6 @@ type CategoryLink = {
 };
 
 type PrimaryNavProps = {
-  isDark?: boolean;
-  onToggleTheme?: (nextDark: boolean) => void;
   showHomeLinks?: boolean;
   extraActions?: React.ReactNode;
   categoryLinks?: CategoryLink[];
@@ -33,8 +25,6 @@ type PrimaryNavProps = {
 };
 
 export function PrimaryNav({
-  isDark,
-  onToggleTheme,
   showHomeLinks = false,
   extraActions,
   categoryLinks,
@@ -94,25 +84,12 @@ export function PrimaryNav({
                 <DropdownMenuItem className="dropdown-item" asChild>
                   <Link href="/settings">Settings</Link>
                 </DropdownMenuItem>
-                {onToggleTheme ? (
-                  <DropdownMenuItem
-                    className="dropdown-item dropdown-item-switch"
-                    onSelect={(event) => event.preventDefault()}
-                  >
-                    <span>Dark mode</span>
-                    <Switch
-                      className="switch-root"
-                      checked={!!isDark}
-                      onCheckedChange={onToggleTheme}
-                    />
-                  </DropdownMenuItem>
-                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
 
             <Link href="/" className="nav-brand">
               <Image
-                src="/img/Learning Arcade Background Removed.png"
+                src="/icons/apple-touch-icon.png"
                 alt=""
                 className="nav-logo"
                 width={40}
@@ -152,26 +129,6 @@ export function PrimaryNav({
           </nav>
 
           <div className="nav-actions">
-            {onToggleTheme ? (
-              <div
-                className="switch-inline"
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <span
-                  style={{
-                    fontSize: "0.9rem",
-                    color: "var(--cg-text-secondary)",
-                  }}
-                >
-                  Dark
-                </span>
-                <Switch
-                  className="switch-root"
-                  checked={!!isDark}
-                  onCheckedChange={onToggleTheme}
-                />
-              </div>
-            ) : null}
             {extraActions ? <div className="nav-extra">{extraActions}</div> : null}
           </div>
         </div>

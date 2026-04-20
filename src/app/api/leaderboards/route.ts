@@ -66,7 +66,7 @@ export async function POST(req: Request) {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  let payload: { gameId?: string; score?: number } | null = null;
+  let payload: { gameId?: string; score?: number } | null;
   try {
     payload = (await req.json()) as { gameId?: string; score?: number };
   } catch {

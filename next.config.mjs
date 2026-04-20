@@ -8,17 +8,14 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
 
-  // Enable React compiler optimizations
-  reactCompiler: false,
-
-  // Optimize bundle size
+  // Optimize bundle size with tree-shaking
   modularizeImports: {
     "@fortawesome/fontawesome-free": {
       transform: "@fortawesome/fontawesome-free/{{member}}",
     },
   },
 
-  // Optimize package imports for smaller bundle sizes
+  // Optimize package imports - reduce bundle size
   experimental: {
     optimizePackageImports: [
       "@fortawesome/fontawesome-free",
@@ -43,9 +40,9 @@ const nextConfig = {
         hostname: "**",
       },
       {
-        protocol:"http",
-        hostname:"localhost",
-        port:":3000",
+        protocol: "http",
+        hostname: "localhost",
+        port: ":3000",
       },
     ],
   },

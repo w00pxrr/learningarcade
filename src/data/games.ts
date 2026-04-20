@@ -130,10 +130,7 @@ function getAutoCategories(name: string, section: string): string[] {
   )
     categories.add("puzzle");
   if (
-    lower.includes("code editor") ||
     lower.includes("web retro") ||
-    lower.includes("proxy browser") ||
-    lower.includes("calculator") ||
     lower.includes("ruffle flash player") ||
     lower.includes("editor") ||
     lower.includes("ide") ||
@@ -170,6 +167,8 @@ function getAutoCategories(name: string, section: string): string[] {
   )
     categories.add("runner");
   if (
+    lower.includes("powder") ||
+    lower.includes("sandbox") ||
     lower.includes("simulation") ||
     lower.includes("simulator") ||
     lower.includes("sim") ||
@@ -181,7 +180,7 @@ function getAutoCategories(name: string, section: string): string[] {
     lower.includes("clicker") ||
     lower.includes("ai creatures") ||
     lower.includes("grey box") ||
-    lower.includes("greybox")
+    lower.includes("craft")
   )
     categories.add("simulation");
   if (

@@ -67,10 +67,10 @@ export default function CategoryPage() {
   const category = rawCategory || "all";
   const [localVisits, _setLocalVisits] = useState(getGameVisits);
   const [baseIcon, _setBaseIcon] = useState(() => {
-    if (typeof window === "undefined") return "/img/gams-g.png";
+    if (typeof window === "undefined") return "/icons/favicon.ico";
     return (
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-      "/img/gams-g.png"
+      "/icons/favicon.ico"
     );
   });
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());

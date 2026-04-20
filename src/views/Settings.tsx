@@ -57,10 +57,10 @@ export default function SettingsPage() {
     resetAccentColor,
   } = useThemeContext();
   const [baseIcon, _setBaseIcon] = useState(() => {
-    if (typeof window === "undefined") return "/img/gams-g.png";
+    if (typeof window === "undefined") return "/icons/favicon.ico";
     return (
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-      "/img/gams-g.png"
+      "/icons/favicon.ico"
     );
   });
   const { broadcast, apply } = useDisguise("Settings - LearningArcade", baseIcon);

@@ -88,10 +88,10 @@ export default function SearchPage() {
   const [sortMode, setSortMode] = useState<"relevance" | "views">("relevance");
   const [localVisits, setLocalVisits] = useState(getGameVisits);
   const [baseIcon, _setBaseIcon] = useState(() => {
-    if (typeof window === "undefined") return "/img/gams-g.png";
+    if (typeof window === "undefined") return "/icons/favicon.ico";
     return (
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-      "/img/gams-g.png"
+      "/icons/favicon.ico"
     );
   });
   const { counts: viewCounts } = useUmamiViews();
@@ -174,7 +174,7 @@ export default function SearchPage() {
 
   return (
     <div className="ui-page">
-      <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} showHomeLinks={false} />
+      <PrimaryNav showHomeLinks={false} />
 
       <main className="main-container">
         {/* Search Header */}

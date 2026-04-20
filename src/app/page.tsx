@@ -1,9 +1,21 @@
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 
-// Dynamic import for code splitting
 const HomePage = dynamic(() => import("../views/Home"), {
-  loading: () => <div>Loading...</div>,
+  loading: () => (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#000000",
+        color: "#fff",
+      }}
+    >
+      Loading...
+    </div>
+  ),
 });
 
 export const metadata: Metadata = {

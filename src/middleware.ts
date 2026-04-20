@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { pool } from "./utils/db";
 
-// Log visitor IP to database
+const visitorLogCache = new Map<string, number>();
+const LOG_INTERVAL = 60 * 1000; // Log once per minute per IP
+
+// Log visitor IP to database (batched for performance)
 async function logVisitorIP(request: NextRequest): Promise<void> {
   try {
     // Get IP address from various headers (handles proxies, load balancers, etc.)
@@ -12,6 +15,22 @@ async function logVisitorIP(request: NextRequest): Promise<void> {
 
     // Use the first available IP address
     const ipAddress = forwarded?.split(",")[0]?.trim() || realIP || cfConnectingIP || "unknown";
+
+    // Rate limit: only log once per interval per IP
+    const lastLog = visitorLogCache.get(ipAddress);
+    const now = Date.now();
+    if (lastLog && now - lastLog < LOG_INTERVAL) {
+      return;
+    }
+    visitorLogCache.set(ipAddress, now);
+
+    // Clean up old cache entries periodically
+    if (visitorLogCache.size > 1000) {
+      const cutoff = now - LOG_INTERVAL * 2;
+      for (const [key, value] of visitorLogCache) {
+        if (value < cutoff) visitorLogCache.delete(key);
+      }
+    }
 
     // Get other request metadata
     const userAgent = request.headers.get("user-agent") || null;

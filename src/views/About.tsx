@@ -6,10 +6,10 @@ import { useThemeContext } from "../components/ThemeRoot";
 import { useDisguise } from "../hooks/useDisguise";
 import aboutContent from "../data/aboutContent.json";
 function getBaseIcon(): string {
-  if (typeof window === "undefined") return "/img/gams-g.png";
+  if (typeof window === "undefined") return "/icons/favicon.ico";
   return (
     (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-    "/img/gams-g.png"
+    "/icons/favicon.ico"
   );
 }
 
@@ -43,7 +43,7 @@ export default function AboutPage() {
 
   return (
     <div className="ui-page">
-      <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
+      <PrimaryNav />
 
       <main className="ui-container ui-container-md">
         <div className="ui-stack">

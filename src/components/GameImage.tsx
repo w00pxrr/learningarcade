@@ -63,7 +63,7 @@ export function GameImage({
       fill
       sizes="(max-width: 600px) 50vw, (max-width: 900px) 33vw, (max-width: 1200px) 25vw, 280px"
       loading={priority ? "eager" : loading}
-      decoding="async"
+      decoding={priority ? "sync" : "async"}
       fetchPriority={priority ? "high" : "auto"}
       onError={() => {
         if (index + 1 < sourceList.length) {
