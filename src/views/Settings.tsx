@@ -159,7 +159,7 @@ export default function SettingsPage() {
 
   return (
     <div className="ui-page">
-      <PrimaryNav isDark={isDark} onToggleTheme={toggleTheme} />
+      <PrimaryNav />
 
       <main className="ui-container ui-container-md">
         <div className="ui-stack">

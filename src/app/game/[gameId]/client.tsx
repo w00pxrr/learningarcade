@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { gamesById } from "../../../data/games";
 import { PrimaryNav } from "../../../components/PrimaryNav";
 import { GameImage } from "../../../components/GameImage";
-import { useThemeContext } from "../../../components/ThemeRoot";
 import { useDisguise } from "../../../hooks/useDisguise";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { DesktopOnlyOverlay } from "../../../components/DesktopOnlyOverlay";
@@ -32,8 +31,7 @@ interface Props {
 
 export default function ClientGamePage({ gameId }: Props) {
   const router = useRouter();
-  const { isDark, toggleTheme } = useThemeContext();
-  const [baseIcon, setBaseIcon] = useState("/img/gams-g.png");
+  const [baseIcon, setBaseIcon] = useState("/icons/favicon.ico");
   const isMobile = useIsMobile();
   const game = gamesById[gameId];
 
@@ -43,7 +41,7 @@ export default function ClientGamePage({ gameId }: Props) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing favicon from DOM on mount
     setBaseIcon(
       (document.querySelector('link[rel*="icon"]') as HTMLLinkElement | null)?.href ||
-        "/img/gams-g.png",
+        "/icons/favicon.ico",
     );
   }, []);
 
@@ -63,12 +61,7 @@ export default function ClientGamePage({ gameId }: Props) {
   if (!game) {
     return (
       <div className="ui-page">
-        <PrimaryNav
-          isDark={isDark}
-          onToggleTheme={toggleTheme}
-          categoryLinks={categoryLinks}
-          showCategoryBar
-        />
+        <PrimaryNav categoryLinks={categoryLinks} showCategoryBar />
         <main className="ui-container">
           <section className="panel">
             <h2 className="panel-heading">Game Not Found</h2>
@@ -129,12 +122,7 @@ export default function ClientGamePage({ gameId }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PrimaryNav
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        categoryLinks={categoryLinks}
-        showCategoryBar
-      />
+      <PrimaryNav categoryLinks={categoryLinks} showCategoryBar />
       <main className="ui-container">
         <section className="panel panel-header">
           <div>

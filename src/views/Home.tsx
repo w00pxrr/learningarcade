@@ -499,13 +499,7 @@ export default function HomePage() {
 
   return (
     <div className="ui-page">
-      <PrimaryNav
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        showHomeLinks={false}
-        categoryLinks={categoryLinks}
-        showSidebar
-      />
+      <PrimaryNav showHomeLinks={false} categoryLinks={categoryLinks} showSidebar />
 
       <main className="main-container">
         {/* Hero Section */}
