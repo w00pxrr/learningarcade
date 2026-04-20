@@ -50,7 +50,7 @@
     "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "material-symbols": "^0.44.2",
-    "next": "^16.2.3",
+    "next": "^16.2.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   }
